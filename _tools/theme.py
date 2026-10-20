@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup, Comment, NavigableString
 import site_builder as sb
 
 CDN = "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/"
-LOGO = CDN + "2020/02/13/763fe20710eca113bbeddcf52cc6339f.png"
+LOGO = "assets/logo.png"  # transparent version of the shop logo (made from the original PNG; works on dark backgrounds too)
 IMG = {
     "hero": CDN + "2026/08/26/b2963b09f6f2a473a8f3367f8d8ac9e2.clean.jpg",      # two dogs in the forest (text area repaired)
     "story": CDN + "2026/08/26/cf1d3a5ae88219b7f6c3868005c2ff8d.clean.jpg",     # labrador, neon raincoat, picnic (shown zoomed: top-left had text)
@@ -495,7 +495,7 @@ def header(data, site_rel, lang, current=""):
     search = link(d, "search.html", lang)
     return f"""<header class="hd">
  <div class="wrap hd-in">
-  <a class="logo" href="{link(d, 'index.html', lang)}" aria-label="apetto"><img src="{asset(d, LOGO)}" alt="apetto" width="143" height="106"></a>
+  <a class="logo" href="{link(d, 'index.html', lang)}" aria-label="apetto"><img src="{asset(d, LOGO)}" alt="apetto"></a>
   <nav class="nav" aria-label="主選單">{nav_links(data, d, lang, current)}</nav>
   <div class="lang" aria-label="語言">{lang_links(site_rel, lang)}</div>
   <button class="burger" aria-label="選單" aria-expanded="false"><span class="bars"><i></i><i></i><i></i></span></button>
@@ -541,6 +541,7 @@ def page(data, site_rel, lang, title, body, desc="", og_image=None, current="", 
 <meta name="description" content="{esc(desc)}">
 <meta property="og:title" content="{esc(title)}"><meta property="og:description" content="{esc(desc)}"><meta property="og:type" content="website">{og}
 <link rel="icon" href="{asset(d, 'favicon.ico')}">
+<link rel="apple-touch-icon" href="{asset(d, 'assets/icon-192.png')}">
 <script>document.documentElement.className+=" js"</script>
 <link rel="canonical" href="{esc(base)}">{alts}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
