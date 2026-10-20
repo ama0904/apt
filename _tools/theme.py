@@ -585,7 +585,6 @@ def render_home(data, visible, lang):
     body = f"""<section class="hero"><div class="wrap hero-in">
  <div class="rv in"><span class="eyebrow">{esc(BRAND)}</span><h1>阻擋風雨，擁抱無憂的舒適時光</h1>
   <p class="lead">專為毛孩設計的高機能雨衣與保暖夾克。防水、防風、穿脫快速，陪你走過每一個下雨的日子。</p>
-  <div class="cta"><a class="btn big brand" href="{link(d, 'search.html', lang)}">瀏覽全系列</a><a class="btn big ghost" href="{link(d, 'bestsellers.html', lang)}">看暢銷商品</a></div>
   <div class="hero-badges"><span class="badge"><i></i>耐水壓 10000mmH2O</span><span class="badge"><i></i>3M 反光條</span><span class="badge"><i></i>台灣設計製造</span></div>
  </div>
  <div class="hero-img rv in"><img src="{asset(d, IMG['hero'])}" alt="大汪系列" fetchpriority="high"></div>
