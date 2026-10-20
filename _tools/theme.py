@@ -439,7 +439,7 @@ ICON_ARROW = ('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
 # ----------------------------------------------------------------- shell
 def nav_links(data, page_dir, lang, current=""):
     items = [(sb.category_page(c["id"]), c["name"]) for c in data["categories"]]
-    items += [("bestsellers.html", "暢銷商品"), ("pages/5.html", "購物流程"), ("pages/4.html", "關於我們")]
+    items += [("bestsellers.html", "暢銷商品"), ("pages/5.html", "購物流程"), ("information/news.html", "最新消息"), ("pages/4.html", "關於我們")]
     out = []
     for site_path, label in items:
         cls = ' class="cur"' if site_path == current else ""
@@ -474,14 +474,14 @@ def header(data, site_rel, lang, current=""):
   <div class="mm-top"><a href="{link(d, 'index.html', lang)}" aria-label="apetto"><img src="{asset(d, LOGO)}" alt="apetto"></a><button class="mm-close" aria-label="關閉">✕</button></div>
   <form class="mm-search" action="{search}" role="search"><input type="search" name="q" placeholder="商品關鍵字" aria-label="搜尋商品"><button type="submit" aria-label="搜尋">{ICON_SEARCH}</button></form>
   <nav class="mm-nav"><a href="{link(d, 'index.html', lang)}"{cur(current == 'index.html')}>首頁</a>{nav_links(data, d, lang, current)}</nav>
-  <div class="mm-sub"><a href="{link(d, 'search.html', lang)}">全系列</a><a href="{link(d, 'information/news.html', lang)}">最新消息</a><a href="{link(d, 'information/notice.html', lang)}">最新公告</a></div>
+  <div class="mm-sub"><a href="{link(d, 'search.html', lang)}">全系列</a></div>
   <div class="mm-social"><a href="{INSTAGRAM}" target="_blank" rel="noopener">Instagram</a><a href="{PINKOI}" target="_blank" rel="noopener">Pinkoi</a></div>
 </div>"""
 
 
 def footer(data, site_rel, lang):
     d = rel_dir(site_rel)
-    links = [("pages/4.html", "關於我們"), ("pages/5.html", "購物流程"), ("information/news.html", "最新消息"), ("information/notice.html", "最新公告")]
+    links = [("pages/4.html", "關於我們"), ("pages/5.html", "購物流程"), ("information/news.html", "最新消息")]
     small = "".join(f'<a href="{link(d, sp, lang)}">{esc(t)}</a>' for sp, t in links)
     return f"""<footer class="ft">
  <div class="wrap">
@@ -694,8 +694,8 @@ def render_product(data, visible, p, lang, overrides):
 
 
 # ----------------------------------------------------------------- info pages (about / terms / news / announcements)
-INFO_TITLES = {"pages/4.html": "關於我們", "pages/5.html": "購物流程", "information/news.html": "最新消息", "information/notice.html": "最新公告"}
-INFO_PARENT = {"information/news&news_id=1.html": "information/news.html", "information/notice&notice_id=1.html": "information/notice.html"}
+INFO_TITLES = {"pages/4.html": "關於我們", "pages/5.html": "購物流程", "information/news.html": "最新消息", "information/notice.html": "最新消息"}
+INFO_PARENT = {"information/news&news_id=1.html": "information/news.html", "information/notice&notice_id=1.html": "information/news.html"}
 
 
 def _info_soup(rel):
@@ -770,10 +770,13 @@ def render_info(data, rel, lang):
     if rel == "pages/5.html":
         return render_terms(data, rel, lang, crumbs)
     if rel in ("information/news.html", "information/notice.html"):
+        title = "最新消息"
+        crumbs = f'<li><a href="{link(d, "index.html", lang)}">首頁</a></li><li><span>{esc(title)}</span></li>'
+        merged = sorted(info_items("information/news.html") + info_items("information/notice.html"), key=lambda x: x[0], reverse=True)
         items = ""
-        for date, title, target in info_items(rel):
+        for date, title_i, target in merged:
             href_v = link(d, target, lang) if sb._LOCALIZED_RE.match(target) else sb.href(d, target)
-            items += f'<a href="{href_v}"><time>{esc(date)}</time><b>{esc(title)}</b></a>'
+            items += f'<a href="{href_v}"><time>{esc(date)}</time><b>{esc(title_i)}</b></a>'
         content = f'<div class="news-list">{items or "<p class=empty>目前沒有商品</p>"}</div>'
         body = f'<div class="wrap"><ol class="breadcrumb">{crumbs}</ol><div class="ph"><h1>{esc(title)}</h1></div><div style="height:24px"></div>{content}</div>'
     else:
@@ -794,11 +797,9 @@ def render_info(data, rel, lang):
             inner = parts[0] + f'<div class="contact">{parts[1]}</div>'
         date = ""
         if parent:
-            for li in (_info_soup(parent) or BeautifulSoup("", "lxml")).select("#content ul li"):
-                a = li.select_one("a[href]")
-                if a and posixpath.basename(sb.to_site_path(d, a["href"].replace("&amp;", "&"))) == posixpath.basename(rel):
-                    small = li.select_one("small")
-                    date = small.get_text(strip=True) if small else ""
+            for dt, _t, target in info_items("information/news.html") + info_items("information/notice.html"):
+                if posixpath.basename(target) == posixpath.basename(rel):
+                    date = dt
         intro = story_block(d) if rel == "pages/4.html" else ""
         body = (f'<div class="wrap"><ol class="breadcrumb">{crumbs}</ol></div>{intro}<div class="wrap"><article class="article"><div class="ph"><h1>{esc(heading)}</h1></div>'
                 f'{f"<p class=date>{esc(date)}</p>" if date else "<div style=height:20px></div>"}{inner}</article></div>')
