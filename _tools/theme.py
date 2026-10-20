@@ -105,6 +105,7 @@ UI = {
     "回到商品列表": {"en": "Back to products", "ja": "商品一覧へ戻る", "de": "Zurück zu den Produkten"},
     "分享": {"en": "Share", "ja": "シェア", "de": "Teilen"},
     "主選單": {"en": "Main menu", "ja": "メインメニュー", "de": "Hauptmenü"},
+    "訂購步驟": {"en": "How to order", "ja": "ご注文の流れ", "de": "So bestellen Sie"},
     "選購商品": {"en": "Pick your products", "ja": "商品を選ぶ", "de": "Produkte auswählen"},
     "填寫資料與送貨方式": {"en": "Enter your details and delivery method", "ja": "お届け先と配送方法を入力", "de": "Daten und Versandart eingeben"},
     "選擇付款方式結帳": {"en": "Choose payment and check out", "ja": "支払い方法を選んで注文", "de": "Zahlungsart wählen und bestellen"},
@@ -438,7 +439,7 @@ ICON_ARROW = ('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
 # ----------------------------------------------------------------- shell
 def nav_links(data, page_dir, lang, current=""):
     items = [(sb.category_page(c["id"]), c["name"]) for c in data["categories"]]
-    items += [("bestsellers.html", "暢銷商品"), ("pages/4.html", "關於我們")]
+    items += [("bestsellers.html", "暢銷商品"), ("pages/5.html", "購物流程"), ("pages/4.html", "關於我們")]
     out = []
     for site_path, label in items:
         cls = ' class="cur"' if site_path == current else ""
@@ -473,14 +474,14 @@ def header(data, site_rel, lang, current=""):
   <div class="mm-top"><a href="{link(d, 'index.html', lang)}" aria-label="apetto"><img src="{asset(d, LOGO)}" alt="apetto"></a><button class="mm-close" aria-label="關閉">✕</button></div>
   <form class="mm-search" action="{search}" role="search"><input type="search" name="q" placeholder="商品關鍵字" aria-label="搜尋商品"><button type="submit" aria-label="搜尋">{ICON_SEARCH}</button></form>
   <nav class="mm-nav"><a href="{link(d, 'index.html', lang)}"{cur(current == 'index.html')}>首頁</a>{nav_links(data, d, lang, current)}</nav>
-  <div class="mm-sub"><a href="{link(d, 'search.html', lang)}">全系列</a><a href="{link(d, 'information/news.html', lang)}">最新消息</a><a href="{link(d, 'information/notice.html', lang)}">最新公告</a><a href="{link(d, 'pages/5.html', lang)}">服務條款</a></div>
+  <div class="mm-sub"><a href="{link(d, 'search.html', lang)}">全系列</a><a href="{link(d, 'information/news.html', lang)}">最新消息</a><a href="{link(d, 'information/notice.html', lang)}">最新公告</a></div>
   <div class="mm-social"><a href="{INSTAGRAM}" target="_blank" rel="noopener">Instagram</a><a href="{PINKOI}" target="_blank" rel="noopener">Pinkoi</a></div>
 </div>"""
 
 
 def footer(data, site_rel, lang):
     d = rel_dir(site_rel)
-    links = [("pages/4.html", "關於我們"), ("pages/5.html", "服務條款"), ("information/news.html", "最新消息"), ("information/notice.html", "最新公告")]
+    links = [("pages/4.html", "關於我們"), ("pages/5.html", "購物流程"), ("information/news.html", "最新消息"), ("information/notice.html", "最新公告")]
     small = "".join(f'<a href="{link(d, sp, lang)}">{esc(t)}</a>' for sp, t in links)
     return f"""<footer class="ft">
  <div class="wrap">
@@ -693,7 +694,7 @@ def render_product(data, visible, p, lang, overrides):
 
 
 # ----------------------------------------------------------------- info pages (about / terms / news / announcements)
-INFO_TITLES = {"pages/4.html": "關於我們", "pages/5.html": "服務條款", "information/news.html": "最新消息", "information/notice.html": "最新公告"}
+INFO_TITLES = {"pages/4.html": "關於我們", "pages/5.html": "購物流程", "information/news.html": "最新消息", "information/notice.html": "最新公告"}
 INFO_PARENT = {"information/news&news_id=1.html": "information/news.html", "information/notice&notice_id=1.html": "information/notice.html"}
 
 
@@ -870,9 +871,9 @@ def render_terms(data, rel, lang, crumbs):
     steps = "".join(f"<div>{esc(t)}</div>" for t in ("選購商品", "加入購物車", "填寫資料與送貨方式", "選擇付款方式結帳", "email 出貨通知", "收到商品"))
     body = f"""<div class="wrap"><ol class="breadcrumb">{crumbs}</ol>
 <section class="sec tight">
- <div class="terms-intro rv"><span class="eyebrow">服務條款</span><h2>親愛的毛主人們，歡迎來到 apetto。</h2>
+ <div class="terms-intro rv"><span class="eyebrow">購物流程</span><h2>親愛的毛主人們，歡迎來到 apetto。</h2>
   <p>在享受為毛小孩添購新衣的同時，為了擁有良好的購物過程，請您詳閱以下說明事項，可以更瞭解我們的付款方式與出貨流程。謝謝!</p></div>
- <div class="tsec rv"><h2>{ICON_CART}購物流程</h2><div class="steps">{steps}</div></div>
+ <div class="tsec rv"><h2>{ICON_CART}訂購步驟</h2><div class="steps">{steps}</div></div>
  <div class="tsec rv"><h2>{ICON_CARD}付款方式</h2><div class="cards2">
   <div><h3>ATM 轉帳</h3><p>請於 3 日內付款，付款後請使用「填寫匯款單」通知我們。</p></div>
   <div><h3>超商取貨付款</h3><p>到店取貨時付款。</p></div></div></div>
@@ -888,7 +889,7 @@ def render_terms(data, rel, lang, crumbs):
   <p>平日（週一～週五）收到您款項的隔天，確認您的資料無誤將三天內安排出貨。</p>
   <p>例假日與國定假日無法進行出貨，請您特別留意。</p></div></div>
 </section></div>"""
-    return page(data, rel, lang, f"服務條款 | {BRAND}", body, "服務條款", current=rel)
+    return page(data, rel, lang, f"購物流程 | {BRAND}", body, "購物流程", current=rel)
 
 
 def render_404(data, lang):
