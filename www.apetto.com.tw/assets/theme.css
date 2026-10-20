@@ -99,7 +99,7 @@ p{margin:0 0 1em}ul,ol{margin:0;padding:0;list-style:none}button{font:inherit}
 .story{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center}
 .story.flip .story-img{order:2}
 .story-img{border-radius:28px;overflow:hidden;aspect-ratio:4/3;background:var(--sand)}.story-img img{width:100%;height:100%;object-fit:cover}
-.story-img.zoom img{transform:scale(1.5);transform-origin:100% 100%}
+.story-img.zoom img{transform:scale(1.3);transform-origin:100% 100%}
 .story h2{font-size:clamp(26px,3vw,38px);margin-bottom:16px}.story p{color:var(--ink2);font-size:17px}
 .story .btn{margin-top:8px}
 @media (max-width:980px){.story{grid-template-columns:1fr;gap:24px}.story.flip .story-img{order:0}.story-img{aspect-ratio:16/10;border-radius:22px}}
