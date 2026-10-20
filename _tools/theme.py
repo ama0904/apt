@@ -388,15 +388,16 @@ p{margin:0 0 1em;text-wrap:pretty}h1,h2,h3{text-wrap:balance}ul,ol{margin:0;padd
 
 /* footer */
 .ft{background:#fff;border-top:1px solid var(--line);margin-top:24px}
-.ft-in{display:grid;grid-template-columns:1.4fr 1fr 1fr 1.2fr;gap:36px;padding:56px 0 40px}
-.ft .brand img{height:42px;margin-bottom:14px}.ft .brand p{color:var(--mute);font-size:15px;max-width:34ch}
+.ft-in{display:grid;grid-template-columns:1.2fr 1fr;gap:36px;padding:48px 0 32px;align-items:start}
+.ft .brand img{height:42px;margin-bottom:14px}.ft .brand p{color:var(--mute);font-size:15px;max-width:34ch;margin:0 0 .4em}
 .ft h4{font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);margin-bottom:14px}
-.ft li{margin:0 0 10px}.ft li a{font-weight:600;color:var(--ink2)}.ft li a:hover{color:var(--brand-ink)}
+.ft li{margin:0 0 10px;color:var(--ink2);font-weight:600}.ft li a{color:var(--ink2)}.ft li a:hover{color:var(--brand-ink)}
 .ft .social{display:flex;gap:10px;margin-top:14px}.ft .social a{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;border:1.5px solid var(--line2);font-weight:600;font-size:14px}
 .ft .social a:hover{border-color:var(--ink)}
-.ft-bottom{border-top:1px solid var(--line);padding:18px 0;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13.5px;color:var(--mute)}
-@media (max-width:980px){.ft-in{grid-template-columns:1fr 1fr;gap:28px;padding:40px 0 28px}.ft .brand,.ft .contact{grid-column:1/-1}.ft .contact li{white-space:nowrap}.ft .contact li a{white-space:nowrap}}
-@media (max-width:420px){.ft .contact li{white-space:normal}}
+.ft-bottom{border-top:1px solid var(--line);padding:18px 0;display:flex;justify-content:space-between;align-items:center;gap:12px 24px;flex-wrap:wrap;font-size:13.5px;color:var(--mute)}
+.ft-links{display:flex;gap:6px 22px;flex-wrap:wrap}.ft-links a{font-weight:600;color:var(--ink2);font-size:14px}.ft-links a:hover{color:var(--brand-ink)}
+.ft .contact li,.contact-grid span{word-break:keep-all;overflow-wrap:anywhere}
+@media (max-width:980px){.ft-in{grid-template-columns:1fr;gap:28px;padding:36px 0 24px}.ft-bottom{flex-direction:column;align-items:flex-start}}
 """
 
 JS = r"""(function(){
@@ -467,17 +468,16 @@ def header(data, site_rel, lang, current=""):
 
 def footer(data, site_rel, lang):
     d = rel_dir(site_rel)
-    cats = "".join(f'<li><a href="{link(d, sb.category_page(c["id"]), lang)}">{esc(c["name"])}</a></li>' for c in data["categories"])
+    links = [("pages/4.html", "關於我們"), ("pages/5.html", "服務條款"), ("information/news.html", "最新消息"), ("information/notice.html", "最新公告")]
+    small = "".join(f'<a href="{link(d, sp, lang)}">{esc(t)}</a>' for sp, t in links)
     return f"""<footer class="ft">
  <div class="wrap">
   <div class="ft-in">
    <div class="brand"><img src="{asset(d, LOGO)}" alt="apetto"><p>為專業、機能狗衣而生</p><p>阻擋風雨，擁抱無憂的舒適時光</p>
     <div class="social"><a href="{INSTAGRAM}" target="_blank" rel="noopener">Instagram</a><a href="{PINKOI}" target="_blank" rel="noopener">Pinkoi</a></div></div>
-   <div><h4>商品</h4><ul>{cats}<li><a href="{link(d, 'bestsellers.html', lang)}">暢銷商品</a></li><li><a href="{link(d, 'search.html', lang)}">全系列</a></li></ul></div>
-   <div><h4>商店訊息</h4><ul><li><a href="{link(d, 'pages/4.html', lang)}">關於我們</a></li><li><a href="{link(d, 'pages/5.html', lang)}">服務條款</a></li><li><a href="{link(d, 'information/news.html', lang)}">最新消息</a></li><li><a href="{link(d, 'information/notice.html', lang)}">最新公告</a></li></ul></div>
    <div class="contact"><h4>聯絡我們</h4><ul><li><a href="mailto:info@hweider.url.tw">客服信箱：info@hweider.url.tw</a></li><li><a href="tel:+886289915001">連絡電話: 02-89915001</a></li><li>服務時間：週一~週五 10:00-12:00、14:00-18:00</li><li>LINE @apetto</li></ul></div>
   </div>
-  <div class="ft-bottom"><span>Copyright ©2026 apetto 機能寵物衣</span><span>apetto © 匯得興業有限公司</span></div>
+  <div class="ft-bottom"><nav class="ft-links">{small}</nav><span>Copyright ©2026 apetto 機能寵物衣</span></div>
  </div>
 </footer>"""
 
