@@ -25,6 +25,9 @@ try:
         "summary": "測試用商品", "feature_html": sb.text_to_html("第一行\n第二行 <b>粗體</b>?"),
         "description_html": sb.text_to_html("介紹一\n介紹二"), "image": img, "gallery": [{"full": g1["full"], "small": g1["small"]}],
         "options": sb.parse_options("尺寸: S, M, L\n顏色：紅, 藍"), "visible": True, "source": "admin",
+        "i18n": {"en": {"name": "Test Cape EN", "summary": "Test summary EN",
+                        "description_html": "<p>English override description</p>"},
+                 "ja": {"feature_html": "<p>日本語の特徴テスト</p>"}},
     })
     sb.save_data(data)
     print("build:", sb.build_all(data))
@@ -56,6 +59,15 @@ try:
     checks["cat1 thumb path"] = f"../_data/uploads/p{pid}_main-627.jpg" in str(cat)
     checks["hidden page removed"] = not (S / f"product/product&product_id={hidden_id}.html").exists()
     checks["sitemap has new"] = f"product_id={pid}" in (S / "sitemap.xml").read_text(encoding="utf-8")
+    en = BeautifulSoup((S / f"product/product&product_id={pid}.en.html").read_text(encoding="utf-8"), "lxml")
+    ja = (S / f"product/product&product_id={pid}.ja.html").read_text(encoding="utf-8")
+    checks["en name override"] = en.select_one("h1").get_text(strip=True) == "Test Cape EN"
+    checks["en description override"] = "English override description" in str(en.select_one("#tab-description"))
+    checks["en keeps zh feature (no override)"] = "第一行" in str(en.select_one(".product-feature-content"))
+    checks["ja feature override"] = "日本語の特徴テスト" in ja
+    checks["en card uses en name"] = "Test Cape EN" in (S / "product/category&path=1.en.html").read_text(encoding="utf-8")
+    checks["no tracker ids"] = "G-8CRMWS8GBK" not in out and "G-8CRMWS8GBK" not in ja
+    checks["search target set"] = 'data-apt-search="../search.en.html"' in str(en)
     for k, v in checks.items():
         print(("OK  " if v else "FAIL"), k)
     print("ALL PASS" if all(checks.values()) else "SOME FAILED")

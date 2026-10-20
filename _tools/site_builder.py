@@ -16,6 +16,7 @@ import re
 import shutil
 import sys
 from pathlib import Path
+from urllib.parse import unquote
 
 from bs4 import BeautifulSoup, Comment, NavigableString
 
@@ -321,11 +322,21 @@ def fill_list_card(box, p, page_dir="product"):
     span = box.select_one(".name span[itemprop=name]")
     if span:
         span.string = p["name"]
+    else:  # search / bestseller cards: the name is the link text itself
+        name_a = box.select_one(".name a")
+        if name_a is not None:
+            name_a.string = p["name"]
+    for el in box.select("[data-productid]"):
+        el["data-productid"] = pid
     for el in box.select("[onclick]"):
         el["onclick"] = re.sub(r"'\d+'", f"'{pid}'", el["onclick"], count=1)
     d = box.select_one("span[itemprop=description]")
     if d:
         d.string = p.get("summary", "")
+    else:  # search / bestseller cards: plain description div copied from the template card
+        desc = box.select_one(".inner > .description")
+        if desc is not None and not desc.select("a, select, small"):
+            desc.string = p.get("summary", "")
     pr = box.select_one(".price")
     if pr and pr.has_attr("data-price"):
         pr["data-price"] = str(p["price"])
@@ -362,12 +373,24 @@ def fix_legacy_links(html_str):
 
 
 # ----------------------------------------------------------------- i18n
+def product_i18n(p):
+    """Per-language overrides entered in the admin: {lang: {name, summary, feature_html, description_html}}."""
+    out = {k: dict(v) for k, v in (p.get("i18n") or {}).items() if isinstance(v, dict)}
+    for k, v in (p.get("name_i18n") or {}).items():  # older admin versions stored only names
+        if v and not out.get(k, {}).get("name"):
+            out.setdefault(k, {})["name"] = v
+    return out
+
+
 def load_i18n(data):
     table = json.loads(I18N_FILE.read_text(encoding="utf-8")) if I18N_FILE.exists() else {}
     for p in data["products"]:
-        names = {k: v for k, v in (p.get("name_i18n") or {}).items() if v}
-        if names:
-            table[p["name"]] = {**table.get(p["name"], {}), **names}
+        tr = product_i18n(p)
+        for field in ("name", "summary"):
+            src = (p.get(field) or "").strip()
+            vals = {k: v[field] for k, v in tr.items() if (v.get(field) or "").strip()}
+            if src and vals:
+                table[re.sub(r"\s+", " ", src)] = {**table.get(src, {}), **vals}
     return table
 
 
@@ -452,7 +475,7 @@ def lang_variant(site_rel, lang):
     return f"{root}.{lang}{ext}"
 
 
-_LOCALIZED_RE = re.compile(r"^(index|(?:product/)?category&path=\d+|(?:product/)?product&product_id=\d+)\.html$")
+_LOCALIZED_RE = re.compile(r"^(index|search|bestsellers|(?:product/)?category&path=\d+|(?:product/)?product&product_id=\d+)\.html$")
 
 
 def localize_links(soup, lang, page_dir):
@@ -713,6 +736,7 @@ COMMERCE_SELECTORS = [
     ".rightcol .cart", ".rightcol .discount", ".rightcol .description", ".more-actions",
     "#buy_together_list", "#error_buy_togther", "#free_present_list", "#cloudmaker_stock",
     ".InstantAddCart", "a.ToWishList", "a.ToCompare", ".grid-box .cart", ".product-filter",
+    ".grid-box .wishlist", ".grid-box .compare",
     "#button-quick-checkout", "#button-instant-checkout", "#button-cart",
 ]
 COMMERCE_HREF = re.compile(r"(^|/)(login|register|account|wishlist|compare|guestorder|return|order|cart|checkout|newsletter)"
@@ -754,8 +778,123 @@ def strip_commerce(soup):
                 parent.decompose()
 
 
-def write_language_variants(zh_html, site_rel, data):
-    """Write the zh page plus en/ja/de copies (translated, same-language links, switcher, hreflang)."""
+ZH_ONLY_HREF = re.compile(r"(^|/)(information/|pages/|sitemap\.html|special\.html)", re.I)
+
+
+def strip_zh_only(soup):
+    """Foreign pages: drop the Facebook comments tab and links to pages that exist only in Chinese."""
+    for el in soup.select('#tabs a[href="#tab-fb"], #tab-fb'):
+        el.decompose()
+    for a in soup.select("a[href]"):
+        if a.parent is None:
+            continue
+        if ZH_ONLY_HREF.search(a.get("href", "").replace("&amp;", "&")):
+            li = a.find_parent("li")
+            (li or a).decompose()
+    for col in soup.select("#footer-inner-row .column"):
+        if not col.select("a[href]"):
+            col.decompose()
+
+
+# ----------------------------------------------------------------- tracking removal
+TRACKER_SRC = re.compile(r"googletagmanager\.com|google-analytics\.com|clarity\.ms|connect\.facebook\.net/[^\"']*fbevents", re.I)
+TRACKER_INLINE = re.compile(r"clarity\.ms/tag|gtag\('config'|fbq\('init'|googletagmanager\.com/gtm", re.I)
+# no-op stand-ins so the theme's own scripts that call gtag()/fbq() keep working
+TRACKER_STUB = ("window.dataLayer=[];window.gtag=function(){};window.ga=function(){};"
+                "window.fbq=function(){};window.fbq.loaded=true;window.clarity=function(){};")
+
+
+def strip_trackers(soup):
+    for sc in soup.find_all("script"):
+        src = sc.get("src") or ""
+        body = sc.string or ""
+        if (src and TRACKER_SRC.search(src)) or (not src and TRACKER_INLINE.search(body) and len(body) < 3000):
+            sc.decompose()
+    for ns in soup.find_all("noscript"):
+        if re.search(r"googletagmanager|facebook\.com/tr", str(ns)):
+            ns.decompose()
+    for link in soup.select('link[rel="preconnect"], link[rel="dns-prefetch"]'):
+        if re.search(r"googletagmanager|google-analytics|clarity", link.get("href", "")):
+            link.decompose()
+    if soup.head is not None and not soup.select_one("script#apt-no-track"):
+        st = soup.new_tag("script", id="apt-no-track")
+        st.string = TRACKER_STUB
+        soup.head.insert(0, st)
+
+
+# ----------------------------------------------------------------- optimized images (made by optimize_images.py)
+IMG_OPT_FILE = DATA_DIR / "image_opt.json"
+_IMG_OPT = None
+
+
+def load_img_opt():
+    global _IMG_OPT
+    if _IMG_OPT is None:
+        _IMG_OPT = json.loads(IMG_OPT_FILE.read_text(encoding="utf-8")) if IMG_OPT_FILE.exists() else {}
+    return _IMG_OPT
+
+
+def use_optimized_images(soup, page_dir):
+    opt = load_img_opt()
+    if not opt:
+        return
+    for img in soup.find_all("img"):
+        for a in ("src", "data-src", "data-lazy-src"):
+            v = img.get(a)
+            if not isinstance(v, str) or v.startswith(("data:", "http", "//")):
+                continue
+            sp = to_site_path(page_dir, unquote(v))
+            if sp in opt:
+                img[a] = href(page_dir, opt[sp])
+
+
+# ----------------------------------------------------------------- static search
+SEARCH_JS = r"""(function(){
+var root=document.documentElement,target=root.getAttribute('data-apt-search');
+function go(v){v=(v||'').trim();location.href=target+(v?'?q='+encodeURIComponent(v):'');}
+function valNear(el){var box=el.closest('form,.searchbox,#search,.search,div');var i=box&&box.querySelector('input[name=filter_name],input[name=q],input[name=search],input[type=search],input[type=text]');
+ return i?i.value:'';}
+document.addEventListener('keydown',function(e){var t=e.target;if(e.key!=='Enter'||!t.matches)return;
+ if(t.matches('input[name=filter_name],input[name=q],input[name=search],#search input,.searchbox input')){e.preventDefault();e.stopImmediatePropagation();go(t.value);}},true);
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.button-search,#button-search,.searchbox .fa-search,.searchbox i,#search i');
+ if(b){e.preventDefault();e.stopImmediatePropagation();go(valNear(b));}},true);
+document.addEventListener('submit',function(e){var f=e.target;if(f.querySelector('input[name=q],input[name=filter_name],input[name=search]')){e.preventDefault();e.stopImmediatePropagation();
+ go(f.querySelector('input[name=q],input[name=filter_name],input[name=search]').value);}},true);
+if(root.getAttribute('data-apt-search-page')!=='1')return;
+function run(){var p=new URLSearchParams(location.search),q=(p.get('q')||p.get('filter_name')||'').trim(),ql=q.toLowerCase(),n=0;
+ document.querySelectorAll('input[name=filter_name],input[name=q],input[name=search]').forEach(function(i){i.value=q;});
+ var boxes=document.querySelectorAll('.product-grid .grid-box');
+ boxes.forEach(function(b){var t=(b.textContent+' '+(b.getAttribute('data-zh-name')||'')).toLowerCase();
+  var show=!ql||ql.split(/\s+/).every(function(w){return t.indexOf(w)>=0;});b.style.display=show?'':'none';if(show)n++;});
+ var r=document.querySelector('.pagination .results'),msg=root.getAttribute('data-apt-search-msg')||'{n} / {t}';
+ if(r)r.textContent=q?msg.replace('{q}',q).replace('{n}',n):'';
+ var empty=document.getElementById('apt-search-empty');if(empty)empty.style.display=(q&&!n)?'':'none';}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();})();"""
+SEARCH_MSG = {"zh": "「{q}」共 {n} 個商品", "en": "{n} result(s) for “{q}”", "ja": "「{q}」の検索結果：{n} 件", "de": "{n} Treffer für „{q}“"}
+SEARCH_EMPTY = {"zh": "找不到符合的商品，請換個關鍵字試試。", "en": "No products matched. Try another keyword.",
+                "ja": "該当する商品が見つかりませんでした。別のキーワードでお試しください。", "de": "Keine passenden Produkte. Bitte versuchen Sie ein anderes Stichwort."}
+
+
+def add_search(soup, code, site_rel):
+    page_dir = posixpath.dirname(site_rel)
+    soup.html["data-apt-search"] = href(page_dir, lang_variant("search.html", code))
+    if posixpath.basename(site_rel) == "search.html":
+        soup.html["data-apt-search-page"] = "1"
+        soup.html["data-apt-search-msg"] = SEARCH_MSG[code]
+        grid = soup.select_one(".product-grid")
+        if grid is not None and not soup.select_one("#apt-search-empty"):
+            p = soup.new_tag("p", id="apt-search-empty", style="display:none;padding:24px 16px;font-size:16px;text-align:center")
+            p.string = SEARCH_EMPTY[code]
+            grid.insert_after(p)
+    if soup.head is not None and not soup.select_one("script#apt-search-js"):
+        sc = soup.new_tag("script", id="apt-search-js")
+        sc.string = SEARCH_JS
+        soup.head.append(sc)
+
+
+def write_language_variants(zh_html, site_rel, data, per_lang=None):
+    """Write the zh page plus en/ja/de copies (translated, same-language links, switcher, hreflang).
+    per_lang(soup, code) may replace content with admin-entered translations before the table is applied."""
     global _TABLE
     if _TABLE is None:
         _TABLE = load_i18n(data)
@@ -763,10 +902,16 @@ def write_language_variants(zh_html, site_rel, data):
     base = posixpath.basename(site_rel)
     for code, _, _, html_lang in LANGS:
         soup = BeautifulSoup(zh_html, "lxml")
+        strip_trackers(soup)
         if code != "zh":
+            if per_lang:
+                per_lang(soup, code)
             strip_commerce(soup)
+            strip_zh_only(soup)
             translate_soup(soup, code, _TABLE)
             localize_links(soup, code, page_dir)
+        use_optimized_images(soup, page_dir)
+        add_search(soup, code, site_rel)
         add_polish(soup, showcase=(code != "zh"))
         soup.html["lang"] = html_lang
         for alt in soup.select('link[rel="alternate"][hreflang]'):
@@ -825,14 +970,18 @@ def build_category(cat, items, data):
     write_language_variants(str(soup), category_page(cat["id"]), data)
 
 
-def build_listing(tpl_name, out_names, items):
+def build_listing(tpl_name, out_names, items, data):
+    """Search / bestseller listings: zh page + language variants; extra names get a copy of the zh page."""
     soup = soup_of(TPL / tpl_name)
     for grid in soup.select(".product-grid"):
         rebuild_grid(grid, items, fill_list_card, "")
+        for box, p in zip(grid.select(".grid-box"), items):
+            box["data-zh-name"] = p["name"]  # lets searches in any language also match the Chinese name
     set_pagination(soup, len(items))
-    html_str = fix_legacy_links(str(soup))
-    for n in out_names:
-        write_text(SITE / n, html_str)
+    write_language_variants(str(soup), out_names[0], data)
+    zh_page = (SITE / out_names[0]).read_text(encoding="utf-8")
+    for n in out_names[1:]:
+        write_text(SITE / n, zh_page)
 
 
 def _fill_gallery_li(li, full, small, name, page_dir="product"):
@@ -1013,7 +1162,29 @@ def build_product(p, data):
     out = re.sub(r"'(category|item_category)': '[^']*'", lambda m: f"'{m.group(1)}': '{js_cat}'", out)
     out = re.sub(rf"product_id={tpl_pid}\b", f"product_id={pid}", out)
     out = re.sub(rf"product_id%3D{tpl_pid}\b", f"product_id%3D{pid}", out)
-    write_language_variants(out, product_page(p), data)
+
+    overrides = product_i18n(p)
+
+    def per_lang(s, code):
+        o = overrides.get(code) or {}
+        if o.get("feature_html"):
+            el = s.select_one(".product-feature-content")
+            if el is not None:
+                set_inner_html(el, o["feature_html"])
+        if o.get("description_html"):
+            tab = s.select_one("#tab-description")
+            if tab is not None:
+                spin = tab.select_one("#defer-load-spin")
+                spin = copy.copy(spin) if spin else None
+                set_inner_html(tab, o["description_html"])
+                if spin:
+                    tab.insert(0, spin)
+                apply_image_text(s, page_dir)
+        if o.get("summary"):
+            set_meta(s, o["summary"], name="description")
+            set_meta(s, o["summary"], prop="og:description")
+
+    write_language_variants(out, product_page(p), data, per_lang=per_lang)
 
 
 def build_sitemap(visible, data):
@@ -1029,17 +1200,31 @@ def build_all(data=None):
     data = data or load_data()
     _TABLE = load_i18n(data)
     _PATTERN_CACHE.clear()
-    global _IMAGE_TEXT
+    global _IMAGE_TEXT, _IMG_OPT
     _IMAGE_TEXT = None
+    _IMG_OPT = None
     visible = [p for p in data["products"] if p.get("visible", True)]
     build_index(data, visible)
     for cat in data["categories"]:
         build_category(cat, [p for p in visible if cat["id"] in p.get("categories", [])], data)
     for p in visible:
         build_product(p, data)
-    build_listing("search.html", ["search.html", "search@filter_name=&filter_tag=&filter_description=.html"], visible)
-    build_listing("bestsellers.html", ["bestsellers.html"], [p for p in visible if "bestseller" in p.get("sections", [])])
+    build_listing("search.html", ["search.html", "search@filter_name=&filter_tag=&filter_description=.html"], visible, data)
+    build_listing("bestsellers.html", ["bestsellers.html"], [p for p in visible if "bestseller" in p.get("sections", [])], data)
     build_sitemap(visible, data)
+    # pages we do not regenerate (news, about, login, ...): same tracking removal, search and image swap
+    generated = {lang_variant(x, c) for x in ["index.html", "search.html", "bestsellers.html"] for c, _, _, _ in LANGS}
+    for f in list(SITE.glob("*.html")) + list(SITE.glob("information/*.html")) + list(SITE.glob("pages/*.html")) + list(SITE.glob("account/**/*.html")):
+        rel = f.relative_to(SITE).as_posix()
+        if rel in generated or rel.startswith("__probe__"):
+            continue
+        soup = BeautifulSoup(f.read_text(encoding="utf-8"), "lxml")
+        if soup.html is None:
+            continue
+        strip_trackers(soup)
+        use_optimized_images(soup, posixpath.dirname(rel))
+        add_search(soup, "zh", rel)
+        f.write_text(str(soup), encoding="utf-8")
     # remove pages of hidden/deleted products and the legacy path= duplicates
     keep = {lang_variant(product_page(p), code) for p in visible for code, _, _, _ in LANGS}
     for f in SITE.glob("product/product&*product_id=*.html"):

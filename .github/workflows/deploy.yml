@@ -25,7 +25,10 @@ jobs:
           python-version: "3.12"
 
       - name: Install build dependencies
-        run: pip install beautifulsoup4 lxml
+        run: pip install beautifulsoup4 lxml pillow
+
+      - name: Make WebP copies of new images (e.g. admin uploads)
+        run: python _tools/optimize_images.py
 
       - name: Regenerate product pages from _data/products.json
         run: python _tools/site_builder.py build
