@@ -49,7 +49,7 @@ try:
         "plain text wrapped": "<p>介紹一</p>" in out,
     }
     hp = BeautifulSoup((S / "index.html").read_text(encoding="utf-8"), "lxml")
-    checks["home all has new"] = f"product_id={pid}.html" in str(hp.select_one(".any-products"))
+    checks["search lists new"] = f"product_id={pid}.html" in (S / "search.html").read_text(encoding="utf-8")
     checks["home latest has new"] = f"product_id={pid}.html" in str(hp.select_one("#latest-products"))
     checks["home hides hidden"] = f"product_id={hidden_id}.html" not in str(hp)
     cat = BeautifulSoup((S / "product/category&path=1.html").read_text(encoding="utf-8"), "lxml")

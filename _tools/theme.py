@@ -219,8 +219,8 @@ p{margin:0 0 1em}ul,ol{margin:0;padding:0;list-style:none}button{font:inherit}
  .lang-row{display:flex;gap:6px;padding:0 var(--gutter) 10px}
  .lang-row a{flex:1;display:inline-flex;align-items:center;justify-content:center;height:44px;border:1.5px solid var(--line2);border-radius:999px;background:#fff;font-weight:700;font-size:15.5px;color:var(--ink2)}
  .lang-row a.cur{background:var(--ink);border-color:var(--ink);color:#fff}
- .mobile-menu{display:block;position:fixed;inset:0;z-index:60;background:var(--bg);padding:24px var(--gutter);overflow:auto;transform:translateX(100%);transition:transform .25s ease;visibility:hidden}
- body.menu-open .mobile-menu{transform:none;visibility:visible}body.menu-open{overflow:hidden}
+ body.menu-open .mobile-menu{display:block;position:fixed;inset:0;z-index:60;background:var(--bg);padding:24px var(--gutter);overflow:auto;animation:mm-in .22s ease}
+ @keyframes mm-in{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}body.menu-open{overflow:hidden}
  .mm-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.mm-top img{height:38px}
  .mm-close{border:0;background:var(--sand);width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:20px}
  .mm-search{display:flex;background:#fff;border:1.5px solid var(--line2);border-radius:999px;height:52px;padding:0 6px 0 18px;margin-bottom:24px}
@@ -407,13 +407,13 @@ def header(data, site_rel, lang, current=""):
   <button class="burger" aria-label="選單" aria-expanded="false">{ICON_MENU}</button>
  </div>
  <div class="lang-row" aria-label="語言">{lang_links(site_rel, lang)}</div>
- <div class="mobile-menu" role="dialog" aria-label="選單">
+</header>
+<div class="mobile-menu" role="dialog" aria-label="選單">
   <div class="mm-top"><img src="{asset(d, LOGO)}" alt="apetto"><button class="mm-close" aria-label="關閉">✕</button></div>
   <form class="mm-search" action="{search}" role="search"><input type="search" name="q" placeholder="商品關鍵字" aria-label="搜尋商品"><button type="submit" aria-label="搜尋">{ICON_SEARCH}</button></form>
   <nav class="mm-nav">{nav_links(data, d, lang, current)}</nav>
   <div class="mm-sub"><a href="{link(d, 'search.html', lang)}">全系列</a><a href="{link(d, 'information/news.html', lang)}">最新消息</a><a href="{link(d, 'information/notice.html', lang)}">最新公告</a><a href="{link(d, 'pages/5.html', lang)}">服務條款</a></div>
- </div>
-</header>"""
+</div>"""
 
 
 def footer(data, site_rel, lang):
@@ -534,13 +534,7 @@ def render_home(data, visible, lang):
 </div></div></section>
 {section('為什麼選擇 apetto', f'<div class="feats">{feats_html}</div>', sub='機能細節', cls='tight', page_dir=d, lang=lang)}
 {section('推薦商品', product_grid(latest, d, lang, tag='new'), more=('search.html', '查看全部'), sid='latest-products', cls='tight', page_dir=d, lang=lang) if latest else ''}
-<section class="sec"><div class="wrap"><div class="story flip rv">
- <div class="story-img"><img src="{asset(d, IMG['rain'])}" alt="" loading="lazy"></div>
- <div><span class="eyebrow">{esc(BRAND)}</span><h2>極致防水，奔跑不受限。</h2>
-  <p>{esc(HOME_DESC)}</p></div>
-</div></div></section>
-{section('全系列', product_grid(visible, d, lang), sid='all-products', cls='tight any-products', page_dir=d, lang=lang)}
-<section class="sec tight"><div class="wrap"><div class="band rv"><div><h2>不只可愛，更有帥氣</h2><p><span>有專業的製衣團隊，為毛小孩設計出高機能且時尚的衣服，具有防水、防風功能，</span><span>讓毛小孩們在下雨天也可以盡情奔跑</span></p></div><a class="btn" href="{link(d, 'search.html', lang)}">瀏覽全系列</a></div></div></section>"""
+<section class="sec tight"><div class="wrap"><div class="band rv"><div><h2>極致防水，奔跑不受限。</h2><p><span>有專業的製衣團隊，為毛小孩設計出高機能且時尚的衣服，具有防水、防風功能，</span><span>讓毛小孩們在下雨天也可以盡情奔跑</span></p></div><a class="btn" href="{link(d, 'search.html', lang)}">瀏覽全系列</a></div></div></section>"""
     return page(data, "index.html", lang, HOME_TITLE, body, HOME_DESC, og_image=IMG["hero"], current="index.html")
 
 
