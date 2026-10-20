@@ -37,14 +37,12 @@ try:
     checks = {
         "title": pp.title.string.startswith("測試斗篷"),
         "h1": pp.select_one("h1").get_text(strip=True) == "測試斗篷 Test's \"Cape\"",
-        "price": pp.select_one(".product-sell-price").get_text(strip=True) == "$1,234",
+        "price": pp.select_one(".product-sell-price").get_text(strip=True) == "NT$1,234",
         "main img": pp.select_one("#main-defer-image")["src"] == f"../_data/uploads/p{pid}_main.jpg",
         "gallery li": len(pp.select("#image-additional li")) == 2,
         "option groups": len(pp.select("#options .control-group")) == 2,
         "option labels": len(pp.select("#options label.checkbox")) == 5,
         "pid input": pp.select_one("#product_id")["value"] == str(pid),
-        "global_product_id": f"global_product_id = '{pid}'" in out,
-        "js name escaped": "'name': '測試斗篷 Test\\'s \"Cape\"'" in out,
         "no template id left": not re.search(r"product_id=7\b", out),
         "ldjson": f'"productID": "{pid}"' in out,
         "feature html kept": "<b>粗體</b>" in out,
@@ -68,6 +66,10 @@ try:
     checks["en card uses en name"] = "Test Cape EN" in (S / "product/category&path=1.en.html").read_text(encoding="utf-8")
     checks["no tracker ids"] = "G-8CRMWS8GBK" not in out and "G-8CRMWS8GBK" not in ja
     checks["search target set"] = 'data-apt-search="../search.en.html"' in str(en)
+    checks["en has no buy button"] = "立即購買" not in str(en) and "Buy now" not in str(en) and en.select_one(".showcase-note") is not None
+    checks["en ui translated"] = "You may also like" in str(en)
+    checks["404 pages"] = all((S / f).exists() for f in ("404.html", "404.en.html"))
+    checks["theme assets"] = (S / "assets/theme.css").exists() and 'href="../assets/theme.css' in str(en)
     for k, v in checks.items():
         print(("OK  " if v else "FAIL"), k)
     print("ALL PASS" if all(checks.values()) else "SOME FAILED")

@@ -1204,6 +1204,7 @@ def build_sitemap(visible, data):
 
 
 def build_all(data=None):
+    """Render every public page with the storefront theme (see theme.py) and drop stale product pages."""
     global _TABLE
     data = data or load_data()
     _TABLE = load_i18n(data)
@@ -1212,43 +1213,15 @@ def build_all(data=None):
     _IMAGE_TEXT = None
     _IMG_OPT = None
     visible = [p for p in data["products"] if p.get("visible", True)]
-    build_index(data, visible)
-    for cat in data["categories"]:
-        build_category(cat, [p for p in visible if cat["id"] in p.get("categories", [])], data)
-    for p in visible:
-        build_product(p, data)
-    build_listing("search.html", ["search.html", "search@filter_name=&filter_tag=&filter_description=.html"], visible, data)
-    build_listing("bestsellers.html", ["bestsellers.html"], [p for p in visible if "bestseller" in p.get("sections", [])], data)
-    for rel in INFO_PAGES:
-        tpl = TPL / "info" / rel
-        if tpl.exists():
-            write_language_variants(tpl.read_text(encoding="utf-8").lstrip("﻿"), rel, data)
+    if str(HERE) not in sys.path:
+        sys.path.insert(0, str(HERE))
+    import theme
+    theme.build_all(data, visible)
     build_sitemap(visible, data)
-    # pages we do not regenerate (login, account, ...): same tracking removal, search and image swap
-    generated = {lang_variant(x, c) for x in ["index.html", "search.html", "bestsellers.html"] + INFO_PAGES for c, _, _, _ in LANGS}
-    for f in list(SITE.glob("*.html")) + list(SITE.glob("information/*.html")) + list(SITE.glob("pages/*.html")) + list(SITE.glob("account/**/*.html")):
-        rel = f.relative_to(SITE).as_posix()
-        if rel in generated or rel.startswith("__probe__"):
-            continue
-        soup = BeautifulSoup(f.read_text(encoding="utf-8").lstrip("﻿"), "lxml")
-        if soup.html is None or soup.head is None:
-            continue
-        strip_trackers(soup)
-        use_optimized_images(soup, posixpath.dirname(rel))
-        add_search(soup, "zh", rel)
-        f.write_text(str(soup), encoding="utf-8")
-    # remove pages of hidden/deleted products and the legacy path= duplicates
     keep = {lang_variant(product_page(p), code) for p in visible for code, _, _, _ in LANGS}
     for f in SITE.glob("product/product&*product_id=*.html"):
-        rel = f.relative_to(SITE).as_posix()
-        if rel not in keep:
+        if f.relative_to(SITE).as_posix() not in keep:
             f.unlink()
-    # legacy links in pages we do not regenerate
-    for f in list(SITE.glob("*.html")) + list(SITE.glob("information/*.html")) + list(SITE.glob("pages/*.html")) + list(SITE.glob("account/**/*.html")):
-        s = f.read_text(encoding="utf-8")
-        s2 = fix_legacy_links(s)
-        if s2 != s:
-            f.write_text(s2, encoding="utf-8")
     return {"pages": len(visible), "categories": len(data["categories"])}
 
 

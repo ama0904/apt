@@ -191,6 +191,7 @@
         <div class="full"><label class="f">所屬分類</label><div class="checks" id="cat-checks"></div></div>
         <div class="full"><label class="f">首頁顯示區塊</label><div class="checks" id="sec-checks"></div></div>
         <div class="full"><label class="f">商品列表簡介（分類頁卡片上的一句話）</label><input type="text" name="summary"></div>
+        <div class="full"><label class="f">購買連結（蝦皮等賣場網址；留空則「立即購買」連到原官網商品頁）</label><input type="url" name="buy_url" placeholder="https://shopee.tw/..."></div>
         <div class="full"><label class="f">商品頁重點說明（價格上方，每行一段；也可直接貼 HTML）</label><textarea name="feature"></textarea></div>
         <div class="full"><label class="f">商品介紹（每行一段；也可直接貼 HTML）</label><textarea name="description" class="tall"></textarea></div>
         <div class="full"><label class="f">選項（每行一組，格式：<code>尺寸: S, M, L, XL</code>）</label><textarea name="options" style="min-height:56px"></textarea></div>
@@ -241,7 +242,7 @@
 const $ = s => document.querySelector(s);
 const LS = { token: 'apetto_admin_token', repo: 'apetto_admin_repo', branch: 'apetto_admin_branch' };
 const SITE_DIR = 'www.apetto.com.tw';
-const SECTIONS_FALLBACK = [{ key: 'all', name: '全系列' }, { key: 'bestseller', name: '暢銷商品' }, { key: 'latest', name: '推薦商品' }];
+const SECTIONS_FALLBACK = [{ key: 'bestseller', name: '暢銷商品' }, { key: 'latest', name: '推薦商品' }];
 
 function guessRepo() {
   const h = location.hostname, seg = location.pathname.split('/').filter(Boolean);
@@ -505,7 +506,7 @@ function openForm(p) {
   $('#cur-main').innerHTML = p && p.image.thumb ? `<img src="${rawUrl(p.image.thumb)}">` : '';
   $('#cur-gallery').innerHTML = p ? (p.gallery || []).map(g => `<img src="${rawUrl(g.small || g.full)}">`).join('') : '';
   if (p) {
-    f.name.value = p.name; f.price.value = p.price; f.summary.value = p.summary || '';
+    f.name.value = p.name; f.price.value = p.price; f.summary.value = p.summary || ''; f.buy_url.value = p.buy_url || '';
     const tr = productTr(p);
     TR_LANGS.forEach(([k]) => {
       const o = tr[k] || {};
@@ -517,7 +518,7 @@ function openForm(p) {
     f.querySelectorAll('input[name=categories]').forEach(c => c.checked = (p.categories || []).includes(Number(c.value)));
     f.querySelectorAll('input[name=sections]').forEach(c => c.checked = (p.sections || []).includes(c.value));
   } else {
-    f.querySelectorAll('input[name=sections]').forEach(c => c.checked = c.value === 'all');
+    f.querySelectorAll('input[name=sections]').forEach(c => c.checked = c.value === 'latest');
   }
   markFilled();
   $('#tr-blocks').oninput = markFilled;
@@ -605,6 +606,7 @@ $('#form').onsubmit = async (ev) => {
     Object.assign(p, {
       name, price,
       summary: (fd.get('summary') || '').trim(),
+      buy_url: (fd.get('buy_url') || '').trim(),
       i18n: readTr(fd),
       feature_html: textToHtml(fd.get('feature')),
       description_html: textToHtml(fd.get('description')),
