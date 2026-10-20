@@ -105,6 +105,23 @@ UI = {
     "回到商品列表": {"en": "Back to products", "ja": "商品一覧へ戻る", "de": "Zurück zu den Produkten"},
     "分享": {"en": "Share", "ja": "シェア", "de": "Teilen"},
     "主選單": {"en": "Main menu", "ja": "メインメニュー", "de": "Hauptmenü"},
+    "選購商品": {"en": "Pick your products", "ja": "商品を選ぶ", "de": "Produkte auswählen"},
+    "填寫資料與送貨方式": {"en": "Enter your details and delivery method", "ja": "お届け先と配送方法を入力", "de": "Daten und Versandart eingeben"},
+    "選擇付款方式結帳": {"en": "Choose payment and check out", "ja": "支払い方法を選んで注文", "de": "Zahlungsart wählen und bestellen"},
+    "email 出貨通知": {"en": "Shipping notice by email", "ja": "発送メールが届く", "de": "Versandbestätigung per E-Mail"},
+    "收到商品": {"en": "Receive your order", "ja": "商品を受け取る", "de": "Bestellung erhalten"},
+    "ATM 轉帳": {"en": "ATM bank transfer", "ja": "ATM 振込", "de": "ATM-Überweisung"},
+    "請於 3 日內付款，付款後請使用「填寫匯款單」通知我們。": {"en": "Please pay within 3 days, then let us know with the “Payment Notice” form.", "ja": "3日以内にお振込みのうえ、「振込通知」フォームでお知らせください。", "de": "Bitte innerhalb von 3 Tagen zahlen und uns danach über das Formular „Zahlungsmitteilung“ informieren."},
+    "到店取貨時付款。": {"en": "Pay when you collect the parcel at the store.", "ja": "店頭で受け取り時にお支払い。", "de": "Bezahlung bei Abholung im Laden."},
+    "郵局寄送": {"en": "Post office delivery", "ja": "郵便局配送", "de": "Postversand"},
+    "全家 超商取貨": {"en": "FamilyMart pickup", "ja": "ファミリーマート受け取り", "de": "Abholung bei FamilyMart"},
+    "7-11 超商取貨": {"en": "7-Eleven pickup", "ja": "セブン-イレブン受け取り", "de": "Abholung bei 7-Eleven"},
+    "僅限使用 ATM 付款": {"en": "ATM payment only", "ja": "ATM 振込のみ", "de": "Nur mit ATM-Überweisung"},
+    "請務必填寫真實姓名，超商將核對身分證件。": {"en": "Please enter your real name. The store checks ID at pickup.", "ja": "本名をご記入ください。店舗で身分証を確認します。", "de": "Bitte den echten Namen angeben. Der Laden prüft den Ausweis."},
+    "運費": {"en": "Shipping fee", "ja": "送料", "de": "Versandkosten"},
+    "一起長大": {"en": "Growing up together", "ja": "いっしょに育つ", "de": "Gemeinsam aufwachsen"},
+    "成年後加入": {"en": "Joining us later", "ja": "大人になってから", "de": "Später dazugekommen"},
+    "年老時相伴": {"en": "Company in later years", "ja": "晩年のそばに", "de": "Begleiter im Alter"},
     "最新": {"en": "New", "ja": "新着", "de": "Neu"},
     "熱賣": {"en": "Bestseller", "ja": "人気", "de": "Bestseller"},
 }
@@ -182,7 +199,7 @@ CSS = r"""
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 var(--font);-webkit-font-smoothing:antialiased}
 img{max-width:100%;height:auto;display:block}a{color:inherit;text-decoration:none}
 h1,h2,h3,h4{margin:0;font-weight:700;line-height:1.25;letter-spacing:-.01em}
-p{margin:0 0 1em}ul,ol{margin:0;padding:0;list-style:none}button{font:inherit}
+p{margin:0 0 1em;text-wrap:pretty}h1,h2,h3{text-wrap:balance}ul,ol{margin:0;padding:0;list-style:none}button{font:inherit}
 .wrap{max-width:var(--max);margin:0 auto;padding:0 var(--gutter)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 26px;border-radius:999px;border:1.5px solid var(--ink);background:var(--ink);color:#fff;font-weight:700;font-size:16px;cursor:pointer;transition:transform .15s,background .15s,color .15s,border-color .15s}
@@ -333,7 +350,7 @@ p{margin:0 0 1em}ul,ol{margin:0;padding:0;list-style:none}button{font:inherit}
 .about-lead h2{font-size:clamp(26px,3.4vw,40px);margin:0 0 18px;letter-spacing:-.02em}.about-lead p{font-size:18px;color:var(--ink2);margin:0}
 .cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:36px}
 .cards3 div{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px 24px 28px}
-.cards3 b{display:block;font-size:34px;font-weight:800;color:var(--brand);margin-bottom:10px;letter-spacing:-.02em}.cards3 p{margin:0;font-size:17px;line-height:1.7}
+.cards3 svg{width:36px;height:36px;color:var(--brand);margin-bottom:12px}.cards3 h3{font-size:19px;margin:0 0 8px}.cards3 p{margin:0;font-size:16.5px;line-height:1.7;color:var(--ink2)}
 .quote{background:var(--sand);border-radius:28px;padding:48px 32px;text-align:center;margin:48px 0}
 .quote p{margin:0 auto;max-width:28ch;font-size:clamp(22px,2.6vw,30px);font-weight:700;line-height:1.5;letter-spacing:-.01em}
 .contact-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
@@ -341,6 +358,20 @@ p{margin:0 0 1em}ul,ol{margin:0;padding:0;list-style:none}button{font:inherit}
 .contact-grid svg{flex:0 0 auto;width:26px;height:26px;color:var(--brand-ink)}.contact-grid a:hover{border-color:var(--ink)}
 .about-foot{margin:18px 0 0;color:var(--mute);font-size:14px;text-align:center}
 @media (max-width:980px){.cards3{grid-template-columns:1fr;gap:12px}.quote{padding:36px 22px;border-radius:22px;margin:36px 0}.contact-grid{grid-template-columns:1fr;gap:10px}}
+/* terms page */
+.terms-intro{max-width:760px;margin:0 auto 8px;text-align:center}.terms-intro h2{font-size:clamp(26px,3.4vw,38px);margin:0 0 14px}.terms-intro p{font-size:17px;color:var(--ink2)}
+.tsec{margin-top:48px}.tsec h2{font-size:24px;margin-bottom:18px;display:flex;align-items:center;gap:10px}.tsec h2 svg{width:26px;height:26px;color:var(--brand-ink)}
+.steps{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;counter-reset:step}
+.steps div{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 14px 16px;font-weight:600;font-size:15px;line-height:1.5}
+.steps div:before{counter-increment:step;content:counter(step);display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--brand);color:#fff;font-size:13px;font-weight:800;margin-bottom:10px}
+.cards2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.cards2 div,.ship div{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px}
+.cards2 h3,.ship h3{font-size:18px;margin:0 0 6px}.cards2 p,.ship p{margin:0;color:var(--ink2);font-size:15.5px}
+.ship{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.ship .fee{display:block;font-size:28px;font-weight:800;color:var(--brand-ink);margin:6px 0 8px;letter-spacing:-.02em}.ship small{display:block;color:var(--mute);font-size:13px;margin-top:4px}
+.free{background:var(--ink);color:#fff;border-radius:16px;padding:16px 22px;font-weight:700;margin-bottom:16px;display:flex;gap:10px;align-items:center}.free i{width:10px;height:10px;border-radius:50%;background:var(--brand);flex:0 0 auto}
+.notebox{background:var(--sand);border-radius:var(--radius);padding:22px 26px}.notebox p{margin:0 0 .5em;font-size:16px}.notebox p:last-child{margin:0}
+@media (max-width:980px){.steps{grid-template-columns:repeat(2,1fr)}.cards2,.ship{grid-template-columns:1fr;gap:12px}.tsec{margin-top:36px}}
 /* article */
 .article{max-width:760px;margin:0 auto;padding:0 0 64px;font-size:17px}
 .article h1{font-size:clamp(28px,3.4vw,40px);margin:0 0 10px}.article .date{color:var(--mute);font-size:15px;margin-bottom:28px}
@@ -721,6 +752,8 @@ def render_info(data, rel, lang):
     crumbs += f"<li><span>{esc(title)}</span></li>"
     if rel == "pages/4.html":
         return render_about(data, rel, lang, crumbs)
+    if rel == "pages/5.html":
+        return render_terms(data, rel, lang, crumbs)
     if rel in ("information/news.html", "information/notice.html"):
         items = ""
         for date, title, target in info_items(rel):
@@ -766,6 +799,13 @@ def story_block(d):
 </div></div></section>"""
 
 
+ICON_PAW = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">'
+            '<ellipse cx="7" cy="8" rx="2" ry="2.6"/><ellipse cx="17" cy="8" rx="2" ry="2.6"/><ellipse cx="4.5" cy="13" rx="1.8" ry="2.2"/><ellipse cx="19.5" cy="13" rx="1.8" ry="2.2"/>'
+            '<path d="M12 11c3 0 6 3.2 6 6a3 3 0 0 1-3 3c-1.2 0-2-.5-3-.5s-1.8.5-3 .5a3 3 0 0 1-3-3c0-2.8 3-6 6-6z"/></svg>')
+ICON_BUDDY = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+              '<path d="M4 20v-5a4 4 0 0 1 4-4h2"/><circle cx="8" cy="6" r="3"/><path d="M12 20l1-5 3-3 3 3 1 5"/><path d="M16 12V9l3-2"/><circle cx="16" cy="6.5" r="1.3"/></svg>')
+ICON_HEART = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+              '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M12 7.4V20"/></svg>')
 ICON_MAIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>'
 ICON_PHONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>'
 ICON_CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
@@ -780,9 +820,9 @@ def render_about(data, rel, lang, crumbs):
  <div class="about-lead rv"><span class="eyebrow">關於 apetto</span><h2>起源自 a pet to … 的發想，進而誕生了 apetto。</h2>
   <p>每一位毛小孩對我們而言，都是獨一無二的寶貝，更是生命軌跡中的一部分。</p></div>
  <div class="cards3 rv">
-  <div><b>01</b><p>有的毛小孩陪著我們一起長大，成為我們的手足。</p></div>
-  <div><b>02</b><p>有的毛小孩在我們成年後加入，成為了最佳戰友。</p></div>
-  <div><b>03</b><p>有的毛小孩在年老時來到身邊，璀璨了遲暮之年。</p></div>
+  <div>{ICON_PAW}<h3>一起長大</h3><p>有的毛小孩陪著我們一起長大，成為我們的手足。</p></div>
+  <div>{ICON_BUDDY}<h3>成年後加入</h3><p>有的毛小孩在我們成年後加入，成為了最佳戰友。</p></div>
+  <div>{ICON_HEART}<h3>年老時相伴</h3><p>有的毛小孩在年老時來到身邊，璀璨了遲暮之年。</p></div>
  </div>
  <div class="quote rv"><p>毛小孩是我們最忠實且貼心的家人。</p></div>
  <div class="story flip rv">
@@ -804,6 +844,37 @@ def render_about(data, rel, lang, crumbs):
  <p class="about-foot">apetto © 匯得興業有限公司</p>
 </div></section>"""
     return page(data, rel, lang, f"關於我們 | {BRAND}", body, "關於 apetto", og_image=IMG["story"], current=rel)
+
+
+ICON_CART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11h11l2-7H6.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>'
+ICON_CARD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18M7 14h4"/></svg>'
+ICON_TRUCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/></svg>'
+
+
+def render_terms(data, rel, lang, crumbs):
+    d = rel_dir(rel)
+    steps = "".join(f"<div>{esc(t)}</div>" for t in ("選購商品", "加入購物車", "填寫資料與送貨方式", "選擇付款方式結帳", "email 出貨通知", "收到商品"))
+    body = f"""<div class="wrap"><ol class="breadcrumb">{crumbs}</ol>
+<section class="sec tight">
+ <div class="terms-intro rv"><span class="eyebrow">服務條款</span><h2>親愛的毛主人們，歡迎來到 apetto。</h2>
+  <p>在享受為毛小孩添購新衣的同時，為了擁有良好的購物過程，請您詳閱以下說明事項，可以更瞭解我們的付款方式與出貨流程。謝謝!</p></div>
+ <div class="tsec rv"><h2>{ICON_CART}購物流程</h2><div class="steps">{steps}</div></div>
+ <div class="tsec rv"><h2>{ICON_CARD}付款方式</h2><div class="cards2">
+  <div><h3>ATM 轉帳</h3><p>請於 3 日內付款，付款後請使用「填寫匯款單」通知我們。</p></div>
+  <div><h3>超商取貨付款</h3><p>到店取貨時付款。</p></div></div></div>
+ <div class="tsec rv"><h2>{ICON_TRUCK}寄送方式及運費計算</h2>
+  <div class="free"><i></i><span>寄送目的地為台灣地區，單筆金額滿新台幣 $3000 以上，即享免運優惠!</span></div>
+  <div class="ship">
+   <div><h3>郵局寄送</h3><span class="fee">$65</span><p>僅限使用 ATM 付款</p></div>
+   <div><h3>全家 超商取貨</h3><span class="fee">$60</span><p>請務必填寫真實姓名，超商將核對身分證件。</p></div>
+   <div><h3>7-11 超商取貨</h3><span class="fee">$60</span><p>請務必填寫真實姓名，超商將核對身分證件。</p></div>
+  </div></div>
+ <div class="tsec rv"><h2>{ICON_CLOCK}出貨工作天</h2><div class="notebox">
+  <p>訂單確認後，從付款到收到貨品，大約需要 3~6 個工作天 (不含假日)。</p>
+  <p>平日（週一～週五）收到您款項的隔天，確認您的資料無誤將三天內安排出貨。</p>
+  <p>例假日與國定假日無法進行出貨，請您特別留意。</p></div></div>
+</section></div>"""
+    return page(data, rel, lang, f"服務條款 | {BRAND}", body, "服務條款", current=rel)
 
 
 def render_404(data, lang):
