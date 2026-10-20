@@ -30,6 +30,9 @@ jobs:
       - name: Make WebP copies of new images (e.g. admin uploads)
         run: python _tools/optimize_images.py
 
+      - name: Uniform crops of product photos (cards, thumbnails, gallery)
+        run: python _tools/crop_images.py
+
       - name: Regenerate product pages from _data/products.json
         run: python _tools/site_builder.py build
 

@@ -157,6 +157,18 @@ def digest(text):
     return hashlib.md5(text.encode("utf-8")).hexdigest()[:8]
 
 
+_CROPS = None
+
+
+def crop(site_path, key):
+    """Uniform crop of a product photo made by crop_images.py ('sq' 1:1 or 'w43' 4:3); the original if none."""
+    global _CROPS
+    if _CROPS is None:
+        f = sb.DATA_DIR / "image_crops.json"
+        _CROPS = json.loads(f.read_text(encoding="utf-8")) if f.exists() else {}
+    return (_CROPS.get(site_path) or {}).get(key) or site_path
+
+
 def buy_link(p, data):
     settings = data.get("settings") or {}
     return (p.get("buy_url") or "").strip() or (settings.get("shop_url") or "").strip() or f"{sb.ONLINE}product/product&product_id={p['id']}"
@@ -319,7 +331,7 @@ p{margin:0 0 1em;text-wrap:pretty}h1,h2,h3{text-wrap:balance}ul,ol{margin:0;padd
 .pd{display:grid;grid-template-columns:1.15fr 1fr;gap:48px;padding:24px 0 48px;align-items:start}.pd>*{min-width:0}
 .gallery{position:sticky;top:92px}
 .gal-main{border-radius:24px;overflow:hidden;background:#fff;border:1px solid var(--line);aspect-ratio:4/3}
-.gal-main img{width:100%;height:100%;object-fit:contain}
+.gal-main img{width:100%;height:100%;object-fit:cover}
 .thumbs{display:flex;gap:10px;margin-top:12px;overflow-x:auto;padding-bottom:4px}
 .thumbs li{flex:0 0 auto}.thumbs a{display:block;width:76px;height:76px;border-radius:14px;overflow:hidden;border:2px solid transparent;background:#fff}
 .thumbs li.cur a,.thumbs a:hover{border-color:var(--ink)}.thumbs img{width:100%;height:100%;object-fit:cover}
@@ -520,7 +532,7 @@ ASSET_VER = {"css": digest(CSS), "js": digest(JS)}
 # ----------------------------------------------------------------- components
 def product_card(p, page_dir, lang, tag=None):
     url = link(page_dir, sb.product_page(p), lang)
-    thumb = asset(page_dir, p["image"]["thumb"] or p["image"]["full"])
+    thumb = asset(page_dir, crop(p["image"]["full"], "sq") if p["image"]["full"] in (_CROPS or {}) else (p["image"]["thumb"] or p["image"]["full"]))
     badge = ""
     if tag == "hot":
         badge = '<span class="tag hot">熱賣</span>'
@@ -608,12 +620,13 @@ def render_listing(data, site_rel, lang, title, items, sub="", current="all", se
 
 def gallery_html(p, d):
     name = p["name"]
-    full = asset(d, p["image"]["full"])
-    items = [(p["image"]["full"], p["image"].get("small") or p["image"]["full"])] + [(g["full"], g.get("small") or g["full"]) for g in p.get("gallery", [])]
-    lis = "".join(f'<li{cur(i == 0)}><a href="{asset(d, f)}" title="{esc(name)}"><img src="{asset(d, s)}" alt="{esc(name)}" loading="lazy"></a></li>'
-                  for i, (f, s) in enumerate(items))
-    thumbs = f'<ul id="image-additional" class="thumbs">{lis}</ul>' if len(items) > 1 else f'<ul id="image-additional" class="thumbs" hidden>{lis}</ul>'
-    return f'<div class="gallery"><div class="gal-main"><img id="main-defer-image" src="{full}" alt="{esc(name)}"></div>{thumbs}</div>'
+    fulls = [p["image"]["full"]] + [g["full"] for g in p.get("gallery", [])]
+    main = asset(d, crop(fulls[0], "w43"))
+    lis = "".join(f'<li{cur(i == 0)}><a href="{asset(d, crop(f, "w43"))}" title="{esc(name)}"><img src="{asset(d, crop(f, "sq"))}" alt="{esc(name)}" loading="lazy"></a></li>'
+                  for i, f in enumerate(fulls))
+    hidden = "" if len(fulls) > 1 else " hidden"
+    return (f'<div class="gallery"><div class="gal-main"><img id="main-defer-image" src="{main}" alt="{esc(name)}"></div>'
+            f'<ul id="image-additional" class="thumbs"{hidden}>{lis}</ul></div>')
 
 
 def options_html(p, lang):
@@ -909,6 +922,8 @@ def i18n_table(data):
 def build_all(data, visible):
     table = i18n_table(data)
     sb._PATTERN_CACHE.clear()
+    global _CROPS
+    _CROPS = None
     assets = sb.SITE / "assets"
     assets.mkdir(exist_ok=True)
     (assets / "theme.css").write_text(CSS.strip() + "\n", encoding="utf-8")

@@ -41,6 +41,7 @@
 
 - 搜尋是純前端：頁首搜尋框會導到該語言的 `search.*.html?q=關鍵字`，在瀏覽器裡篩選商品，也能用中文名稱搜到外語頁面的商品。
 - `_tools/optimize_images.py` 為大圖產生最大 1600px 的 WebP（`*.opt.webp`），建置時自動換用。部署流程每次都會跑，後台新上傳的圖也會處理。
+- `_tools/crop_images.py` 把每張商品圖（主圖與圖庫）裁成統一比例：`*.sq.webp`（1:1，列表卡片與縮圖）、`*.w43.webp`（4:3，商品頁主圖），裁切位置自動抓畫面細節最多的區域（狗與衣服），對照表在 `_data/image_crops.json`。部署流程每次都會跑。
 - 原站的 Google Analytics、Microsoft Clarity、Facebook 追蹤碼在建置時移除；要加自己的追蹤碼，加在 `_tools/site_builder.py` 的 `strip_trackers` 之後即可。
 
 ### 圖片裡的文字
@@ -67,6 +68,8 @@ _tools/site_builder.py      資料、翻譯、圖片文字、搜尋等共用邏�
 _tools/admin.html           後台頁面（部署時複製到網站根目錄）
 _tools/mirror.py            當初爬取整站用的爬蟲
 _tools/verify.py            檢查站內連結是否都指到存在的檔案
+_tools/crop_images.py       商品圖統一裁切（1:1 與 4:3）
+_tools/repair_banners.py    重做兩張首頁橫幅的去字底圖
 _tools/prune_assets.py      列出 / 刪除 _ext 裡沒人用到的檔案
 _tools/selftest.py          新增假商品、建置、檢查輸出、還原
 .github/workflows/deploy.yml  建置與部署流程
