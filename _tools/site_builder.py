@@ -859,21 +859,25 @@ var root=document.documentElement,target=root.getAttribute('data-apt-search');
 function go(v){v=(v||'').trim();location.href=target+(v?'?q='+encodeURIComponent(v):'');}
 function valNear(el){var box=el.closest('form,.searchbox,#search,.search,div');var i=box&&box.querySelector('input[name=filter_name],input[name=q],input[name=search],input[type=search],input[type=text]');
  return i?i.value:'';}
-document.addEventListener('keydown',function(e){var t=e.target;if(e.key!=='Enter'||!t.matches)return;
+document.addEventListener('keydown',function(e){var t=e.target;if(e.key!=='Enter'||!t.matches||t.closest('.bigsearch'))return;
  if(t.matches('input[name=filter_name],input[name=q],input[name=search],#search input,.searchbox input')){e.preventDefault();e.stopImmediatePropagation();go(t.value);}},true);
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.button-search,#button-search,.searchbox .fa-search,.searchbox i,#search i');
  if(b){e.preventDefault();e.stopImmediatePropagation();go(valNear(b));}},true);
-document.addEventListener('submit',function(e){var f=e.target;if(f.querySelector('input[name=q],input[name=filter_name],input[name=search]')){e.preventDefault();e.stopImmediatePropagation();
+document.addEventListener('submit',function(e){var f=e.target;if(f.matches&&f.matches('.bigsearch'))return;if(f.querySelector('input[name=q],input[name=filter_name],input[name=search]')){e.preventDefault();e.stopImmediatePropagation();
  go(f.querySelector('input[name=q],input[name=filter_name],input[name=search]').value);}},true);
 if(root.getAttribute('data-apt-search-page')!=='1')return;
-function run(){var p=new URLSearchParams(location.search),q=(p.get('q')||p.get('filter_name')||'').trim(),ql=q.toLowerCase(),n=0;
- document.querySelectorAll('input[name=filter_name],input[name=q],input[name=search]').forEach(function(i){i.value=q;});
+var typed=null;
+function run(){var p=new URLSearchParams(location.search),q=(typed!==null?typed:(p.get('q')||p.get('filter_name')||'')).trim(),ql=q.toLowerCase(),n=0;
+ if(typed===null)document.querySelectorAll('input[name=filter_name],input[name=q],input[name=search]').forEach(function(i){i.value=q;});
  var boxes=document.querySelectorAll('.product-grid .grid-box');
  boxes.forEach(function(b){var t=(b.textContent+' '+(b.getAttribute('data-zh-name')||'')).toLowerCase();
   var show=!ql||ql.split(/\s+/).every(function(w){return t.indexOf(w)>=0;});b.style.display=show?'':'none';if(show)n++;});
  var r=document.querySelector('.pagination .results'),msg=root.getAttribute('data-apt-search-msg')||'{n} / {t}';
  if(r)r.textContent=q?msg.replace('{q}',q).replace('{n}',n):'';
  var empty=document.getElementById('apt-search-empty');if(empty)empty.style.display=(q&&!n)?'':'none';}
+document.addEventListener('input',function(e){var t=e.target;if(!(t.matches&&t.matches('.bigsearch input')))return;typed=t.value;run();
+ try{history.replaceState(null,'',typed.trim()?'?q='+encodeURIComponent(typed.trim()):location.pathname);}catch(x){}});
+document.addEventListener('submit',function(e){if(e.target.matches&&e.target.matches('.bigsearch')){e.preventDefault();e.stopImmediatePropagation();typed=e.target.querySelector('input').value;run();}},true);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();})();"""
 SEARCH_MSG = {"zh": "「{q}」共 {n} 個商品", "en": "{n} result(s) for “{q}”", "ja": "「{q}」の検索結果：{n} 件", "de": "{n} Treffer für „{q}“"}
 SEARCH_EMPTY = {"zh": "找不到符合的商品，請換個關鍵字試試。", "en": "No products matched. Try another keyword.",

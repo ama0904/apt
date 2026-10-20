@@ -11,7 +11,7 @@
 <link href="product&amp;product_id=6.html" rel="canonical"/><link href="product&amp;product_id=6.html" hreflang="zh-Hant" rel="alternate"/><link href="product&amp;product_id=6.en.html" hreflang="en" rel="alternate"/><link href="product&amp;product_id=6.ja.html" hreflang="ja" rel="alternate"/><link href="product&amp;product_id=6.de.html" hreflang="de" rel="alternate"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;family=Noto+Sans+TC:wght@400;500;700&amp;family=Noto+Sans+JP:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
-<link href="../assets/theme.css?v=25f9b4da" rel="stylesheet"/>
+<link href="../assets/theme.css?v=9f1a0e8b" rel="stylesheet"/>
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Product", "productID": "6", "name": "大汪雨衣 檸檬螢光黃", "description": "【apetto 大汪雨衣】 專為大狗狗設計，高機能防風、防水，帥氣首選", "image": ["https://ama0904.github.io/apt/_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/20/f7705598b4472a1a8552c1d79f550900.jpg", "https://ama0904.github.io/apt/_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/20/8265d687aa23785422145b4adbcd9500.jpg", "https://ama0904.github.io/apt/_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/20/d7e94b8e6494b9ef0d643fb5c6847653.jpg", "https://ama0904.github.io/apt/_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/20/de3f83261faf190ee58d44e454e1261d.jpg", "https://ama0904.github.io/apt/_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/20/7dcf9815d47a160dc10eb77671f242b5.jpg", "https://ama0904.github.io/apt/_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/20/ff73a5bae2df51699f57dc8bf41b9a80.jpg"], "brand": {"@type": "Brand", "name": "apetto"}, "url": "https://www.apetto.com.tw/product/product&product_id=6", "offers": {"@type": "Offer", "priceCurrency": "TWD", "price": "1490", "availability": "https://schema.org/InStock", "url": "https://www.apetto.com.tw/product/product&product_id=6"}}</script>
 <style id="apt-ov-css">.apt-ov{position:relative;display:inline-block;max-width:100%;container-type:inline-size;vertical-align:top}.apt-ov.full{display:block;width:100%}.apt-ov>img{display:block;width:100%;height:auto}.apt-ov .t{position:absolute;margin:0;white-space:pre;line-height:1.2;pointer-events:none;font-family:'Noto Sans TC','Noto Sans JP','Microsoft JhengHei','PingFang TC','Hiragino Sans',sans-serif}.apt-chart{max-width:720px;margin:0 auto 1.2em;font-size:13px;line-height:1.5;color:#222;text-align:center}.apt-chart .unit{margin:0}.apt-chart table{border-collapse:collapse;margin:8px auto;width:88%;background:#fff}.apt-chart th,.apt-chart td{border:1px solid #333;padding:4px 6px;text-align:center;font-weight:400}.apt-chart th.ttl{background:#eee;font-weight:700;padding:8px}.apt-chart th.ttl small{display:block;font-weight:400}.apt-chart ul{list-style:none;margin:0;padding:0;text-align:left;font-size:12px}</style><script id="apt-ov-fit">(function(){
 function fit(t){var box=t.parentNode,H=box.clientHeight;if(!H)return;
@@ -31,21 +31,25 @@ var root=document.documentElement,target=root.getAttribute('data-apt-search');
 function go(v){v=(v||'').trim();location.href=target+(v?'?q='+encodeURIComponent(v):'');}
 function valNear(el){var box=el.closest('form,.searchbox,#search,.search,div');var i=box&&box.querySelector('input[name=filter_name],input[name=q],input[name=search],input[type=search],input[type=text]');
  return i?i.value:'';}
-document.addEventListener('keydown',function(e){var t=e.target;if(e.key!=='Enter'||!t.matches)return;
+document.addEventListener('keydown',function(e){var t=e.target;if(e.key!=='Enter'||!t.matches||t.closest('.bigsearch'))return;
  if(t.matches('input[name=filter_name],input[name=q],input[name=search],#search input,.searchbox input')){e.preventDefault();e.stopImmediatePropagation();go(t.value);}},true);
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.button-search,#button-search,.searchbox .fa-search,.searchbox i,#search i');
  if(b){e.preventDefault();e.stopImmediatePropagation();go(valNear(b));}},true);
-document.addEventListener('submit',function(e){var f=e.target;if(f.querySelector('input[name=q],input[name=filter_name],input[name=search]')){e.preventDefault();e.stopImmediatePropagation();
+document.addEventListener('submit',function(e){var f=e.target;if(f.matches&&f.matches('.bigsearch'))return;if(f.querySelector('input[name=q],input[name=filter_name],input[name=search]')){e.preventDefault();e.stopImmediatePropagation();
  go(f.querySelector('input[name=q],input[name=filter_name],input[name=search]').value);}},true);
 if(root.getAttribute('data-apt-search-page')!=='1')return;
-function run(){var p=new URLSearchParams(location.search),q=(p.get('q')||p.get('filter_name')||'').trim(),ql=q.toLowerCase(),n=0;
- document.querySelectorAll('input[name=filter_name],input[name=q],input[name=search]').forEach(function(i){i.value=q;});
+var typed=null;
+function run(){var p=new URLSearchParams(location.search),q=(typed!==null?typed:(p.get('q')||p.get('filter_name')||'')).trim(),ql=q.toLowerCase(),n=0;
+ if(typed===null)document.querySelectorAll('input[name=filter_name],input[name=q],input[name=search]').forEach(function(i){i.value=q;});
  var boxes=document.querySelectorAll('.product-grid .grid-box');
  boxes.forEach(function(b){var t=(b.textContent+' '+(b.getAttribute('data-zh-name')||'')).toLowerCase();
   var show=!ql||ql.split(/\s+/).every(function(w){return t.indexOf(w)>=0;});b.style.display=show?'':'none';if(show)n++;});
  var r=document.querySelector('.pagination .results'),msg=root.getAttribute('data-apt-search-msg')||'{n} / {t}';
  if(r)r.textContent=q?msg.replace('{q}',q).replace('{n}',n):'';
  var empty=document.getElementById('apt-search-empty');if(empty)empty.style.display=(q&&!n)?'':'none';}
+document.addEventListener('input',function(e){var t=e.target;if(!(t.matches&&t.matches('.bigsearch input')))return;typed=t.value;run();
+ try{history.replaceState(null,'',typed.trim()?'?q='+encodeURIComponent(typed.trim()):location.pathname);}catch(x){}});
+document.addEventListener('submit',function(e){if(e.target.matches&&e.target.matches('.bigsearch')){e.preventDefault();e.stopImmediatePropagation();typed=e.target.querySelector('input').value;run();}},true);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();})();</script></head>
 <body class="showcase">
 <header class="hd">
@@ -54,16 +58,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <nav aria-label="メインメニュー" class="nav"><a href="category&amp;path=1.ja.html">小型犬</a><a class="cur" href="category&amp;path=2.ja.html">大型犬</a><a href="category&amp;path=3.ja.html">防寒アイテム</a><a href="../search.ja.html">全シリーズ</a><a href="../bestsellers.ja.html">人気商品</a><a href="../pages/5.ja.html">ご購入の流れ</a><a href="../information/news.ja.html">新着情報</a><a href="../pages/4.ja.html">私たちについて</a></nav>
 <form action="../search.ja.html" class="srch" role="search"><input aria-label="商品を検索" name="q" placeholder="商品キーワード" type="search"/><button aria-label="検索" type="submit"><svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-width="2.2" viewbox="0 0 24 24" width="20"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg></button></form>
 <div aria-label="言語" class="lang"><a href="product&amp;product_id=6.html" hreflang="zh" lang="zh-Hant">中文</a><a href="product&amp;product_id=6.en.html" hreflang="en" lang="en">English</a><a class="cur" href="product&amp;product_id=6.ja.html" hreflang="ja" lang="ja">日本語</a><a href="product&amp;product_id=6.de.html" hreflang="de" lang="de">Deutsch</a></div>
-<button aria-expanded="false" aria-label="メニュー" class="burger"><svg aria-hidden="true" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-width="2.2" viewbox="0 0 24 24" width="24"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button>
+<button aria-expanded="false" aria-label="メニュー" class="burger"><span class="bars"><i></i><i></i><i></i></span></button>
 </div>
 <div aria-label="言語" class="lang-row"><a href="product&amp;product_id=6.html" hreflang="zh" lang="zh-Hant">中文</a><a href="product&amp;product_id=6.en.html" hreflang="en" lang="en">English</a><a class="cur" href="product&amp;product_id=6.ja.html" hreflang="ja" lang="ja">日本語</a><a href="product&amp;product_id=6.de.html" hreflang="de" lang="de">Deutsch</a></div>
 </header>
-<div aria-label="メニュー" class="mobile-menu" role="dialog">
+<div aria-label="メニュー" class="mobile-menu" role="dialog"><div class="mm-panel">
 <div class="mm-top"><a aria-label="apetto" href="../index.ja.html"><img alt="apetto" src="../_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2020/02/13/763fe20710eca113bbeddcf52cc6339f.png"/></a><button aria-label="閉じる" class="mm-close">✕</button></div>
-<form action="../search.ja.html" class="mm-search" role="search"><input aria-label="商品を検索" name="q" placeholder="商品キーワード" type="search"/><button aria-label="検索" type="submit"><svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-width="2.2" viewbox="0 0 24 24" width="20"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg></button></form>
 <nav class="mm-nav"><a href="../index.ja.html">ホーム</a><a href="category&amp;path=1.ja.html">小型犬</a><a class="cur" href="category&amp;path=2.ja.html">大型犬</a><a href="category&amp;path=3.ja.html">防寒アイテム</a><a href="../search.ja.html">全シリーズ</a><a href="../bestsellers.ja.html">人気商品</a><a href="../pages/5.ja.html">ご購入の流れ</a><a href="../information/news.ja.html">新着情報</a><a href="../pages/4.ja.html">私たちについて</a></nav>
 <div class="mm-social"><a href="https://www.instagram.com/apetto_fun/" rel="noopener" target="_blank">Instagram</a><a href="https://www.pinkoi.com/store/apetto" rel="noopener" target="_blank">Pinkoi</a></div>
-</div>
+</div></div>
 <main>
 <div class="wrap">
 <ol class="breadcrumb"><li><a href="../index.ja.html">ホーム</a></li><li><a href="category&amp;path=2.ja.html">大型犬</a></li><li><span>大型犬レインコート ネオンレモン</span></li></ol>
@@ -96,6 +99,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <div class="ft-bottom"><nav class="ft-links"><a href="../pages/4.ja.html">私たちについて</a><a href="../pages/5.ja.html">ご購入の流れ</a><a href="../information/news.ja.html">新着情報</a></nav><span>Copyright ©2026 apetto 機能ペットウェア</span></div>
 </div>
 </footer>
-<script defer="" src="../assets/theme.js?v=4187f396"></script>
+<script defer="" src="../assets/theme.js?v=a15c88ae"></script>
 </body>
 </html>

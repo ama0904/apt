@@ -11,27 +11,31 @@
 <link href="news&amp;news_id=1.html" rel="canonical"/><link href="news&amp;news_id=1.html" hreflang="zh-Hant" rel="alternate"/><link href="news&amp;news_id=1.en.html" hreflang="en" rel="alternate"/><link href="news&amp;news_id=1.ja.html" hreflang="ja" rel="alternate"/><link href="news&amp;news_id=1.de.html" hreflang="de" rel="alternate"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&amp;family=Noto+Sans+TC:wght@400;500;700&amp;family=Noto+Sans+JP:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
-<link href="../assets/theme.css?v=25f9b4da" rel="stylesheet"/>
+<link href="../assets/theme.css?v=9f1a0e8b" rel="stylesheet"/>
 <script id="apt-search-js">(function(){
 var root=document.documentElement,target=root.getAttribute('data-apt-search');
 function go(v){v=(v||'').trim();location.href=target+(v?'?q='+encodeURIComponent(v):'');}
 function valNear(el){var box=el.closest('form,.searchbox,#search,.search,div');var i=box&&box.querySelector('input[name=filter_name],input[name=q],input[name=search],input[type=search],input[type=text]');
  return i?i.value:'';}
-document.addEventListener('keydown',function(e){var t=e.target;if(e.key!=='Enter'||!t.matches)return;
+document.addEventListener('keydown',function(e){var t=e.target;if(e.key!=='Enter'||!t.matches||t.closest('.bigsearch'))return;
  if(t.matches('input[name=filter_name],input[name=q],input[name=search],#search input,.searchbox input')){e.preventDefault();e.stopImmediatePropagation();go(t.value);}},true);
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.button-search,#button-search,.searchbox .fa-search,.searchbox i,#search i');
  if(b){e.preventDefault();e.stopImmediatePropagation();go(valNear(b));}},true);
-document.addEventListener('submit',function(e){var f=e.target;if(f.querySelector('input[name=q],input[name=filter_name],input[name=search]')){e.preventDefault();e.stopImmediatePropagation();
+document.addEventListener('submit',function(e){var f=e.target;if(f.matches&&f.matches('.bigsearch'))return;if(f.querySelector('input[name=q],input[name=filter_name],input[name=search]')){e.preventDefault();e.stopImmediatePropagation();
  go(f.querySelector('input[name=q],input[name=filter_name],input[name=search]').value);}},true);
 if(root.getAttribute('data-apt-search-page')!=='1')return;
-function run(){var p=new URLSearchParams(location.search),q=(p.get('q')||p.get('filter_name')||'').trim(),ql=q.toLowerCase(),n=0;
- document.querySelectorAll('input[name=filter_name],input[name=q],input[name=search]').forEach(function(i){i.value=q;});
+var typed=null;
+function run(){var p=new URLSearchParams(location.search),q=(typed!==null?typed:(p.get('q')||p.get('filter_name')||'')).trim(),ql=q.toLowerCase(),n=0;
+ if(typed===null)document.querySelectorAll('input[name=filter_name],input[name=q],input[name=search]').forEach(function(i){i.value=q;});
  var boxes=document.querySelectorAll('.product-grid .grid-box');
  boxes.forEach(function(b){var t=(b.textContent+' '+(b.getAttribute('data-zh-name')||'')).toLowerCase();
   var show=!ql||ql.split(/\s+/).every(function(w){return t.indexOf(w)>=0;});b.style.display=show?'':'none';if(show)n++;});
  var r=document.querySelector('.pagination .results'),msg=root.getAttribute('data-apt-search-msg')||'{n} / {t}';
  if(r)r.textContent=q?msg.replace('{q}',q).replace('{n}',n):'';
  var empty=document.getElementById('apt-search-empty');if(empty)empty.style.display=(q&&!n)?'':'none';}
+document.addEventListener('input',function(e){var t=e.target;if(!(t.matches&&t.matches('.bigsearch input')))return;typed=t.value;run();
+ try{history.replaceState(null,'',typed.trim()?'?q='+encodeURIComponent(typed.trim()):location.pathname);}catch(x){}});
+document.addEventListener('submit',function(e){if(e.target.matches&&e.target.matches('.bigsearch')){e.preventDefault();e.stopImmediatePropagation();typed=e.target.querySelector('input').value;run();}},true);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();})();</script></head>
 <body>
 <header class="hd">
@@ -40,16 +44,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <nav aria-label="メインメニュー" class="nav"><a href="../product/category&amp;path=1.ja.html">小型犬</a><a href="../product/category&amp;path=2.ja.html">大型犬</a><a href="../product/category&amp;path=3.ja.html">防寒アイテム</a><a href="../search.ja.html">全シリーズ</a><a href="../bestsellers.ja.html">人気商品</a><a href="../pages/5.ja.html">ご購入の流れ</a><a href="news.ja.html">新着情報</a><a href="../pages/4.ja.html">私たちについて</a></nav>
 <form action="../search.ja.html" class="srch" role="search"><input aria-label="商品を検索" name="q" placeholder="商品キーワード" type="search"/><button aria-label="検索" type="submit"><svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-width="2.2" viewbox="0 0 24 24" width="20"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg></button></form>
 <div aria-label="言語" class="lang"><a href="news&amp;news_id=1.html" hreflang="zh" lang="zh-Hant">中文</a><a href="news&amp;news_id=1.en.html" hreflang="en" lang="en">English</a><a class="cur" href="news&amp;news_id=1.ja.html" hreflang="ja" lang="ja">日本語</a><a href="news&amp;news_id=1.de.html" hreflang="de" lang="de">Deutsch</a></div>
-<button aria-expanded="false" aria-label="メニュー" class="burger"><svg aria-hidden="true" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-width="2.2" viewbox="0 0 24 24" width="24"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button>
+<button aria-expanded="false" aria-label="メニュー" class="burger"><span class="bars"><i></i><i></i><i></i></span></button>
 </div>
 <div aria-label="言語" class="lang-row"><a href="news&amp;news_id=1.html" hreflang="zh" lang="zh-Hant">中文</a><a href="news&amp;news_id=1.en.html" hreflang="en" lang="en">English</a><a class="cur" href="news&amp;news_id=1.ja.html" hreflang="ja" lang="ja">日本語</a><a href="news&amp;news_id=1.de.html" hreflang="de" lang="de">Deutsch</a></div>
 </header>
-<div aria-label="メニュー" class="mobile-menu" role="dialog">
+<div aria-label="メニュー" class="mobile-menu" role="dialog"><div class="mm-panel">
 <div class="mm-top"><a aria-label="apetto" href="../index.ja.html"><img alt="apetto" src="../_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2020/02/13/763fe20710eca113bbeddcf52cc6339f.png"/></a><button aria-label="閉じる" class="mm-close">✕</button></div>
-<form action="../search.ja.html" class="mm-search" role="search"><input aria-label="商品を検索" name="q" placeholder="商品キーワード" type="search"/><button aria-label="検索" type="submit"><svg aria-hidden="true" fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-width="2.2" viewbox="0 0 24 24" width="20"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg></button></form>
 <nav class="mm-nav"><a href="../index.ja.html">ホーム</a><a href="../product/category&amp;path=1.ja.html">小型犬</a><a href="../product/category&amp;path=2.ja.html">大型犬</a><a href="../product/category&amp;path=3.ja.html">防寒アイテム</a><a href="../search.ja.html">全シリーズ</a><a href="../bestsellers.ja.html">人気商品</a><a href="../pages/5.ja.html">ご購入の流れ</a><a href="news.ja.html">新着情報</a><a href="../pages/4.ja.html">私たちについて</a></nav>
 <div class="mm-social"><a href="https://www.instagram.com/apetto_fun/" rel="noopener" target="_blank">Instagram</a><a href="https://www.pinkoi.com/store/apetto" rel="noopener" target="_blank">Pinkoi</a></div>
-</div>
+</div></div>
 <main>
 <div class="wrap"><ol class="breadcrumb"><li><a href="../index.ja.html">ホーム</a></li><li><a href="news.ja.html">新着情報</a></li><li><span>「マイ・ペット・バレンタイン」展示販売会：SOGO 復興館ポップアップ</span></li></ol></div><div class="wrap"><article class="article"><div class="ph"><h1>「マイ・ペット・バレンタイン」展示販売会：SOGO 復興館ポップアップ</h1></div><p class="date">2022/02/10</p> <p>apetto は 2022 年 2 月 8 日〜2 月 16 日、SOGO 百貨復興館 8 階で開催される #<strong><a href="https://www.facebook.com/hashtag/%E6%88%91%E7%9A%84%E5%AF%B5%E7%89%A9%E6%83%85%E4%BA%BA?__eep__=6&amp;__cft__[0]=AZUVjMsYta9M5ESBr2jeHF3276hv-gdw0syZof2I7UUNSg2823HOF75qeKQU4tNTQbvGlozRw6HTehRHRvov__MAsHos8dkQHoCw_ayWVLo4mNR-PBs8l5gQBs7y47vFKcgF5S3R6C4m7Qv4cYiDw-AB&amp;__tn__=*NK-R">マイ・ペット・バレンタイン</a> </strong>ペット用品展示販売会に出展します。</p> <p>会場では SOGO 復興館限定の隠れ新色を販売。期間中は 1 点 10% オフ、2 点 20% オフのポップアップ特典もあります。</p> <p>めったにないチャンス、お見逃しなく！！！</p> <p><a href="https://www.facebook.com/sogoyoung/posts/5068324136523782" rel="noopener" target="_blank">Facebook で投稿を見る</a></p> </article></div>
 </main>
@@ -63,6 +66,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <div class="ft-bottom"><nav class="ft-links"><a href="../pages/4.ja.html">私たちについて</a><a href="../pages/5.ja.html">ご購入の流れ</a><a href="news.ja.html">新着情報</a></nav><span>Copyright ©2026 apetto 機能ペットウェア</span></div>
 </div>
 </footer>
-<script defer="" src="../assets/theme.js?v=4187f396"></script>
+<script defer="" src="../assets/theme.js?v=a15c88ae"></script>
 </body>
 </html>

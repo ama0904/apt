@@ -241,18 +241,31 @@ p{margin:0 0 1em;text-wrap:pretty}h1,h2,h3{text-wrap:balance}ul,ol{margin:0;padd
 .lang{display:flex;flex:0 0 auto;background:#fff;border:1.5px solid var(--line2);border-radius:999px;padding:4px;gap:2px}
 .lang a{display:inline-flex;align-items:center;justify-content:center;min-width:56px;height:38px;padding:0 13px;white-space:nowrap;border-radius:999px;font-weight:700;font-size:15px;color:var(--ink2)}
 .lang a:hover{background:var(--sand);color:var(--ink)}.lang a.cur{background:var(--ink);color:#fff}
-.burger{display:none;border:0;background:none;width:44px;height:44px;border-radius:50%;cursor:pointer;color:var(--ink)}
+.burger{display:none;border:0;background:none;width:44px;height:44px;border-radius:50%;cursor:pointer;color:var(--ink);transition:transform .15s,background .15s}
+.burger:active{transform:scale(.85);background:var(--sand)}
+.bars{display:block;width:22px;height:16px;position:relative}.bars i{position:absolute;left:0;width:22px;height:2.5px;border-radius:2px;background:currentColor;transition:transform .25s,opacity .2s}
+.bars i:nth-child(1){top:0}.bars i:nth-child(2){top:6.75px}.bars i:nth-child(3){top:13.5px}
+body.menu-open .bars i:nth-child(1){transform:translateY(6.75px) rotate(45deg)}body.menu-open .bars i:nth-child(2){opacity:0}body.menu-open .bars i:nth-child(3){transform:translateY(-6.75px) rotate(-45deg)}
 .lang-row{display:none}
 .mobile-menu{display:none}
 @media (max-width:1180px){.nav a{font-size:15px;padding:8px 10px}}
 @media (max-width:980px){
- .nav,.srch,.hd-in>.lang{display:none}.burger{display:grid;place-items:center;margin-left:auto}
- .hd-in{display:flex;align-items:center;min-height:64px;gap:12px;padding-top:0}.logo img{height:38px}
+ .nav,.srch,.hd-in>.lang{display:none}.burger{display:grid;place-items:center;order:-1;margin-left:-8px}
+ .hd-in{display:flex;align-items:center;min-height:64px;gap:12px;padding-top:0}.hd-in>.logo{margin:0 auto;padding-right:36px}.logo img{height:38px}
  .lang-row{display:flex;gap:6px;padding:0 var(--gutter) 10px}
  .lang-row a{flex:1;display:inline-flex;align-items:center;justify-content:center;height:44px;border:1.5px solid var(--line2);border-radius:999px;background:#fff;font-weight:700;font-size:15.5px;color:var(--ink2)}
  .lang-row a.cur{background:var(--ink);border-color:var(--ink);color:#fff}
- body.menu-open .mobile-menu{display:block;position:fixed;inset:0;z-index:60;background:var(--bg);padding:24px var(--gutter);overflow:auto;animation:mm-in .22s ease}
- @keyframes mm-in{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}body.menu-open{overflow:hidden}
+ body.menu-open .mobile-menu,body.menu-closing .mobile-menu{display:block;position:fixed;inset:0;z-index:60;background:rgba(23,24,26,.45);animation:mm-fade .25s ease both}
+ body.menu-closing .mobile-menu{animation:mm-fade .22s ease reverse both}
+ .mm-panel{width:min(86vw,360px);height:100%;background:var(--bg);padding:20px var(--gutter) 32px;overflow:auto;box-shadow:0 0 40px rgba(0,0,0,.18);animation:mm-slide .28s cubic-bezier(.2,.8,.2,1) both}
+ body.menu-closing .mm-panel{animation:mm-slide .22s ease-in reverse both}
+ @keyframes mm-fade{from{opacity:0}to{opacity:1}}@keyframes mm-slide{from{transform:translateX(-100%)}to{transform:none}}
+ .mm-nav a,.mm-social,.mm-search{animation:mm-rise .35s ease both}
+ .mm-nav a:nth-child(1){animation-delay:.05s}.mm-nav a:nth-child(2){animation-delay:.09s}.mm-nav a:nth-child(3){animation-delay:.13s}.mm-nav a:nth-child(4){animation-delay:.17s}.mm-nav a:nth-child(5){animation-delay:.21s}.mm-nav a:nth-child(6){animation-delay:.25s}.mm-nav a:nth-child(7){animation-delay:.29s}.mm-nav a:nth-child(8){animation-delay:.33s}.mm-nav a:nth-child(9){animation-delay:.37s}.mm-social{animation-delay:.42s}
+ @keyframes mm-rise{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+ .mm-nav a{transition:padding .15s,background .15s;border-radius:8px}.mm-nav a:active{background:var(--sand);padding-left:8px}
+ body.menu-open{overflow:hidden}
+ @media (prefers-reduced-motion:reduce){.mm-panel,.mobile-menu,.mm-nav a,.mm-social,.mm-search{animation:none!important}}
  .mm-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.mm-top img{height:38px}
  .mm-close{border:0;background:var(--sand);width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:20px}
  .mm-search{display:flex;background:#fff;border:1.5px solid var(--line2);border-radius:999px;height:52px;padding:0 6px 0 18px;margin-bottom:24px}
@@ -328,6 +341,10 @@ p{margin:0 0 1em;text-wrap:pretty}h1,h2,h3{text-wrap:balance}ul,ol{margin:0;padd
 .chips a{display:inline-flex;align-items:center;height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line2);background:#fff;font-weight:600;font-size:15px;color:var(--ink2)}
 .chips a:hover{border-color:var(--ink);color:var(--ink)}.chips a.cur{background:var(--ink);border-color:var(--ink);color:#fff}
 .pagination{color:var(--mute);font-size:15px;margin-bottom:18px}.pagination .results{margin:0}
+.bigsearch{display:flex;align-items:center;max-width:620px;margin:22px 0 4px;background:#fff;border:1.5px solid var(--line2);border-radius:999px;height:56px;padding:0 8px 0 22px;transition:border-color .2s,box-shadow .2s}
+.bigsearch:focus-within{border-color:var(--ink);box-shadow:0 8px 28px rgba(0,0,0,.08)}.bigsearch input{flex:1;min-width:0;border:0;outline:0;background:none;font:inherit;font-size:17px}
+.bigsearch button{border:0;background:var(--ink);color:#fff;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;cursor:pointer}.bigsearch button:hover{background:var(--brand)}
+@media (max-width:640px){.bigsearch{height:52px;padding-left:18px}.bigsearch input{font-size:16px}}
 
 /* product page */
 .pd{display:grid;grid-template-columns:1.15fr 1fr;gap:48px;padding:24px 0 48px;align-items:start}.pd>*{min-width:0}
@@ -416,17 +433,19 @@ p{margin:0 0 1em;text-wrap:pretty}h1,h2,h3{text-wrap:balance}ul,ol{margin:0;padd
 
 JS = r"""(function(){
 var b=document.querySelector('.burger'),mm=document.querySelector('.mobile-menu');
-function closeMenu(){document.body.classList.remove('menu-open');if(b)b.setAttribute('aria-expanded','false');}
-if(b&&mm){b.addEventListener('click',function(){var o=document.body.classList.toggle('menu-open');b.setAttribute('aria-expanded',o?'true':'false');});
+function openMenu(){document.body.classList.remove('menu-closing');document.body.classList.add('menu-open');if(b)b.setAttribute('aria-expanded','true');}
+function closeMenu(){if(!document.body.classList.contains('menu-open'))return;document.body.classList.remove('menu-open');document.body.classList.add('menu-closing');
+ if(b)b.setAttribute('aria-expanded','false');setTimeout(function(){document.body.classList.remove('menu-closing');},240);}
+if(b&&mm){b.addEventListener('click',function(){if(document.body.classList.contains('menu-open'))closeMenu();else openMenu();});
  mm.querySelectorAll('.mm-close,a').forEach(function(el){el.addEventListener('click',closeMenu);});
+ mm.addEventListener('click',function(e){if(e.target===mm)closeMenu();});
  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeMenu();});}
 /* swipe right opens the menu, swipe left closes it (phones only; horizontal thumbnail strips are left alone) */
 var sx=0,sy=0,swiping=false;
 document.addEventListener('touchstart',function(e){var t=e.touches[0];sx=t.clientX;sy=t.clientY;swiping=!e.target.closest('.thumbs,.lang-row,input,textarea');},{passive:true});
 document.addEventListener('touchend',function(e){if(!swiping||!b||getComputedStyle(b).display==='none')return;var t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
  if(Math.abs(dx)<70||Math.abs(dy)>60||Math.abs(dy)>Math.abs(dx)*0.6)return;
- if(dx>0&&!document.body.classList.contains('menu-open')){document.body.classList.add('menu-open');b.setAttribute('aria-expanded','true');}
- else if(dx<0)closeMenu();},{passive:true});
+ if(dx>0&&!document.body.classList.contains('menu-open'))openMenu();else if(dx<0)closeMenu();},{passive:true});
 var hd=document.querySelector('.hd');function sh(){if(hd)hd.classList.toggle('scrolled',window.scrollY>8);}
 window.addEventListener('scroll',sh,{passive:true});sh();
 var main=document.getElementById('main-defer-image');
@@ -474,16 +493,15 @@ def header(data, site_rel, lang, current=""):
   <nav class="nav" aria-label="主選單">{nav_links(data, d, lang, current)}</nav>
   <form class="srch" action="{search}" role="search"><input type="search" name="q" placeholder="商品關鍵字" aria-label="搜尋商品"><button type="submit" aria-label="搜尋">{ICON_SEARCH}</button></form>
   <div class="lang" aria-label="語言">{lang_links(site_rel, lang)}</div>
-  <button class="burger" aria-label="選單" aria-expanded="false">{ICON_MENU}</button>
+  <button class="burger" aria-label="選單" aria-expanded="false"><span class="bars"><i></i><i></i><i></i></span></button>
  </div>
  <div class="lang-row" aria-label="語言">{lang_links(site_rel, lang)}</div>
 </header>
-<div class="mobile-menu" role="dialog" aria-label="選單">
+<div class="mobile-menu" role="dialog" aria-label="選單"><div class="mm-panel">
   <div class="mm-top"><a href="{link(d, 'index.html', lang)}" aria-label="apetto"><img src="{asset(d, LOGO)}" alt="apetto"></a><button class="mm-close" aria-label="關閉">✕</button></div>
-  <form class="mm-search" action="{search}" role="search"><input type="search" name="q" placeholder="商品關鍵字" aria-label="搜尋商品"><button type="submit" aria-label="搜尋">{ICON_SEARCH}</button></form>
   <nav class="mm-nav"><a href="{link(d, 'index.html', lang)}"{cur(current == 'index.html')}>首頁</a>{nav_links(data, d, lang, current)}</nav>
   <div class="mm-social"><a href="{INSTAGRAM}" target="_blank" rel="noopener">Instagram</a><a href="{PINKOI}" target="_blank" rel="noopener">Pinkoi</a></div>
-</div>"""
+</div></div>"""
 
 
 def footer(data, site_rel, lang):
@@ -614,9 +632,12 @@ def category_chips(data, page_dir, lang, current):
 def render_listing(data, site_rel, lang, title, items, sub="", current="all", search=False):
     d = rel_dir(site_rel)
     count = f'<div class="pagination"><p class="results">共 {len(items)} 件商品</p></div>' if not search else '<div class="pagination"><p class="results"></p></div>'
+    box = (f'<form class="bigsearch" action="{sb.lang_variant("search.html", lang)}" role="search"><input type="search" name="q" placeholder="輸入關鍵字，例如「斗篷」或「保暖」" aria-label="搜尋商品" autocomplete="off">'
+           f'<button type="submit" aria-label="搜尋">{ICON_SEARCH}</button></form>') if search else ""
     body = f"""<div class="wrap">
 <ol class="breadcrumb"><li><a href="{link(d, 'index.html', lang)}">首頁</a></li><li><span>{esc(title)}</span></li></ol>
 <div class="ph"><h1>{esc(title)}</h1>{f'<p>{esc(sub)}</p>' if sub else ''}</div>
+{box}
 {category_chips(data, d, lang, current)}
 {count}
 {product_grid(items, d, lang)}
