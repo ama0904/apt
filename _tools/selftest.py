@@ -51,6 +51,7 @@ try:
     hp = BeautifulSoup((S / "index.html").read_text(encoding="utf-8"), "lxml")
     checks["search lists new"] = f"product_id={pid}.html" in (S / "search.html").read_text(encoding="utf-8")
     checks["home latest has new"] = f"product_id={pid}.html" in str(hp.select_one("#latest-products"))
+    checks["home has news"] = hp.select_one("#home-news .news-list a") is not None
     checks["home hides hidden"] = f"product_id={hidden_id}.html" not in str(hp)
     cat = BeautifulSoup((S / "product/category&path=1.html").read_text(encoding="utf-8"), "lxml")
     checks["cat1 has new"] = f"product_id={pid}.html" in str(cat.select_one(".product-grid"))

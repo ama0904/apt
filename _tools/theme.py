@@ -333,7 +333,8 @@ p{margin:0 0 1em}ul,ol{margin:0;padding:0;list-style:none}button{font:inherit}
 .article a{color:var(--brand-ink);font-weight:600}.article hr{border:0;border-top:1px solid var(--line);margin:32px 0}
 .article .contact{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px;margin-top:36px;font-size:16px}
 .article .contact p{margin:0 0 .4em}
-.news-list{display:grid;gap:14px;max-width:760px;margin:0 auto 64px}
+.news-list{display:grid;gap:14px;max-width:760px;margin:0 auto 64px}.news-list.home{max-width:none;margin:0;grid-template-columns:repeat(2,1fr)}
+@media (max-width:760px){.news-list.home{grid-template-columns:1fr}}
 .news-list a{display:flex;gap:20px;align-items:baseline;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 24px;transition:transform .2s,box-shadow .2s}
 .news-list a:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,0,0,.06)}
 .news-list time{flex:0 0 auto;color:var(--mute);font-size:15px;font-variant-numeric:tabular-nums}.news-list b{font-size:17px;font-weight:700}
@@ -513,6 +514,9 @@ def render_home(data, visible, lang):
              ("f_leash", "穿著也能上牽繩", "領圍開口設計，穿上 apetto 仍然可以扣上牽繩。"),
              ("f_snap", "快速穿脫", "前扣式鈕扣與腹部插扣，扣上就能出門。"),
              ("f_name", "寫上名字", "專屬名牌，寫上毛孩的名字，衣服就是他的。")]
+    news = [(date, title, rel) for rel in ("information/news.html", "information/notice.html") for (date, title, target) in info_items(rel) for rel in [target]]
+    news_html = "".join(f'<a href="{link(d, rel, lang)}"><time>{esc(date)}</time><b>{esc(title)}</b></a>' for date, title, rel in news[:6])
+    news_html = f'<div class="news-list home">{news_html}</div>' if news_html else ""
     feats_html = "".join(f'<div class="feat"><div class="img"><img src="{asset(d, IMG[k])}" alt="" loading="lazy"></div>'
                          f'<div class="body"><h3>{esc(t)}</h3><p>{esc(s)}</p></div></div>' for k, t, s in feats)
     body = f"""<section class="hero"><div class="wrap hero-in">
@@ -524,7 +528,6 @@ def render_home(data, visible, lang):
  <div class="hero-img rv in"><img src="{asset(d, IMG['hero'])}" alt="大汪系列" fetchpriority="high"></div>
 </div></section>
 {section('三大系列', f'<div class="tiles">{tiles}</div>', sub='依毛孩體型與季節挑選', cls='tight', page_dir=d, lang=lang)}
-{section('暢銷商品', product_grid(best, d, lang, tag='hot'), more=('bestsellers.html', '查看全部'), sid='bestseller-products', cls='tight', page_dir=d, lang=lang) if best else ''}
 <section class="sec"><div class="wrap"><div class="story rv">
  <div class="story-img zoom"><img src="{asset(d, IMG['story'])}" alt="" loading="lazy"></div>
  <div><span class="eyebrow">為專業、機能狗衣而生</span><h2>陪你走過每一個下雨的日子</h2>
@@ -534,6 +537,7 @@ def render_home(data, visible, lang):
 </div></div></section>
 {section('為什麼選擇 apetto', f'<div class="feats">{feats_html}</div>', sub='機能細節', cls='tight', page_dir=d, lang=lang)}
 {section('推薦商品', product_grid(latest, d, lang, tag='new'), more=('search.html', '查看全部'), sid='latest-products', cls='tight', page_dir=d, lang=lang) if latest else ''}
+{section('最新消息', news_html, more=('information/news.html', '查看全部'), sid='home-news', cls='tight', page_dir=d, lang=lang) if news_html else ''}
 <section class="sec tight"><div class="wrap"><div class="band rv"><div><h2>極致防水，奔跑不受限。</h2><p><span>有專業的製衣團隊，為毛小孩設計出高機能且時尚的衣服，具有防水、防風功能，</span><span>讓毛小孩們在下雨天也可以盡情奔跑</span></p></div><a class="btn" href="{link(d, 'search.html', lang)}">瀏覽全系列</a></div></div></section>"""
     return page(data, "index.html", lang, HOME_TITLE, body, HOME_DESC, og_image=IMG["hero"], current="index.html")
 
@@ -677,6 +681,23 @@ def _article_body(container):
     return "".join(str(c) for c in root.contents)
 
 
+def info_items(rel):
+    """[(date, title, site_path)] of a news / notice list page."""
+    soup = _info_soup(rel)
+    out = []
+    if soup is None:
+        return out
+    d = rel_dir(rel)
+    for li in soup.select("#content ul li"):
+        a = li.select_one("a[href]")
+        if not a:
+            continue
+        small = li.select_one("small")
+        out.append((small.get_text(strip=True) if small else "", a.get_text(" ", strip=True).replace(" ", " "),
+                    sb.to_site_path(d, a["href"].replace("&amp;", "&"))))
+    return out
+
+
 def render_info(data, rel, lang):
     soup = _info_soup(rel)
     if soup is None:
@@ -690,14 +711,9 @@ def render_info(data, rel, lang):
     crumbs += f"<li><span>{esc(title)}</span></li>"
     if rel in ("information/news.html", "information/notice.html"):
         items = ""
-        for li in soup.select("#content ul li"):
-            a = li.select_one("a[href]")
-            small = li.select_one("small")
-            if not a:
-                continue
-            target = sb.to_site_path(d, a["href"].replace("&amp;", "&"))
-            href_v = link(d, target, lang) if sb._LOCALIZED_RE.match(target) else a["href"]
-            items += f'<a href="{href_v}"><time>{esc(small.get_text(strip=True) if small else "")}</time><b>{esc(a.get_text(strip=True))}</b></a>'
+        for date, title, target in info_items(rel):
+            href_v = link(d, target, lang) if sb._LOCALIZED_RE.match(target) else sb.href(d, target)
+            items += f'<a href="{href_v}"><time>{esc(date)}</time><b>{esc(title)}</b></a>'
         content = f'<div class="news-list">{items or "<p class=empty>目前沒有商品</p>"}</div>'
         body = f'<div class="wrap"><ol class="breadcrumb">{crumbs}</ol><div class="ph"><h1>{esc(title)}</h1></div><div style="height:24px"></div>{content}</div>'
     else:
