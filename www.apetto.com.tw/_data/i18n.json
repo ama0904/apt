@@ -155,9 +155,9 @@
   "de": "Geboren für professionelle Funktionskleidung für Hunde"
  },
  "分開看，就是": {
-  "en": "Look closely, and you'll see",
-  "ja": "ひとつひとつ見れば、それは",
-  "de": "Genau hingesehen heißt das"
+  "en": "Split the name apart and it reads",
+  "ja": "名前を分けて読むと",
+  "de": "Auseinandergeschrieben ergibt das"
  },
  "因為我們相信，每一位毛小孩對都是主人獨一無二的寶貝。": {
   "en": "Because we believe every dog is their owner's one and only treasure.",
@@ -165,9 +165,9 @@
   "de": "Denn wir glauben: Jeder Hund ist für sein Frauchen oder Herrchen ein einzigartiger Schatz."
  },
  "有專業的製衣團隊，為毛小孩設計出高機能且時尚的衣服，具有防水、防風功能，": {
-  "en": "Our professional garment team designs high-performance, stylish clothing for dogs, waterproof and windproof,",
+  "en": "Our professional garment team designs high-performance, stylish clothing for dogs, waterproof and windproof, ",
   "ja": "専門の製衣チームが、防水・防風機能を備えた高機能でおしゃれなドッグウェアをデザイン。",
-  "de": "Unser professionelles Schneiderteam entwirft funktionale, stilvolle Hundekleidung, wasserdicht und winddicht,"
+  "de": "Unser professionelles Schneiderteam entwirft funktionale, stilvolle Hundekleidung, wasserdicht und winddicht, "
  },
  "讓毛小孩們在下雨天也可以盡情奔跑": {
   "en": "so they can run freely even on rainy days",
@@ -180,9 +180,9 @@
   "de": "Große-Hunde-Serie"
  },
  "專為中、大型毛孩子設計。": {
-  "en": "Designed for medium and large dogs.",
+  "en": "Designed for medium and large dogs. ",
   "ja": "中型・大型犬のために設計。",
-  "de": "Entworfen für mittelgroße und große Hunde."
+  "de": "Entworfen für mittelgroße und große Hunde. "
  },
  "頂級防風、防水布料，具有包覆、防水與穿脫便利的多重優點。": {
   "en": "Premium windproof, waterproof fabric with full coverage, waterproofing and easy on-off.",
@@ -195,19 +195,19 @@
   "de": "Kleine-Hunde-Serie"
  },
  "小毛孩子的首選。": {
-  "en": "The first choice for small dogs.",
+  "en": "The first choice for small dogs. ",
   "ja": "小さなわんちゃんの定番。",
-  "de": "Die erste Wahl für kleine Hunde."
+  "de": "Die erste Wahl für kleine Hunde. "
  },
  "前項三點鈕扣、前腳雙袖設計，": {
-  "en": "Three-snap front closure and double front sleeves",
+  "en": "Three-snap front closure and double front sleeves ",
   "ja": "前面3点スナップと前足の両袖デザインで、",
-  "de": "Dreifacher Druckknopfverschluss vorn und zwei Vorderärmel"
+  "de": "Dreifacher Druckknopfverschluss vorn und zwei Vorderärmel "
  },
  "更全面的防水保護。": {
-  "en": "for more complete waterproof protection.",
+  "en": "for more complete waterproof protection. ",
   "ja": "より全面的な防水保護を。",
-  "de": "für noch umfassenderen Schutz vor Nässe."
+  "de": "für noch umfassenderen Schutz vor Nässe. "
  },
  "領頂 3M 反光條，增加夜間行走的安全性。": {
   "en": "3M reflective strip at the collar for safer night walks.",
@@ -963,5 +963,10 @@
   "en": "Not just cute, but sharp too",
   "ja": "かわいいだけじゃない、かっこよさも",
   "de": "Nicht nur süß, sondern auch schick"
+ },
+ "。": {
+  "en": ".",
+  "ja": "。",
+  "de": "."
  }
 }

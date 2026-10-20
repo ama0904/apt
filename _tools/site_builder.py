@@ -486,6 +486,40 @@ OVERLAY_CSS = (
 )
 
 
+# Layout polish applied to every generated page (all languages).
+POLISH_CSS = (
+    # Word-Online paste artefacts: red squiggly "spelling error" underlines in the homepage intro
+    "[class*=SpellingError],[class*=ContextualSpelling],[class*=GrammarError]{background:none!important;border-bottom:0!important}"
+    # product cards: uniform image boxes so grids line up
+    ".product-grid .grid-box{height:auto!important}"
+    ".product-grid .grid-box .image img,.product-box .grid-box .image img{width:100%;aspect-ratio:3/2;object-fit:cover;height:auto!important}"
+    # product description: readable column, padded, bullets beside their text
+    "#full-info .tab-content{max-width:960px;margin:0 auto;padding:0 16px;box-sizing:border-box}"
+    "#tab-description ul{list-style-position:inside;padding-left:0}"
+    "#tab-description img{max-width:100%;height:auto}"
+    ".pagination{padding:0 16px}"
+    "@media (max-width:767px){"
+    ".product-heading-title{font-size:26px!important;line-height:1.25}"
+    ".apt-chart{font-size:12px}.apt-chart table{width:100%}.apt-chart th,.apt-chart td{padding:3px 2px}"
+    "#full-info .tab-content{padding:0 12px}"
+    "}"
+)
+# Showcase (non-Chinese) pages: sizes are information, not a form
+SHOWCASE_CSS = (
+    "#options .required,#options .help{display:none!important}"
+    "#options label.checkbox,#options label.radio{pointer-events:none;cursor:default}"
+    "#options input{display:none!important}"
+)
+
+
+def add_polish(soup, showcase=False):
+    if soup.head is None or soup.select_one("style#apt-polish"):
+        return
+    st = soup.new_tag("style", id="apt-polish")
+    st.string = POLISH_CSS + (SHOWCASE_CSS if showcase else "")
+    soup.head.append(st)
+
+
 def load_image_text():
     global _IMAGE_TEXT
     if _IMAGE_TEXT is None:
@@ -610,9 +644,12 @@ def apply_image_text(soup, page_dir):
 OVERLAY_FIT_JS = """(function(){
 function fit(t){var box=t.parentNode,H=box.clientHeight;if(!H)return;
 var maxh=parseFloat(t.getAttribute('data-maxh'))/100*H,s=1;t.style.whiteSpace='nowrap';t.style.setProperty('--s',1);
+var first=t.querySelector('.l')||t;
+function px(){return parseFloat(getComputedStyle(first).fontSize)||16;}
 function bad(){return t.offsetHeight>maxh||t.scrollWidth>t.clientWidth+1;}
-while(s>0.5&&bad()){s*=0.94;t.style.setProperty('--s',s);}
-if(bad()){t.style.whiteSpace='normal';while(s>0.35&&bad()){s*=0.94;t.style.setProperty('--s',s);}}}
+/* shrink on one line, but never below a readable size: then let it wrap */
+while(s>0.5&&px()>13&&bad()){s*=0.94;t.style.setProperty('--s',s);}
+if(bad()){t.style.whiteSpace='normal';while(s>0.3&&px()>11&&bad()){s*=0.94;t.style.setProperty('--s',s);}}}
 function all(){document.querySelectorAll('.apt-ov .t[data-maxh]').forEach(fit);}
 function init(){all();if(window.ResizeObserver){var ro=new ResizeObserver(function(es){es.forEach(function(e){e.target.querySelectorAll('.t[data-maxh]').forEach(fit);});});
 document.querySelectorAll('.apt-ov').forEach(function(b){ro.observe(b);});}else{window.addEventListener('resize',all);}
@@ -703,6 +740,7 @@ def write_language_variants(zh_html, site_rel, data):
             strip_commerce(soup)
             translate_soup(soup, code, _TABLE)
             localize_links(soup, code, page_dir)
+        add_polish(soup, showcase=(code != "zh"))
         soup.html["lang"] = html_lang
         for alt in soup.select('link[rel="alternate"][hreflang]'):
             alt.decompose()
