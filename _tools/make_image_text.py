@@ -66,16 +66,21 @@ IMG = "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/"
 # Each banner is one text block (lines stack, so long translations wrap without colliding).
 # "erase" boxes are the source-pixel regions to inpaint; "box" is where the block is anchored.
 MANUAL = {
+    # safe: [x0, y0, x1, y1] in source px that the text may occupy without touching the dogs
     IMG + "2026/08/26/2e2d960fcdd9a821b141df7d41b8f5c7.jpg": {
+        "safe": [250, 60, 780, 228],
         "erase": [[396, 72, 226, 56], [300, 130, 550, 58]], "box": [300, 74, 550, 114], "align": "center", "center_x": 541,
-        "color": None, "maxw": 70, "lines": [{"text": "阻擋風雨，", "size": 4.6, "weight": 400}, {"text": "擁抱無憂的舒適時光", "size": 4.6, "weight": 400}]},
+        "color": None, "lines": [{"text": "阻擋風雨，", "size": 4.6, "weight": 400}, {"text": "擁抱無憂的舒適時光", "size": 4.6, "weight": 400}]},
     IMG + "2026/08/26/b2963b09f6f2a473a8f3367f8d8ac9e2.jpg": {
+        "safe": [76, 175, 490, 340],
         "erase": [[76, 180, 420, 60], [76, 248, 410, 50]], "box": [76, 182, 420, 118], "align": "left",
         "color": "#ffffff", "lines": [{"text": "apetto 寵物機能衣", "size": 4.2, "weight": 400}, {"text": "極致防水，奔跑不受限。", "size": 3.3, "weight": 400}]},
     IMG + "2026/08/26/cf1d3a5ae88219b7f6c3868005c2ff8d.jpg": {
+        "safe": [70, 85, 480, 290],
         "erase": [[70, 90, 410, 58], [70, 156, 400, 46]], "box": [70, 92, 410, 110], "align": "left",
         "color": "#2b2b2b", "lines": [{"text": "apetto 全天候機能衣", "size": 4.6, "weight": 400}, {"text": "亮眼防護，大狗自在奔馳", "size": 3.6, "weight": 400}]},
     IMG + "__4_1.jpg": {
+        "safe": [6150, 2340, 8050, 3100],
         "erase": [[6140, 2350, 1720, 280], [6120, 2640, 1920, 270]], "box": [6150, 2370, 1900, 540], "align": "left",
         "color": "#111111", "lines": [{"text": "apetto 小汪系列", "size": 1.9, "weight": 700}, {"text": "不只可愛，更有帥氣", "size": 1.7, "weight": 700}]},
 }
@@ -243,8 +248,11 @@ def main():
         block = item("", d["box"], W, H, align=d["align"], color=color, center_x=d.get("center_x"), size=1)
         block.pop("text")
         block["lines"] = d["lines"]
-        if d.get("maxw"):
-            block["maxw"] = d["maxw"]
+        sx0, sy0, sx1, sy1 = d["safe"]
+        block["maxw"] = round((sx1 - sx0) / W * 100, 3)
+        block["maxh"] = round((sy1 - block["top"] * H / 100) / H * 100, 3)
+        if d["align"] == "center":
+            block["cx"] = round((sx0 + sx1) / 2 / W * 100, 3)
         out["overlays"][path] = {"clean": clean_path(path), "width": W, "height": H, "erase": d["erase"], "items": [block], "kind": "banner"}
     (DATA / "image_text.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"overlays={len(out['overlays'])} tables={len(out['tables'])} -> {DATA / 'image_text.json'}")

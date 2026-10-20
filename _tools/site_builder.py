@@ -576,14 +576,17 @@ def apply_image_text(soup, page_dir):
                 t = soup.new_tag("span", attrs={"class": "t"})
                 if it["align"] == "center":
                     maxw = it.get("maxw", 96)
-                    pos = f"left:{it['cx']}%;transform:translateX(-50%);text-align:center;max-width:{maxw}%;white-space:pre-line"
+                    pos = f"left:{it['cx']}%;transform:translateX(-50%);text-align:center;width:max-content;max-width:{maxw}%;white-space:pre-line"
                 else:
-                    pos = f"left:{it['left']}%;max-width:{max(10, 99 - it['left']):.2f}%;text-align:left;white-space:pre-line"
+                    maxw = it.get("maxw", max(10, 99 - it["left"]))
+                    pos = f"left:{it['left']}%;width:max-content;max-width:{maxw}%;text-align:left;white-space:pre-line"
+                if it.get("maxh"):
+                    t["data-maxh"] = str(it["maxh"])
                 t["style"] = f"{pos};top:{it['top']}%;font-size:{it.get('size', 1)}cqw;color:{it['color']};font-weight:{it.get('weight', 400)}"
                 if "lines" in it:  # multi-line block: each line its own element with its own size
                     for ln in it["lines"]:
                         s = soup.new_tag("span", attrs={"class": "l"})
-                        s["style"] = f"display:block;font-size:{ln['size']}cqw;font-weight:{ln.get('weight', 400)}"
+                        s["style"] = f"display:block;font-size:calc({ln['size']}cqw * var(--s,1));font-weight:{ln.get('weight', 400)}"
                         s.string = ln["text"]
                         t.append(s)
                 else:
@@ -594,6 +597,23 @@ def apply_image_text(soup, page_dir):
         st = soup.new_tag("style", id="apt-ov-css")
         st.string = OVERLAY_CSS
         soup.head.append(st)
+        sc = soup.new_tag("script", id="apt-ov-fit")
+        sc.string = OVERLAY_FIT_JS
+        soup.head.append(sc)
+
+
+# Shrinks banner text until it fits its safe area (data-maxh = % of image height), so it never covers the dogs.
+OVERLAY_FIT_JS = """(function(){
+function fit(t){var box=t.parentNode,H=box.clientHeight;if(!H)return;
+var maxh=parseFloat(t.getAttribute('data-maxh'))/100*H,s=1;t.style.whiteSpace='nowrap';t.style.setProperty('--s',1);
+function bad(){return t.offsetHeight>maxh||t.scrollWidth>t.clientWidth+1;}
+while(s>0.5&&bad()){s*=0.94;t.style.setProperty('--s',s);}
+if(bad()){t.style.whiteSpace='normal';while(s>0.35&&bad()){s*=0.94;t.style.setProperty('--s',s);}}}
+function all(){document.querySelectorAll('.apt-ov .t[data-maxh]').forEach(fit);}
+function init(){all();if(window.ResizeObserver){var ro=new ResizeObserver(function(es){es.forEach(function(e){e.target.querySelectorAll('.t[data-maxh]').forEach(fit);});});
+document.querySelectorAll('.apt-ov').forEach(function(b){ro.observe(b);});}else{window.addEventListener('resize',all);}
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(all);}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();window.addEventListener('load',all);})();"""
 
 
 def add_lang_switch(soup, current, site_rel="index.html"):
