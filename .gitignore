@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+# generated at deploy time
+www.apetto.com.tw/admin.html
+www.apetto.com.tw/.nojekyll
