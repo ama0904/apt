@@ -255,7 +255,7 @@ body.menu-open .bars i:nth-child(1){transform:translateY(6.75px) rotate(45deg)}b
  .lang-row{display:flex;gap:6px;padding:0 var(--gutter) 10px}
  .lang-row a{flex:1;display:inline-flex;align-items:center;justify-content:center;height:44px;border:1.5px solid var(--line2);border-radius:999px;background:#fff;font-weight:700;font-size:15.5px;color:var(--ink2)}
  .lang-row a.cur{background:var(--ink);border-color:var(--ink);color:#fff}
- body.menu-open .mobile-menu,body.menu-closing .mobile-menu{display:block;position:fixed;inset:0;z-index:60;background:rgba(23,24,26,.45);animation:mm-fade .25s ease both}
+ body.menu-open .mobile-menu,body.menu-closing .mobile-menu{display:block;position:fixed;inset:0;z-index:60;background:rgba(23,24,26,.9);animation:mm-fade .25s ease both}
  body.menu-closing .mobile-menu{animation:mm-fade .22s ease reverse both}
  .mm-panel{width:min(86vw,360px);height:100%;background:var(--bg);padding:20px var(--gutter) 32px;overflow:auto;box-shadow:0 0 40px rgba(0,0,0,.18);animation:mm-slide .28s cubic-bezier(.2,.8,.2,1) both}
  body.menu-closing .mm-panel{animation:mm-slide .22s ease-in reverse both}
