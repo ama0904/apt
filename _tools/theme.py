@@ -226,7 +226,7 @@ p{margin:0 0 1em}ul,ol{margin:0;padding:0;list-style:none}button{font:inherit}
  .mm-close{border:0;background:var(--sand);width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:20px}
  .mm-search{display:flex;background:#fff;border:1.5px solid var(--line2);border-radius:999px;height:52px;padding:0 6px 0 18px;margin-bottom:24px}
  .mm-search input{flex:1;border:0;outline:0;background:none;font:inherit;font-size:16px;min-width:0}.mm-search button{border:0;background:var(--ink);color:#fff;width:40px;height:40px;border-radius:50%;margin:5px 0;cursor:pointer;display:grid;place-items:center}
- .mm-nav a{display:block;padding:16px 0;border-bottom:1px solid var(--line);font-size:20px;font-weight:700}
+ .mm-nav a{display:block;padding:16px 0;border-bottom:1px solid var(--line);font-size:20px;font-weight:700}.mm-nav a.cur{color:var(--brand-ink)}
  .mm-sub{margin-top:24px;display:flex;flex-wrap:wrap;gap:8px 20px}.mm-sub a{color:var(--mute);font-weight:600}
 }
 
@@ -327,6 +327,19 @@ p{margin:0 0 1em}ul,ol{margin:0;padding:0;list-style:none}button{font:inherit}
 .apt-chart{font-family:inherit!important;color:var(--ink)!important}
 @media (max-width:980px){.pd{grid-template-columns:1fr;gap:24px;padding-top:12px}.gallery{position:static}.gal-main{border-radius:18px}.pi .product-sell-price{font-size:22px}}
 
+/* about page */
+.about-lead{max-width:860px;margin:0 auto;text-align:center;padding:24px 0 8px}
+.about-lead h2{font-size:clamp(26px,3.4vw,40px);margin:0 0 18px;letter-spacing:-.02em}.about-lead p{font-size:18px;color:var(--ink2);margin:0}
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:36px}
+.cards3 div{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px 24px 28px}
+.cards3 b{display:block;font-size:34px;font-weight:800;color:var(--brand);margin-bottom:10px;letter-spacing:-.02em}.cards3 p{margin:0;font-size:17px;line-height:1.7}
+.quote{background:var(--sand);border-radius:28px;padding:48px 32px;text-align:center;margin:48px 0}
+.quote p{margin:0 auto;max-width:28ch;font-size:clamp(22px,2.6vw,30px);font-weight:700;line-height:1.5;letter-spacing:-.01em}
+.contact-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.contact-grid a,.contact-grid div{display:flex;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;font-size:16px;font-weight:600;color:var(--ink)}
+.contact-grid svg{flex:0 0 auto;width:26px;height:26px;color:var(--brand-ink)}.contact-grid a:hover{border-color:var(--ink)}
+.about-foot{margin:18px 0 0;color:var(--mute);font-size:14px;text-align:center}
+@media (max-width:980px){.cards3{grid-template-columns:1fr;gap:12px}.quote{padding:36px 22px;border-radius:22px;margin:36px 0}.contact-grid{grid-template-columns:1fr;gap:10px}}
 /* article */
 .article{max-width:760px;margin:0 auto;padding:0 0 64px;font-size:17px}
 .article h1{font-size:clamp(28px,3.4vw,40px);margin:0 0 10px}.article .date{color:var(--mute);font-size:15px;margin-bottom:28px}
@@ -412,9 +425,9 @@ def header(data, site_rel, lang, current=""):
  <div class="lang-row" aria-label="語言">{lang_links(site_rel, lang)}</div>
 </header>
 <div class="mobile-menu" role="dialog" aria-label="選單">
-  <div class="mm-top"><img src="{asset(d, LOGO)}" alt="apetto"><button class="mm-close" aria-label="關閉">✕</button></div>
+  <div class="mm-top"><a href="{link(d, 'index.html', lang)}" aria-label="apetto"><img src="{asset(d, LOGO)}" alt="apetto"></a><button class="mm-close" aria-label="關閉">✕</button></div>
   <form class="mm-search" action="{search}" role="search"><input type="search" name="q" placeholder="商品關鍵字" aria-label="搜尋商品"><button type="submit" aria-label="搜尋">{ICON_SEARCH}</button></form>
-  <nav class="mm-nav">{nav_links(data, d, lang, current)}</nav>
+  <nav class="mm-nav"><a href="{link(d, 'index.html', lang)}"{cur(current == 'index.html')}>首頁</a>{nav_links(data, d, lang, current)}</nav>
   <div class="mm-sub"><a href="{link(d, 'search.html', lang)}">全系列</a><a href="{link(d, 'information/news.html', lang)}">最新消息</a><a href="{link(d, 'information/notice.html', lang)}">最新公告</a><a href="{link(d, 'pages/5.html', lang)}">服務條款</a></div>
 </div>"""
 
@@ -704,6 +717,8 @@ def render_info(data, rel, lang):
     if parent:
         crumbs += f'<li><a href="{link(d, parent, lang)}">{esc(INFO_TITLES[parent])}</a></li>'
     crumbs += f"<li><span>{esc(title)}</span></li>"
+    if rel == "pages/4.html":
+        return render_about(data, rel, lang, crumbs)
     if rel in ("information/news.html", "information/notice.html"):
         items = ""
         for date, title, target in info_items(rel):
@@ -747,6 +762,46 @@ def story_block(d):
   <p>無論是春日裡的梅雨，還是冬日裡的綿綿細雨，每一個下雨的日子，apetto 狗衣系列，讓毛孩子盡情在戶外奔跑。</p>
   <p>apetto 提供高品質、防風保護，頂級布料耐水壓 10000mmH2O，水滴在布料上能輕易滑落，提供舒適的防水防護。</p></div>
 </div></div></section>"""
+
+
+ICON_MAIL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>'
+ICON_PHONE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>'
+ICON_CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>'
+ICON_LINE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 4C7 4 3 7.2 3 11.2c0 3.5 3 6.4 7.2 7l-.4 2.8 3.4-2.1c4.5-.3 7.8-3.3 7.8-7.7C21 7.2 17 4 12 4z"/></svg>'
+
+
+def render_about(data, rel, lang, crumbs):
+    d = rel_dir(rel)
+    body = f"""<div class="wrap"><ol class="breadcrumb">{crumbs}</ol></div>
+{story_block(d)}
+<section class="sec tight"><div class="wrap">
+ <div class="about-lead rv"><span class="eyebrow">關於 apetto</span><h2>起源自 a pet to … 的發想，進而誕生了 apetto。</h2>
+  <p>每一位毛小孩對我們而言，都是獨一無二的寶貝，更是生命軌跡中的一部分。</p></div>
+ <div class="cards3 rv">
+  <div><b>01</b><p>有的毛小孩陪著我們一起長大，成為我們的手足。</p></div>
+  <div><b>02</b><p>有的毛小孩在我們成年後加入，成為了最佳戰友。</p></div>
+  <div><b>03</b><p>有的毛小孩在年老時來到身邊，璀璨了遲暮之年。</p></div>
+ </div>
+ <div class="quote rv"><p>毛小孩是我們最忠實且貼心的家人。</p></div>
+ <div class="story flip rv">
+  <div class="story-img"><img src="{asset(d, IMG['rain'])}" alt="" loading="lazy"></div>
+  <div><span class="eyebrow">{esc(BRAND)}</span><h2>為專業、機能狗衣而生</h2>
+   <p>apetto 擁有強大的團隊，因著照顧家人的心，為毛小孩們設計出高機能且時尚的衣服。</p>
+   <p>其具有防水及透氣功能，讓我們的毛孩子們在下雨天也可以盡情奔跑。</p>
+   <a class="btn" href="{link(d, 'search.html', lang)}">瀏覽全系列</a></div>
+ </div>
+</div></section>
+<section class="sec tight"><div class="wrap">
+ <div class="sec-head rv"><div><h2>聯絡我們</h2></div></div>
+ <div class="contact-grid rv">
+  <a href="mailto:info@hweider.url.tw">{ICON_MAIL}<span>客服信箱：info@hweider.url.tw</span></a>
+  <a href="tel:+886289915001">{ICON_PHONE}<span>連絡電話: 02-89915001</span></a>
+  <div>{ICON_CLOCK}<span>服務時間：週一~週五 10:00-12:00、14:00-18:00</span></div>
+  <div>{ICON_LINE}<span>LINE @apetto</span></div>
+ </div>
+ <p class="about-foot">apetto © 匯得興業有限公司</p>
+</div></section>"""
+    return page(data, rel, lang, f"關於我們 | {BRAND}", body, "關於 apetto", og_image=IMG["story"], current=rel)
 
 
 def render_404(data, lang):
