@@ -431,9 +431,9 @@ async function readProducts() {
 
 /** One commit with several file changes via the Git Data API.
  *  files: [{ path, base64 }] to add/replace, [{ path, delete:true }] to remove. */
-async function commitFiles(files, message, onProgress) {
+async function commitFiles(files, message, onProgress, attempt = 0) {
   const R = `/repos/${cfg.repo}`;
-  const ref = await gh(`${R}/git/ref/heads/${encodeURIComponent(cfg.branch)}`);
+  const ref = await gh(`${R}/git/ref/heads/${encodeURIComponent(cfg.branch)}?t=${Date.now()}`, { headers: { 'If-None-Match': '' } });
   const headSha = ref.object.sha;
   const headCommit = await gh(`${R}/git/commits/${headSha}`);
   const tree = [];
@@ -451,6 +451,10 @@ async function commitFiles(files, message, onProgress) {
   try {
     await gh(`${R}/git/refs/heads/${encodeURIComponent(cfg.branch)}`, { method: 'PATCH', body: JSON.stringify({ sha: commit.sha, force: false }) });
   } catch (e) {
+    if (attempt < 2 && /fast forward/i.test(e.message)) {  // the API handed us a stale branch head: re-read and retry
+      await new Promise(r => setTimeout(r, 1500));
+      return commitFiles(files, message, onProgress, attempt + 1);
+    }
     throw new Error(t('資料已被別人更新，請按「重新載入」後再試一次。（') + e.message + ')');
   }
   return commit.sha;
