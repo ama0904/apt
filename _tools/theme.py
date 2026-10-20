@@ -440,7 +440,7 @@ ICON_ARROW = ('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
 # ----------------------------------------------------------------- shell
 def nav_links(data, page_dir, lang, current=""):
     items = [(sb.category_page(c["id"]), c["name"]) for c in data["categories"]]
-    items += [("bestsellers.html", "暢銷商品"), ("pages/5.html", "購物流程"), ("information/news.html", "最新消息"), ("pages/4.html", "關於我們")]
+    items += [("search.html", "全系列"), ("bestsellers.html", "暢銷商品"), ("pages/5.html", "購物流程"), ("information/news.html", "最新消息"), ("pages/4.html", "關於我們")]
     out = []
     for site_path, label in items:
         cls = ' class="cur"' if site_path == current else ""
@@ -475,7 +475,6 @@ def header(data, site_rel, lang, current=""):
   <div class="mm-top"><a href="{link(d, 'index.html', lang)}" aria-label="apetto"><img src="{asset(d, LOGO)}" alt="apetto"></a><button class="mm-close" aria-label="關閉">✕</button></div>
   <form class="mm-search" action="{search}" role="search"><input type="search" name="q" placeholder="商品關鍵字" aria-label="搜尋商品"><button type="submit" aria-label="搜尋">{ICON_SEARCH}</button></form>
   <nav class="mm-nav"><a href="{link(d, 'index.html', lang)}"{cur(current == 'index.html')}>首頁</a>{nav_links(data, d, lang, current)}</nav>
-  <div class="mm-sub"><a href="{link(d, 'search.html', lang)}">全系列</a></div>
   <div class="mm-social"><a href="{INSTAGRAM}" target="_blank" rel="noopener">Instagram</a><a href="{PINKOI}" target="_blank" rel="noopener">Pinkoi</a></div>
 </div>"""
 
