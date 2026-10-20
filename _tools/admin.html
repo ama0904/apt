@@ -68,7 +68,51 @@
   #toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#111827; color:#fff; padding:10px 16px; border-radius:10px; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; z-index:50; }
   #toast.show { opacity:1; }
   code { background:#f3f4f6; padding:1px 5px; border-radius:4px; font-size:12px; }
-  @media (max-width:720px) { .grid { grid-template-columns:1fr; } .hide-sm { display:none; } }
+  @media (max-width:720px) {
+    .grid { grid-template-columns:1fr; }
+    .hide-sm { display:none; }
+    /* header: title on its own line, links in a row below */
+    header { padding:10px 14px; gap:6px 14px; }
+    header h1 { font-size:16px; width:100%; }
+    #repo-label { display:none; }
+    header .sp { display:none; }
+    header a, header button.link { font-size:14px; padding:6px 0; }
+    #deploy { padding:8px 14px; font-size:13px; }
+    main { margin:14px auto; padding:0 10px; }
+    /* toolbar: big full-width primary button, others share a row */
+    .toolbar { gap:8px; }
+    .toolbar .count { width:100%; order:-1; font-size:13px; }
+    #btn-add { flex:1 1 100%; padding:12px; font-size:16px; }
+    #btn-reload, #btn-redeploy { flex:1; padding:10px; }
+    /* product table becomes a list of cards */
+    table, tbody { display:block; border:0; background:none; }
+    thead { display:none; }
+    tbody tr { display:grid; grid-template-columns:72px 1fr auto; grid-template-areas:"img name name" "img price status" "act act act";
+               gap:4px 12px; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:12px;
+               padding:12px; margin-bottom:10px; }
+    tbody td { display:block; padding:0; border:0; font-size:14px; }
+    tbody td:nth-child(1) { grid-area:img; }
+    tbody td:nth-child(2) { grid-area:name; }
+    tbody td:nth-child(5) { grid-area:price; font-weight:600; }
+    tbody td:nth-child(6) { grid-area:status; justify-self:end; }
+    tbody td:nth-child(7) { grid-area:act; margin-top:8px; }
+    td img { width:72px; height:72px; }
+    .name a { font-size:15px; line-height:1.35; display:block; }
+    .actions { display:grid; grid-template-columns:2fr 2fr 1fr 1fr 2fr; gap:6px; }
+    .actions button.small { padding:10px 4px; font-size:14px; }
+    /* edit dialog: full screen */
+    dialog { width:100vw; max-width:100vw; height:100dvh; max-height:100dvh; border-radius:0; margin:0; }
+    dialog[open] { display:flex; flex-direction:column; }
+    dialog form { display:flex; flex-direction:column; height:100%; }
+    .dlg-head { padding:12px 14px; }
+    .dlg-body { flex:1; max-height:none; padding:14px; }
+    .dlg-foot { padding:10px 14px calc(10px + env(safe-area-inset-bottom)); flex-wrap:wrap; }
+    .dlg-foot .err, .dlg-foot .progress { width:100%; margin:0 0 4px; }
+    .dlg-foot button { flex:1; padding:12px; font-size:15px; }
+    input[type=text], input[type=number], input[type=password], textarea, select { font-size:16px; padding:10px; } /* 16px stops iOS zoom */
+    .checks label { font-size:15px; padding:4px 0; }
+    .card { margin:20px auto; padding:16px; }
+  }
 </style>
 </head>
 <body>
