@@ -983,5 +983,220 @@
   "en": "[",
   "ja": "【",
   "de": "["
+ },
+ "關於 apetto": {
+  "en": "About apetto",
+  "ja": "apetto について",
+  "de": "Über apetto"
+ },
+ "起源自 a pet to … 的發想，進而誕生了 apetto。": {
+  "en": "It began with the idea of “a pet to …”, and that is how apetto was born.",
+  "ja": "「a pet to …」という発想から、apetto は生まれました。",
+  "de": "Alles begann mit der Idee „a pet to …“ – so entstand apetto."
+ },
+ "每一位毛小孩對我們而言，都是獨一無二的寶貝，更是生命軌跡中的一部分。": {
+  "en": "To us, every dog is a one-of-a-kind treasure and part of the story of our lives.",
+  "ja": "私たちにとって、どの子もかけがえのない宝物であり、人生の大切な一部です。",
+  "de": "Für uns ist jeder Hund ein einzigartiger Schatz und ein Teil unserer Lebensgeschichte."
+ },
+ "有的毛小孩陪著我們一起長大，成為我們的手足。": {
+  "en": "Some grow up alongside us and become our siblings.",
+  "ja": "一緒に育ち、きょうだいになる子もいます。",
+  "de": "Manche wachsen mit uns auf und werden zu Geschwistern."
+ },
+ "有的毛小孩在我們成年後加入，成為了最佳戰友。": {
+  "en": "Some join us when we are grown and become our best companions.",
+  "ja": "大人になってから家族に加わり、最高の相棒になる子もいます。",
+  "de": "Manche kommen dazu, wenn wir erwachsen sind, und werden unsere besten Gefährten."
+ },
+ "有的毛小孩在年老時來到身邊，璀璨了遲暮之年。": {
+  "en": "Some arrive in our later years and light them up.",
+  "ja": "年を重ねてからそばに来て、晩年を輝かせてくれる子もいます。",
+  "de": "Manche kommen im Alter zu uns und machen diese Jahre heller."
+ },
+ "毛小孩是我們最忠實且貼心的家人。": {
+  "en": "Our dogs are our most loyal and caring family.",
+  "ja": "わんちゃんは、いちばん忠実で優しい家族です。",
+  "de": "Unsere Hunde sind unsere treueste und liebevollste Familie."
+ },
+ "apetto 擁有強大的團隊，因著照顧家人的心，為毛小孩們設計出高機能且時尚的衣服。": {
+  "en": "With the care you give family, apetto's strong team designs high-performance, stylish clothing for dogs.",
+  "ja": "apetto のチームは、家族を想う気持ちで、高機能でおしゃれなドッグウェアをデザインしています。",
+  "de": "Mit der Fürsorge, die man der Familie schenkt, entwirft das starke Team von apetto funktionale und stilvolle Hundekleidung."
+ },
+ "其具有防水及透氣功能，讓我們的毛孩子們在下雨天也可以盡情奔跑。": {
+  "en": "It is waterproof and breathable, so our dogs can run freely even on rainy days.",
+  "ja": "防水性と通気性を備え、雨の日でも思いきり走れます。",
+  "de": "Sie ist wasserdicht und atmungsaktiv, damit unsere Hunde auch bei Regen frei laufen können."
+ },
+ "apetto © 匯得興業有限公司": {
+  "en": "apetto © Hweider Co., Ltd.",
+  "ja": "apetto © 匯得興業有限公司（Hweider Co., Ltd.）",
+  "de": "apetto © Hweider Co., Ltd."
+ },
+ "服務時間：週一~週五 10:00-12:00、14:00-18:00": {
+  "en": "Service hours: Mon–Fri 10:00–12:00, 14:00–18:00 (Taiwan time)",
+  "ja": "営業時間：月〜金 10:00–12:00、14:00–18:00（台湾時間）",
+  "de": "Servicezeiten: Mo–Fr 10:00–12:00, 14:00–18:00 (Taiwan-Zeit)"
+ },
+ "客服信箱：info@hweider.url.tw": {
+  "en": "Customer service email: info@hweider.url.tw",
+  "ja": "お問い合わせメール：info@hweider.url.tw",
+  "de": "Kundenservice-E-Mail: info@hweider.url.tw"
+ },
+ "連絡電話: 02-89915001": {
+  "en": "Phone: +886 2 8991 5001",
+  "ja": "電話：+886 2 8991 5001",
+  "de": "Telefon: +886 2 8991 5001"
+ },
+ "親愛的毛主人們，歡迎來到 apetto。": {
+  "en": "Dear dog owners, welcome to apetto.",
+  "ja": "飼い主の皆さま、apetto へようこそ。",
+  "de": "Liebe Hundebesitzer, willkommen bei apetto."
+ },
+ "在享受為毛小孩添購新衣的同時，為了擁有良好的購物過程，請您詳閱以下說明事項，可以更瞭解我們的付款方式與出貨流程。謝謝!": {
+  "en": "To make shopping for your dog smooth, please read the notes below on how payment and shipping work. Thank you!",
+  "ja": "快適にお買い物いただくため、以下のお支払い方法と発送の流れをご確認ください。ありがとうございます！",
+  "de": "Damit der Einkauf reibungslos verläuft, lesen Sie bitte die folgenden Hinweise zu Zahlung und Versand. Vielen Dank!"
+ },
+ "購物流程": {
+  "en": "How to order",
+  "ja": "ご購入の流れ",
+  "de": "Bestellablauf"
+ },
+ "選購商品 → 加入購物車 → 填寫資料與送貨方式 → 選擇付款方式結帳 → email 出貨通知 → 收到商品": {
+  "en": "Choose products → add to cart → enter your details and delivery method → choose payment and check out → shipping email → receive your order",
+  "ja": "商品を選ぶ → カートに入れる → お客様情報と配送方法を入力 → お支払い方法を選んで決済 → 発送通知メール → 商品のお受け取り",
+  "de": "Produkte wählen → in den Warenkorb → Daten und Versandart eingeben → Zahlungsart wählen und bezahlen → Versand-E-Mail → Ware erhalten"
+ },
+ "付款方式": {
+  "en": "Payment methods",
+  "ja": "お支払い方法",
+  "de": "Zahlungsarten"
+ },
+ "ATM 轉帳 (請於 3 日內付款)，付款後請使用 \"填寫匯款單\" 通知。": {
+  "en": "ATM bank transfer (please pay within 3 days). After paying, let us know with the “Payment Notice” form.",
+  "ja": "ATM 振込（3 日以内にお支払いください）。お支払い後は「振込通知」フォームでお知らせください。",
+  "de": "ATM-Überweisung (bitte innerhalb von 3 Tagen bezahlen). Melden Sie die Zahlung danach über das Formular „Zahlungsmeldung“."
+ },
+ "超商取貨付款": {
+  "en": "Pay on pickup at a convenience store",
+  "ja": "コンビニ受け取り時のお支払い",
+  "de": "Bezahlung bei Abholung im Convenience Store"
+ },
+ "寄送方式及運費計算": {
+  "en": "Shipping methods and fees",
+  "ja": "配送方法と送料",
+  "de": "Versandarten und Versandkosten"
+ },
+ "寄送目的地為台灣地區，單筆金額滿新台幣 $3000 以上，即享免運優惠!": {
+  "en": "We ship within Taiwan. Orders of NT$3,000 or more ship free!",
+  "ja": "配送先は台湾国内です。1 回のご注文が NT$3,000 以上で送料無料！",
+  "de": "Wir liefern innerhalb Taiwans. Ab NT$3.000 Bestellwert ist der Versand kostenlos!"
+ },
+ "郵局寄送: $65，選擇郵局寄送的顧客，僅限使用 ATM 付款": {
+  "en": "Post office delivery: NT$65. Post office delivery is available with ATM payment only.",
+  "ja": "郵便局配送：NT$65。郵便局配送は ATM 振込のみご利用いただけます。",
+  "de": "Postversand: NT$65. Postversand ist nur mit ATM-Überweisung möglich."
+ },
+ "全家 超商取貨: $60": {
+  "en": "FamilyMart pickup: NT$60",
+  "ja": "ファミリーマート受け取り：NT$60",
+  "de": "Abholung bei FamilyMart: NT$60"
+ },
+ "選擇全家超商取貨，請務必填寫真實姓名，超商將核對身分證件，以避免身分核對不符導致退件": {
+  "en": "For FamilyMart pickup, please enter your real name. The store checks ID, and a mismatch means the parcel is returned.",
+  "ja": "ファミリーマート受け取りの場合は、必ず本名をご入力ください。店舗で身分証を確認するため、一致しない場合は返送されます。",
+  "de": "Bei Abholung bei FamilyMart geben Sie bitte Ihren echten Namen an. Der Laden prüft den Ausweis; stimmt er nicht überein, geht das Paket zurück."
+ },
+ "7-11 超商取貨: $60": {
+  "en": "7-Eleven pickup: NT$60",
+  "ja": "セブン-イレブン受け取り：NT$60",
+  "de": "Abholung bei 7-Eleven: NT$60"
+ },
+ "選擇 7-11 超商取貨，請務必填寫真實姓名，超商將核對身分證件，以避免身分核對不符導致退件": {
+  "en": "For 7-Eleven pickup, please enter your real name. The store checks ID, and a mismatch means the parcel is returned.",
+  "ja": "セブン-イレブン受け取りの場合は、必ず本名をご入力ください。店舗で身分証を確認するため、一致しない場合は返送されます。",
+  "de": "Bei Abholung bei 7-Eleven geben Sie bitte Ihren echten Namen an. Der Laden prüft den Ausweis; stimmt er nicht überein, geht das Paket zurück."
+ },
+ "出貨工作天": {
+  "en": "Shipping times",
+  "ja": "発送までの日数",
+  "de": "Versanddauer"
+ },
+ "例假日與國定假日無法進行出貨，請您特別留意。": {
+  "en": "Please note that we do not ship on weekends or public holidays.",
+  "ja": "土日祝日は発送できませんので、ご注意ください。",
+  "de": "Bitte beachten Sie: An Wochenenden und Feiertagen wird nicht versendet."
+ },
+ "訂單確認後，從付款到收到貨品，大約需要 3~6 個工作天 (不含假日)。": {
+  "en": "Once your order is confirmed, it takes about 3–6 working days from payment to delivery (excluding holidays).",
+  "ja": "ご注文確定後、お支払いから商品到着まで約 3〜6 営業日（休日を除く）かかります。",
+  "de": "Nach Bestellbestätigung dauert es von der Zahlung bis zur Lieferung etwa 3–6 Werktage (ohne Feiertage)."
+ },
+ "平日（週一～週五）收到您款項的隔天，確認您的資料無誤將三天內安排出貨。": {
+  "en": "On weekdays (Mon–Fri), from the day after we receive your payment, we ship within three days once your details are confirmed.",
+  "ja": "平日（月〜金）は、ご入金確認の翌日からお客様情報を確認のうえ、3 日以内に発送いたします。",
+  "de": "An Werktagen (Mo–Fr) versenden wir ab dem Tag nach Zahlungseingang innerhalb von drei Tagen, sobald Ihre Angaben geprüft sind."
+ },
+ "<我的寵物情人展售會> SOGO 復興館 快閃活動": {
+  "en": "“My Pet Valentine” fair: pop-up at SOGO Fuxing",
+  "ja": "「マイ・ペット・バレンタイン」展示販売会：SOGO 復興館ポップアップ",
+  "de": "Messe „My Pet Valentine“: Pop-up im SOGO Fuxing"
+ },
+ "&lt;我的寵物情人展售會&gt; SOGO 復興館 快閃活動&nbsp;&nbsp;&nbsp;": {
+  "en": "“My Pet Valentine” fair: pop-up at SOGO Fuxing",
+  "ja": "「マイ・ペット・バレンタイン」展示販売会：SOGO 復興館ポップアップ",
+  "de": "Messe „My Pet Valentine“: Pop-up im SOGO Fuxing"
+ },
+ "顯示第 {a} 至 {b} 個消息，共有 {c} 個消息 (分 {d} 頁顯示)": {
+  "en": "Showing {a} to {b} of {c} news ({d} page)",
+  "ja": "{c} 件中 {a} 〜 {b} 件のニュースを表示（{d} ページ）",
+  "de": "Zeige {a} bis {b} von {c} Neuigkeiten ({d} Seite)"
+ },
+ "顯示第 {a} 至 {b} 個公告，共有 {c} 個公告 (分 {d} 頁顯示)": {
+  "en": "Showing {a} to {b} of {c} announcements ({d} page)",
+  "ja": "{c} 件中 {a} 〜 {b} 件のお知らせを表示（{d} ページ）",
+  "de": "Zeige {a} bis {b} von {c} Mitteilungen ({d} Seite)"
+ },
+ "apetto 於 2022 年 2 月 8 日~ 2 月 16 日 於 SOGO 百貨復興館 8 樓，參加#": {
+  "en": "From 8 to 16 February 2022, apetto is joining the #",
+  "ja": "apetto は 2022 年 2 月 8 日〜2 月 16 日、SOGO 百貨復興館 8 階で開催される #",
+  "de": "Vom 8. bis 16. Februar 2022 ist apetto im 8. Stock des SOGO-Kaufhauses Fuxing bei der #"
+ },
+ "我的寵物情人": {
+  "en": "MyPetValentine",
+  "ja": "マイ・ペット・バレンタイン",
+  "de": "MyPetValentine"
+ },
+ "寵物用品展售會。": {
+  "en": "pet products fair on the 8th floor of SOGO Fuxing.",
+  "ja": "ペット用品展示販売会に出展します。",
+  "de": "Heimtiermesse dabei."
+ },
+ "現場將推出特殊隱藏版新色，只在 SOGO 復興館銷售，活動期間更有快閃優惠，1 件 9 折、2 件 8 折。": {
+  "en": "We'll launch special hidden colours sold only at SOGO Fuxing, with pop-up deals during the event: 10% off one item, 20% off two.",
+  "ja": "会場では SOGO 復興館限定の隠れ新色を販売。期間中は 1 点 10% オフ、2 点 20% オフのポップアップ特典もあります。",
+  "de": "Vor Ort gibt es versteckte Sonderfarben nur im SOGO Fuxing und Pop-up-Rabatte: 10 % auf ein Teil, 20 % auf zwei."
+ },
+ "機會難得，千萬別錯過 !!!": {
+  "en": "Don't miss this rare chance!!!",
+  "ja": "めったにないチャンス、お見逃しなく！！！",
+  "de": "Diese seltene Gelegenheit nicht verpassen!!!"
+ },
+ "關注 apetto": {
+  "en": "Follow apetto on",
+  "ja": "apetto をフォロー：",
+  "de": "Folgen Sie apetto auf"
+ },
+ "其他官方通路": {
+  "en": "Other official stores",
+  "ja": "その他の公式ショップ",
+  "de": "Weitere offizielle Shops"
+ },
+ "高機能寵物時裝：專業防水防風、專為毛孩設計的機能衣服": {
+  "en": "High-performance pet apparel: waterproof, windproof functional wear designed for dogs",
+  "ja": "高機能ペットウェア：防水・防風、わんちゃんのために設計された機能服",
+  "de": "Funktionale Hundebekleidung: wasserdicht, winddicht und speziell für Fellnasen entworfen"
  }
 }

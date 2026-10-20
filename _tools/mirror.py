@@ -233,7 +233,7 @@ def crawl_pages(seeds):
             continue
         if not r.encoding or r.encoding.lower() == "iso-8859-1":
             r.encoding = r.apparent_encoding
-        html = r.text
+        html = r.text.lstrip("﻿")  # some pages are served with (even doubled) byte-order marks
         pages[url] = html
         page_path[url] = local_path(url, is_html=True)
         np_, na = collect_from_html(url, html)

@@ -475,7 +475,12 @@ def lang_variant(site_rel, lang):
     return f"{root}.{lang}{ext}"
 
 
-_LOCALIZED_RE = re.compile(r"^(index|search|bestsellers|(?:product/)?category&path=\d+|(?:product/)?product&product_id=\d+)\.html$")
+_LOCALIZED_RE = re.compile(r"^(index|search|bestsellers|(?:product/)?category&path=\d+|(?:product/)?product&product_id=\d+"
+                           r"|(?:pages/)?\d+|(?:information/)?(?:news|notice)(?:&(?:news|notice)_id=\d+)?)\.html$")
+
+# About / terms / news / announcements: translated copies are generated from _templates/info/<same path>
+INFO_PAGES = ["pages/4.html", "pages/5.html", "information/news.html", "information/notice.html",
+              "information/news&news_id=1.html", "information/notice&notice_id=1.html"]
 
 
 def localize_links(soup, lang, page_dir):
@@ -778,7 +783,7 @@ def strip_commerce(soup):
                 parent.decompose()
 
 
-ZH_ONLY_HREF = re.compile(r"(^|/)(information/|pages/|sitemap\.html|special\.html)", re.I)
+ZH_ONLY_HREF = re.compile(r"(^|/)(sitemap\.html|special\.html)", re.I)
 
 
 def strip_zh_only(soup):
@@ -900,8 +905,11 @@ def write_language_variants(zh_html, site_rel, data, per_lang=None):
         _TABLE = load_i18n(data)
     page_dir = posixpath.dirname(site_rel)
     base = posixpath.basename(site_rel)
+    zh_html = zh_html.lstrip("﻿")
     for code, _, _, html_lang in LANGS:
         soup = BeautifulSoup(zh_html, "lxml")
+        if soup.head is None:
+            raise ValueError(f"{site_rel}: no <head> after parsing; the source HTML is malformed")
         strip_trackers(soup)
         if code != "zh":
             if per_lang:
@@ -1211,15 +1219,19 @@ def build_all(data=None):
         build_product(p, data)
     build_listing("search.html", ["search.html", "search@filter_name=&filter_tag=&filter_description=.html"], visible, data)
     build_listing("bestsellers.html", ["bestsellers.html"], [p for p in visible if "bestseller" in p.get("sections", [])], data)
+    for rel in INFO_PAGES:
+        tpl = TPL / "info" / rel
+        if tpl.exists():
+            write_language_variants(tpl.read_text(encoding="utf-8").lstrip("﻿"), rel, data)
     build_sitemap(visible, data)
-    # pages we do not regenerate (news, about, login, ...): same tracking removal, search and image swap
-    generated = {lang_variant(x, c) for x in ["index.html", "search.html", "bestsellers.html"] for c, _, _, _ in LANGS}
+    # pages we do not regenerate (login, account, ...): same tracking removal, search and image swap
+    generated = {lang_variant(x, c) for x in ["index.html", "search.html", "bestsellers.html"] + INFO_PAGES for c, _, _, _ in LANGS}
     for f in list(SITE.glob("*.html")) + list(SITE.glob("information/*.html")) + list(SITE.glob("pages/*.html")) + list(SITE.glob("account/**/*.html")):
         rel = f.relative_to(SITE).as_posix()
         if rel in generated or rel.startswith("__probe__"):
             continue
-        soup = BeautifulSoup(f.read_text(encoding="utf-8"), "lxml")
-        if soup.html is None:
+        soup = BeautifulSoup(f.read_text(encoding="utf-8").lstrip("﻿"), "lxml")
+        if soup.html is None or soup.head is None:
             continue
         strip_trackers(soup)
         use_optimized_images(soup, posixpath.dirname(rel))
