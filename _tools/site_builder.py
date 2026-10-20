@@ -660,12 +660,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 def add_lang_switch(soup, current, site_rel="index.html"):
     style = soup.new_tag("style")
     # in normal page flow at the very top: never floats over checkout / cart / chat buttons
-    style.string = (".apt-lang{position:relative;z-index:10;display:block;text-align:right;background:#f5f5f5;"
-                    "border-bottom:1px solid #e3e3e3;padding:4px 12px;font:13px/1.6 -apple-system,'Segoe UI',"
-                    "'Noto Sans TC',sans-serif;white-space:nowrap;overflow-x:auto}"
-                    "@media (max-width:767px){.apt-lang{text-align:left;position:sticky;left:0;max-width:100vw;box-sizing:border-box}}"
-                    ".apt-lang a{color:#444;text-decoration:none;margin:0 5px}.apt-lang a:hover{color:#000}"
-                    ".apt-lang a.cur{font-weight:700;color:#000;text-decoration:underline}")
+    style.string = (".apt-lang{position:relative;z-index:10;display:flex;justify-content:flex-end;gap:8px;background:#f2f2f2;"
+                    "border-bottom:1px solid #ddd;padding:10px 16px;box-sizing:border-box;font:15px/1.4 -apple-system,'Segoe UI',"
+                    "'Noto Sans TC','Noto Sans JP',sans-serif;white-space:nowrap}"
+                    ".apt-lang a{display:inline-block;min-width:76px;text-align:center;padding:8px 14px;border:1px solid #ccc;"
+                    "border-radius:22px;background:#fff;color:#333;text-decoration:none;font-weight:500}"
+                    ".apt-lang a:hover{border-color:#888;color:#000}"
+                    ".apt-lang a.cur{background:#222;border-color:#222;color:#fff;font-weight:700}"
+                    "@media (max-width:767px){.apt-lang{justify-content:stretch;gap:6px;padding:10px 10px;max-width:100vw}"
+                    ".apt-lang a{flex:1;min-width:0;padding:10px 4px;font-size:15px}}")
     div = soup.new_tag("div", attrs={"class": "apt-lang", "aria-label": "Language"})
     base = posixpath.basename(site_rel)
     for code, label, _, _ in LANGS:
