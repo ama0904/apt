@@ -55,7 +55,7 @@
   .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px 16px; }
   .grid .full { grid-column:1 / -1; }
   label.f { display:block; font-size:13px; color:var(--muted); margin-bottom:4px; }
-  input[type=text], input[type=number], input[type=password], textarea, select { width:100%; font:inherit; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+  input[type=text], input[type=url], input[type=search], input[type=number], input[type=password], textarea, select { width:100%; font:inherit; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; }
   textarea { min-height:80px; resize:vertical; }
   textarea.tall { min-height:160px; font-family:ui-monospace,Consolas,monospace; font-size:13px; }
   .checks { display:flex; gap:12px; flex-wrap:wrap; padding:6px 0; }
@@ -68,6 +68,21 @@
   #toast { position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#111827; color:#fff; padding:10px 16px; border-radius:10px; font-size:14px; opacity:0; transition:opacity .2s; pointer-events:none; z-index:50; }
   #toast.show { opacity:1; }
   code { background:#f3f4f6; padding:1px 5px; border-radius:4px; font-size:12px; }
+  fieldset.box { border:1px solid var(--line); border-radius:10px; padding:10px 14px 12px; margin:0; background:#fafbfc; min-width:0; }
+  fieldset.box legend { font-size:13px; color:var(--muted); padding:0 6px; font-weight:600; }
+  .size-row { display:flex; align-items:center; gap:12px; padding:6px 0; border-bottom:1px dashed var(--line); flex-wrap:wrap; }
+  .size-row:last-child { border-bottom:none; }
+  .size-row label { display:flex; gap:8px; align-items:center; min-width:130px; font-size:14px; }
+  .size-row .fee { color:var(--muted); font-size:13px; display:flex; gap:4px; align-items:center; }
+  .size-row input[type=number], .size-row input[type=text] { width:auto; padding:5px 8px; }
+  .blk { border:1px solid var(--line); border-radius:10px; background:#fff; margin-bottom:8px; }
+  .blk-head { display:flex; gap:6px; align-items:center; padding:6px 8px; border-bottom:1px solid var(--line); background:#f9fafb; border-radius:10px 10px 0 0; }
+  .blk-head .sp { flex:1; }
+  .blk-tag { font-size:12px; font-weight:600; color:var(--muted); }
+  .blk-body { padding:8px; }
+  .blk-body textarea { min-height:64px; }
+  .blk-img { max-width:220px; max-height:150px; border-radius:6px; display:block; margin-bottom:6px; border:1px solid var(--line); }
+  .addbar { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:8px; font-size:13px; color:var(--muted); }
   details.tr { border:1px solid var(--line); border-radius:10px; padding:0 12px; margin-bottom:8px; background:#fafbfc; }
   details.tr summary { cursor:pointer; padding:10px 0; font-weight:600; font-size:14px; }
   details.tr summary .muted { font-weight:400; margin-left:6px; }
@@ -120,7 +135,7 @@
     .dlg-foot { padding:10px 14px calc(10px + env(safe-area-inset-bottom)); flex-wrap:wrap; }
     .dlg-foot .err, .dlg-foot .progress { width:100%; margin:0 0 4px; }
     .dlg-foot button { flex:1; padding:12px; font-size:15px; }
-    input[type=text], input[type=number], input[type=password], textarea, select { font-size:16px; padding:10px; } /* 16px stops iOS zoom */
+    input[type=text], input[type=url], input[type=search], input[type=number], input[type=password], textarea, select { font-size:16px; padding:10px; } /* 16px stops iOS zoom */
     .checks label { font-size:15px; padding:4px 0; }
     .card { margin:20px auto; padding:16px; }
   }
@@ -186,20 +201,32 @@
     <div class="dlg-head"><h2 id="dlg-title">新增商品</h2><button type="button" id="dlg-close" class="small">✕</button></div>
     <div class="dlg-body">
       <div class="grid">
-        <div><label class="f">商品名稱 *</label><input type="text" name="name" required></div>
-        <div><label class="f">價格（元） *</label><input type="number" name="price" min="0" step="1" required></div>
-        <div class="full"><label class="f">所屬分類</label><div class="checks" id="cat-checks"></div></div>
-        <div class="full"><label class="f">首頁顯示區塊</label><div class="checks" id="sec-checks"></div></div>
-        <div class="full"><label class="f">商品列表簡介（分類頁卡片上的一句話）</label><input type="text" name="summary"></div>
-        <div class="full"><label class="f">購買連結（蝦皮等賣場網址；留空則「立即購買」連到原官網商品頁）</label><input type="url" name="buy_url" placeholder="https://shopee.tw/..."></div>
-        <div class="full"><label class="f">商品頁重點說明（價格上方，每行一段；也可直接貼 HTML）</label><textarea name="feature"></textarea></div>
-        <div class="full"><label class="f">商品介紹（每行一段；也可直接貼 HTML）</label><textarea name="description" class="tall"></textarea></div>
-        <div class="full"><label class="f">選項（每行一組，格式： <code>尺寸: S, M, L, XL</code>）</label><textarea name="options" style="min-height:56px"></textarea></div>
+        <div><label class="f">商品名稱 *</label><input type="text" name="name" required placeholder="例如：小汪防水斗篷 太空灰"></div>
+        <div><label class="f">價格（元） *</label><input type="number" name="price" min="0" step="1" required placeholder="1080"></div>
+        <div class="full"><label class="f">放在哪些分類</label><div class="checks" id="cat-checks"></div></div>
+        <div class="full"><label class="f">首頁顯示</label><div class="checks" id="sec-checks"></div></div>
+        <div class="full"><label class="f">列表卡片上的一句話</label><input type="text" name="summary" placeholder="例如：專為小型犬設計，穿脫簡易、外出便利"></div>
+        <div class="full"><label class="f">購買連結</label><input type="url" name="buy_url" placeholder="https://shopee.tw/…（留空就連到原官網的商品頁）"></div>
+        <fieldset class="full box"><legend>價格旁的重點說明</legend>
+          <div class="grid">
+            <div><label class="f">標題</label><input type="text" name="feat_title" placeholder="例如：【apetto 小汪防水斗篷】"></div>
+            <div><label class="f">一句話</label><input type="text" name="feat_line" placeholder="例如：專為小型犬設計，穿脫簡易、外出便利"></div>
+          </div>
+        </fieldset>
+        <fieldset class="full box"><legend>尺寸</legend>
+          <div id="sizes"></div>
+          <button type="button" class="small" id="size-add">＋ 其他尺寸</button>
+        </fieldset>
+        <fieldset class="full box"><legend>商品介紹</legend>
+          <div id="blocks"></div>
+          <div class="addbar"><span>加入：</span><button type="button" data-add="h">標題</button><button type="button" data-add="p">文字</button><button type="button" data-add="ul">條列</button><button type="button" data-add="img">圖片</button><button type="button" data-add="chart">尺寸表</button></div>
+          <div class="hint">由上到下就是商品頁的順序，用 ↑ ↓ 調整。</div>
+        </fieldset>
         <div>
           <label class="f">主圖 <span id="img-req">*</span></label>
           <input type="file" name="image" accept="image/*">
           <div class="thumbs" id="cur-main"></div>
-          <div class="hint">會在瀏覽器自動裁成列表方塊圖與縮圖。</div>
+          <div class="hint">會自動裁成卡片與縮圖。</div>
         </div>
         <div>
           <label class="f">更多圖片（可多選）</label>
@@ -210,7 +237,8 @@
         </div>
         <div class="full"><label class="checks"><input type="checkbox" name="visible" value="1" checked> 上架（顯示在前台）</label></div>
         <div class="full">
-          <label class="f">外語版內容（選填）：沒填的欄位會用翻譯表處理，翻譯表沒有的句子會維持中文。</label>
+          <label class="f">外語版內容（選填）</label>
+          <div class="hint" style="margin-bottom:6px">沒填的會自動用翻譯表；表裡沒有的句子會維持中文。</div>
           <div id="tr-blocks"></div>
         </div>
       </div>
@@ -280,6 +308,17 @@ const DE = {
   '。沒填翻譯的段落，發布後會依翻譯表轉換。': '. Nicht übersetzte Absätze werden nach dem Veröffentlichen über die Übersetzungstabelle umgesetzt.',
   '請輸入密碼': 'Bitte Passwort eingeben', '驗證中…': 'Wird geprüft…', '密碼錯誤': 'Falsches Passwort', '連接失敗：': 'Verbindung fehlgeschlagen: ', '請輸入 token': 'Bitte Token eingeben', '連接中…': 'Verbinde…',
   '登入已失效，請重新登入。': 'Die Anmeldung ist abgelaufen, bitte erneut anmelden.',
+  '例如：小汪防水斗篷 太空灰': 'z. B. Wasserdichtes Cape für kleine Hunde – Space Grau', '放在哪些分類': 'Kategorien', '首頁顯示': 'Auf der Startseite zeigen',
+  '列表卡片上的一句話': 'Ein Satz für die Produktkarte', '例如：專為小型犬設計，穿脫簡易、外出便利': 'z. B. Für kleine Hunde: schnell an- und ausgezogen',
+  '購買連結': 'Kauf-Link', 'https://shopee.tw/…（留空就連到原官網的商品頁）': 'https://shopee.tw/… (leer = Produktseite des Original-Shops)',
+  '價格旁的重點說明': 'Highlights neben dem Preis', '標題': 'Titel', '一句話': 'Ein Satz', '例如：【apetto 小汪防水斗篷】': 'z. B. [apetto Cape für kleine Hunde]',
+  '尺寸': 'Größen', '加價': 'Aufpreis', '尺寸名稱': 'Größe', '＋ 其他尺寸': '＋ Weitere Größe',
+  '商品介紹': 'Beschreibung', '加入：': 'Einfügen:', '文字': 'Text', '條列': 'Liste', '圖片': 'Bild', '尺寸表': 'Größentabelle', '小標題': 'Zwischenüberschrift',
+  '一段文字': 'Ein Absatz', '每行一點': 'Ein Punkt pro Zeile', '由上到下就是商品頁的順序，用 ↑ ↓ 調整。': 'Die Reihenfolge von oben nach unten ist die der Produktseite; mit ↑ ↓ verschieben.',
+  '會自動裁成卡片與縮圖。': 'Wird automatisch für Karte und Vorschau zugeschnitten.', '外語版內容（選填）': 'Fremdsprachige Inhalte (optional)',
+  '沒填的會自動用翻譯表；表裡沒有的句子會維持中文。': 'Leere Felder werden über die Übersetzungstabelle gefüllt; Sätze ohne Übersetzung bleiben chinesisch.',
+  '介紹文字（每行一段）': 'Beschreibungstext (ein Absatz pro Zeile)', '重點標題': 'Highlight-Titel', '重點一句話': 'Highlight-Satz',
+  '尺寸表：': 'Größentabelle: ',
 };
 const t = (s, vars) => { let out = (UI_LANG === 'de' && DE[s]) || s; if (vars) Object.entries(vars).forEach(([k, v]) => { out = out.split('{' + k + '}').join(v); }); return out; };
 let SITE_TR = {};  // the shop's own translation table (category / section / product names)
@@ -516,14 +555,141 @@ function buildChecks() {
   $('#sec-checks').innerHTML = sections().map(s => `<label><input type="checkbox" name="sections" value="${s.key}"> ${escHtml(tName(s.name))}</label>`).join('');
 }
 const TR_LANGS = [['en', 'English'], ['ja', '日本語'], ['de', 'Deutsch']];
+/* ---------------------------------------------------------------- friendly editor: sizes, highlights, content blocks (the user never sees HTML) */
+const SIZE_PRESETS = ['S', 'M', 'L', 'XL', '2XL'];
+const SURCHARGE_RE = /^(.*?)\s*【加價 \$(\d+)】\s*$/;
+let CHARTS = {}, TABLE_IMG = {};  // size charts of the site (image_text.json): key -> chart, table image path -> key
+async function loadCharts() {
+  try { const r = await fetch(siteUrl() + '_data/image_text.json', { cache: 'no-store' }); if (r.ok) { const j = await r.json(); CHARTS = j.charts || {}; TABLE_IMG = j.tables || {}; } } catch (e) {}
+}
+const sitePath = u => (u || '').replace(/^(\.\.\/)+/, '').replace(/^\.\//, '');
+const txtOf = el => (el ? el.textContent : '').replace(/\s+/g, ' ').trim();
+
+function sizeRow(name, checked, fee, custom) {
+  return `<div class="size-row"><label><input type="checkbox" name="size_on" value="${escHtml(name)}" ${checked ? 'checked' : ''}> ${custom ? `<input type="text" name="size_name" value="${escHtml(name)}" placeholder="${t('尺寸名稱')}" style="width:100px">` : `<b>${escHtml(name)}</b>`}</label>
+    <span class="fee">${t('加價')} $<input type="number" name="size_fee" min="0" step="1" value="${fee || ''}" placeholder="0" style="width:80px"></span></div>`;
+}
+function fillSizes(options) {
+  const grp = (options || []).find(o => o.name === '尺寸');
+  const parsed = new Map();
+  (grp ? grp.values : []).forEach(v => { const m = String(v).match(SURCHARGE_RE); parsed.set(m ? m[1].trim() : String(v).trim(), m ? Number(m[2]) : 0); });
+  let html = SIZE_PRESETS.map(sz => sizeRow(sz, parsed.has(sz), parsed.get(sz), false)).join('');
+  [...parsed.keys()].filter(k => !SIZE_PRESETS.includes(k)).forEach(k => html += sizeRow(k, true, parsed.get(k), true));
+  $('#sizes').innerHTML = html;
+}
+function readSizes() {
+  const vals = [];
+  $('#sizes').querySelectorAll('.size-row').forEach(r => {
+    if (!r.querySelector('[name=size_on]').checked) return;
+    const nameEl = r.querySelector('[name=size_name]');
+    const name = (nameEl ? nameEl.value : r.querySelector('[name=size_on]').value).trim();
+    if (!name) return;
+    const fee = parseInt(r.querySelector('[name=size_fee]').value, 10) || 0;
+    vals.push(fee > 0 ? `${name} 【加價 $${fee}】` : name);
+  });
+  return vals;
+}
+function readOptions() {
+  const others = ((editing && editing.options) || []).filter(o => o.name !== '尺寸');
+  const vals = readSizes();
+  return vals.length ? [{ name: '尺寸', values: vals }, ...others] : others;
+}
+$('#size-add').onclick = () => { $('#sizes').insertAdjacentHTML('beforeend', sizeRow('', true, 0, true)); const i = $('#sizes').lastElementChild.querySelector('[name=size_name]'); i && i.focus(); };
+
+/* highlights: title + one line */
+function parseFeature(html) {
+  const doc = new DOMParser().parseFromString('<div id="r">' + (html || '') + '</div>', 'text/html');
+  const root = doc.getElementById('r'), strong = root.querySelector('strong, b');
+  const title = txtOf(strong);
+  if (strong) strong.remove();
+  return { title, line: txtOf(root) };
+}
+function featureToHtml(title, line) {
+  title = (title || '').trim(); line = (line || '').trim();
+  return (title ? `<p><strong>${escHtml(title)}</strong></p>` : '') + (line ? `<p>${escHtml(line)}</p>` : '');
+}
+
+/* content blocks */
+let BLOCKS = [];
+function parseBlocks(html) {
+  const doc = new DOMParser().parseFromString('<div id="r">' + (html || '') + '</div>', 'text/html'), out = [];
+  [...doc.getElementById('r').children].forEach(el => {
+    const tag = el.tagName.toLowerCase();
+    if (el.dataset && el.dataset.chart) { out.push({ t: 'chart', key: el.dataset.chart }); return; }
+    const imgs = tag === 'img' ? [el] : [...el.querySelectorAll('img')];
+    if (imgs.length && !txtOf(el)) {
+      imgs.forEach(im => {
+        const src = sitePath(im.getAttribute('data-lazy-src') || im.getAttribute('data-src') || im.getAttribute('src') || '');
+        if (!src || src.startsWith('data:')) return;
+        out.push(TABLE_IMG[src] ? { t: 'chart', key: TABLE_IMG[src] } : { t: 'img', src });
+      });
+      return;
+    }
+    if (tag === 'ul' || tag === 'ol') { const items = [...el.querySelectorAll('li')].map(txtOf).filter(Boolean); if (items.length) out.push({ t: 'ul', items }); return; }
+    // a paragraph with <br> breaks (at any depth) becomes several blocks; bold-only lines become headings
+    el.innerHTML.split(/<br\s*\/?>/i).forEach(piece => {
+      const tmp = doc.createElement('div'); tmp.innerHTML = piece;
+      const text = txtOf(tmp);
+      if (!text) return;
+      const b = tmp.querySelector('strong, b');
+      if (/^h[1-6]$/.test(tag) || (b && text.length <= 40 && txtOf(b) === text)) out.push({ t: 'h', text }); else out.push({ t: 'p', text });
+    });
+  });
+  return out;
+}
+function blocksToHtml(blocks, imgSrc) {
+  return blocks.map(b => {
+    if (b.t === 'h') return b.text.trim() ? `<h3>${escHtml(b.text.trim())}</h3>` : '';
+    if (b.t === 'p') return b.text.trim() ? `<p>${escHtml(b.text.trim()).replace(/\n/g, '<br>')}</p>` : '';
+    if (b.t === 'ul') return b.items.length ? `<ul>${b.items.map(i => `<li>${escHtml(i)}</li>`).join('')}</ul>` : '';
+    if (b.t === 'img') { const u = imgSrc(b); return u ? `<p><img src="${escHtml(u)}" alt=""></p>` : ''; }
+    if (b.t === 'chart') return b.key ? `<div data-chart="${escHtml(b.key)}"></div>` : '';
+    return '';
+  }).filter(Boolean).join('\n');
+}
+const blocksText = blocks => blocks.map(b => b.t === 'ul' ? b.items.join('\n') : (b.t === 'h' || b.t === 'p') ? b.text : '').filter(Boolean).join('\n');
+function renderBlocks() {
+  const box = $('#blocks'); box.innerHTML = '';
+  BLOCKS.forEach((b, i) => {
+    const d = document.createElement('div'); d.className = 'blk blk-' + b.t;
+    const label = { h: t('標題'), p: t('文字'), ul: t('條列'), img: t('圖片'), chart: t('尺寸表') }[b.t];
+    let body = '';
+    if (b.t === 'h') body = `<input type="text" data-k="text" value="${escHtml(b.text || '')}" placeholder="${t('小標題')}">`;
+    else if (b.t === 'p') body = `<textarea data-k="text" placeholder="${t('一段文字')}">${escHtml(b.text || '')}</textarea>`;
+    else if (b.t === 'ul') body = `<textarea data-k="items" placeholder="${t('每行一點')}">${escHtml((b.items || []).join('\n'))}</textarea>`;
+    else if (b.t === 'img') { const u = b.url || (b.src ? rawUrl(b.src) : ''); body = `${u ? `<img class="blk-img" src="${escHtml(u)}">` : ''}<input type="file" accept="image/*" data-k="file">`; }
+    else if (b.t === 'chart') body = `<select data-k="key">${Object.entries(CHARTS).map(([k, c]) => `<option value="${k}" ${k === b.key ? 'selected' : ''}>${escHtml(tName(c.title))}</option>`).join('')}</select>`;
+    d.innerHTML = `<div class="blk-head"><span class="blk-tag">${label}</span><span class="sp"></span><button type="button" class="small" data-mv="-1" ${i === 0 ? 'disabled' : ''}>↑</button><button type="button" class="small" data-mv="1" ${i === BLOCKS.length - 1 ? 'disabled' : ''}>↓</button><button type="button" class="small danger" data-del>✕</button></div><div class="blk-body">${body}</div>`;
+    const te = d.querySelector('[data-k="text"],[data-k="items"]');
+    if (te) te.addEventListener('input', e => { if (b.t === 'ul') b.items = e.target.value.split(/\r?\n/).map(x => x.trim()).filter(Boolean); else b.text = e.target.value; });
+    const sel = d.querySelector('[data-k="key"]'); if (sel) { b.key = sel.value; sel.addEventListener('change', e => b.key = e.target.value); }
+    const fi = d.querySelector('[data-k="file"]'); if (fi) fi.addEventListener('change', e => { const f = e.target.files[0]; if (f) { b.file = f; b.url = URL.createObjectURL(f); pvUrls.push(b.url); renderBlocks(); } });
+    d.querySelectorAll('[data-mv]').forEach(btn => btn.onclick = () => { const j = i + Number(btn.dataset.mv); [BLOCKS[i], BLOCKS[j]] = [BLOCKS[j], BLOCKS[i]]; renderBlocks(); });
+    d.querySelector('[data-del]').onclick = () => { BLOCKS.splice(i, 1); renderBlocks(); };
+    box.appendChild(d);
+  });
+}
+document.querySelectorAll('[data-add]').forEach(btn => btn.onclick = () => {
+  const k = btn.dataset.add;
+  BLOCKS.push({ h: { t: 'h', text: '' }, p: { t: 'p', text: '' }, ul: { t: 'ul', items: [] }, img: { t: 'img' }, chart: { t: 'chart', key: Object.keys(CHARTS)[0] || '' } }[k]);
+  renderBlocks();
+  const last = $('#blocks').lastElementChild; if (last) { last.scrollIntoView({ block: 'nearest' }); const f = last.querySelector('input,textarea,select'); f && f.focus(); }
+});
+function chartTable(c) {  // preview only; the real page renders the chart at build time
+  if (!c) return '';
+  return `<div class="apt-chart"><p>${escHtml(c.unit || '')}</p><table><thead><tr><th colspan="${c.cols.length + 1}">${escHtml(c.title)}</th></tr><tr><th></th>${c.cols.map(x => `<th>${escHtml(x)}</th>`).join('')}</tr></thead><tbody>${c.rows.map(r => `<tr>${r.map(x => `<td>${escHtml(x)}</td>`).join('')}</tr>`).join('')}</tbody></table><ul>${(c.notes || []).map(n => `<li>${escHtml(n)}</li>`).join('')}</ul></div>`;
+}
+
+/* per-language overrides: plain fields only */
 function buildTrBlocks() {
   $('#tr-blocks').innerHTML = TR_LANGS.map(([k, label]) => `
     <details class="tr" data-lang="${k}"><summary>${label}<span class="muted" data-filled></span></summary>
       <div class="grid">
-        <div class="full"><label class="f">${t('商品名稱')}</label><input type="text" name="tr_${k}_name"></div>
-        <div class="full"><label class="f">${t('商品列表簡介')}</label><input type="text" name="tr_${k}_summary"></div>
-        <div class="full"><label class="f">${t('商品頁重點說明（每行一段；也可貼 HTML）')}</label><textarea name="tr_${k}_feature"></textarea></div>
-        <div class="full"><label class="f">${t('商品介紹（每行一段；也可貼 HTML）')}</label><textarea name="tr_${k}_description" class="tall"></textarea></div>
+        <div><label class="f">${t('商品名稱')}</label><input type="text" name="tr_${k}_name"></div>
+        <div><label class="f">${t('列表卡片上的一句話')}</label><input type="text" name="tr_${k}_summary"></div>
+        <div><label class="f">${t('重點標題')}</label><input type="text" name="tr_${k}_feat_title"></div>
+        <div><label class="f">${t('重點一句話')}</label><input type="text" name="tr_${k}_feat_line"></div>
+        <div class="full"><label class="f">${t('介紹文字（每行一段）')}</label><textarea name="tr_${k}_description"></textarea></div>
       </div></details>`).join('');
 }
 function productTr(p) {  // {lang: {name, summary, feature_html, description_html}}, incl. older name-only data
@@ -534,11 +700,12 @@ function productTr(p) {  // {lang: {name, summary, feature_html, description_htm
 function readTr(fd) {
   const out = {};
   TR_LANGS.forEach(([k]) => {
+    const lines = (fd.get(`tr_${k}_description`) || '').split(/\r?\n/).map(x => x.trim()).filter(Boolean);
     const o = {
       name: (fd.get(`tr_${k}_name`) || '').trim(),
       summary: (fd.get(`tr_${k}_summary`) || '').trim(),
-      feature_html: textToHtml(fd.get(`tr_${k}_feature`)),
-      description_html: textToHtml(fd.get(`tr_${k}_description`)),
+      feature_html: featureToHtml(fd.get(`tr_${k}_feat_title`), fd.get(`tr_${k}_feat_line`)),
+      description_html: lines.map(l => `<p>${escHtml(l)}</p>`).join('\n'),
     };
     Object.keys(o).forEach(x => { if (!o[x]) delete o[x]; });
     if (Object.keys(o).length) out[k] = o;
@@ -562,15 +729,20 @@ function openForm(p) {
   $('#clear-gal-wrap').style.display = p && p.gallery && p.gallery.length ? '' : 'none';
   $('#cur-main').innerHTML = p && p.image.thumb ? `<img src="${rawUrl(p.image.thumb)}">` : '';
   $('#cur-gallery').innerHTML = p ? (p.gallery || []).map(g => `<img src="${rawUrl(g.small || g.full)}">`).join('') : '';
+  const feat = parseFeature(p ? p.feature_html : '');
+  f.feat_title.value = feat.title; f.feat_line.value = feat.line;
+  fillSizes(p ? p.options : [{ name: '尺寸', values: ['S', 'M', 'L', 'XL'] }]);
+  BLOCKS = p ? parseBlocks(p.description_html) : [];
+  renderBlocks();
   if (p) {
     f.name.value = p.name; f.price.value = p.price; f.summary.value = p.summary || ''; f.buy_url.value = p.buy_url || '';
     const tr = productTr(p);
     TR_LANGS.forEach(([k]) => {
-      const o = tr[k] || {};
+      const o = tr[k] || {}, ft = parseFeature(o.feature_html);
       f[`tr_${k}_name`].value = o.name || ''; f[`tr_${k}_summary`].value = o.summary || '';
-      f[`tr_${k}_feature`].value = o.feature_html || ''; f[`tr_${k}_description`].value = o.description_html || '';
+      f[`tr_${k}_feat_title`].value = ft.title; f[`tr_${k}_feat_line`].value = ft.line;
+      f[`tr_${k}_description`].value = blocksText(parseBlocks(o.description_html));
     });
-    f.feature.value = p.feature_html || ''; f.description.value = p.description_html || ''; f.options.value = optionsToText(p.options);
     f.visible.checked = p.visible !== false;
     f.querySelectorAll('input[name=categories]').forEach(c => c.checked = (p.categories || []).includes(Number(c.value)));
     f.querySelectorAll('input[name=sections]').forEach(c => c.checked = (p.sections || []).includes(c.value));
@@ -593,9 +765,9 @@ function draftFromForm() {
   return {
     name: (fd.get('name') || '').trim() || t('（未命名商品）'),
     price: parseInt(String(fd.get('price') || '0').replace(/,/g, ''), 10) || 0,
-    feature_html: textToHtml(fd.get('feature')),
-    description_html: textToHtml(fd.get('description')),
-    options: parseOptions(fd.get('options')),
+    feature_html: featureToHtml(fd.get('feat_title'), fd.get('feat_line')),
+    description_html: blocksToHtml(BLOCKS, b => b.url || (b.src ? rawUrl(b.src) : '')),
+    options: readOptions(),
     i18n: readTr(fd),
     image: main ? fileUrl(main) : (base.image && base.image.full ? rawUrl(base.image.full) : ''),
     gallery: gal.length ? gal.map(fileUrl) : (fd.get('clear_gallery') ? [] : (base.gallery || []).map(g => rawUrl(g.full))),
@@ -625,7 +797,8 @@ async function renderPreview() {
   doc.querySelectorAll('ol.breadcrumb li:last-child span').forEach(s => s.textContent = name);
   const pr = doc.querySelector('.product-sell-price'); if (pr) pr.textContent = money(d.price);
   const feat = doc.querySelector('.product-feature-content'); if (feat) feat.innerHTML = o.feature_html || d.feature_html;
-  const desc = doc.querySelector('#tab-description'); if (desc) desc.innerHTML = o.description_html || d.description_html;
+  const desc = doc.querySelector('#tab-description');
+  if (desc) { desc.innerHTML = o.description_html || d.description_html; desc.querySelectorAll('[data-chart]').forEach(el => el.outerHTML = chartTable(CHARTS[el.dataset.chart]) || `<p>${t('尺寸表：')}${escHtml(el.dataset.chart)}</p>`); }
   if (d.image) {
     ['#main-defer-image', '#zoom1'].forEach(sel => { const i = doc.querySelector(sel); if (i) { i.src = d.image; i.removeAttribute('srcset'); } });
   }
@@ -665,9 +838,8 @@ $('#form').onsubmit = async (ev) => {
       summary: (fd.get('summary') || '').trim(),
       buy_url: (fd.get('buy_url') || '').trim(),
       i18n: readTr(fd),
-      feature_html: textToHtml(fd.get('feature')),
-      description_html: textToHtml(fd.get('description')),
-      options: parseOptions(fd.get('options')),
+      feature_html: featureToHtml(fd.get('feat_title'), fd.get('feat_line')),
+      options: readOptions(),
       categories: fd.getAll('categories').map(Number),
       sections: fd.getAll('sections'),
       visible: !!fd.get('visible'),
@@ -681,6 +853,17 @@ $('#form').onsubmit = async (ev) => {
       p.gallery = [];
       for (let i = 0; i < gal.length; i++) { prog(t('處理圖片 {i}/{n}…', { i: i + 1, n: gal.length })); const r = await processImage(gal[i], p.id, `g${i + 1}`); p.gallery.push({ full: r.paths.full, small: r.paths.small }); files.push(...r.files); }
     } else if (editing && fd.get('clear_gallery')) p.gallery = [];
+    let dn = 0;
+    for (const b of BLOCKS) {
+      if (b.t !== 'img' || !b.file) continue;
+      dn++; prog(t('處理圖片 {i}/{n}…', { i: dn, n: BLOCKS.filter(x => x.t === 'img' && x.file).length }));
+      const slot = `d${Date.now().toString(36)}${dn}`;
+      const img = await loadImage(b.file), s0 = Math.min(1, 1400 / Math.max(img.naturalWidth, img.naturalHeight));
+      const blob = await canvasJpeg(img, Math.round(img.naturalWidth * s0), Math.round(img.naturalHeight * s0), 'contain');
+      b.src = `_data/uploads/p${p.id}_${slot}.jpg`; delete b.file;
+      files.push({ path: `${SITE_DIR}/${b.src}`, base64: await blobToB64(blob) });
+    }
+    p.description_html = blocksToHtml(BLOCKS, b => b.src ? '../' + b.src : '');
     delete p.name_i18n;  // superseded by p.i18n
     if (!editing) P.push(p);
     await saveData(`${editing ? '更新' : '新增'}商品 #${p.id} ${name}`, files, prog);
@@ -746,6 +929,7 @@ $('#dlg-close').onclick = $('#dlg-cancel').onclick = () => $('#dlg').close();
 
 (async () => {
   applyLang();
+  loadCharts();
   if (UI_LANG !== 'zh') { try { const r = await fetch(siteUrl() + '_data/i18n.json', { cache: 'no-store' }); if (r.ok) SITE_TR = await r.json(); } catch (e) {} }
   await loadSecret();
   const entry = err => SECRET ? showPw(err) : showLogin(err);
