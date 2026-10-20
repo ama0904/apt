@@ -105,6 +105,8 @@ UI = {
     "回到商品列表": {"en": "Back to products", "ja": "商品一覧へ戻る", "de": "Zurück zu den Produkten"},
     "分享": {"en": "Share", "ja": "シェア", "de": "Teilen"},
     "主選單": {"en": "Main menu", "ja": "メインメニュー", "de": "Hauptmenü"},
+    "查看連結": {"en": "Open link", "ja": "リンクを見る", "de": "Link öffnen"},
+    "目前沒有消息": {"en": "No news yet", "ja": "お知らせはまだありません", "de": "Noch keine Neuigkeiten"},
     "訂購步驟": {"en": "How to order", "ja": "ご注文の流れ", "de": "So bestellen Sie"},
     "選購商品": {"en": "Pick your products", "ja": "商品を選ぶ", "de": "Produkte auswählen"},
     "填寫資料與送貨方式": {"en": "Enter your details and delivery method", "ja": "お届け先と配送方法を入力", "de": "Daten und Versandart eingeben"},
@@ -608,8 +610,7 @@ def render_home(data, visible, lang):
              ("f_leash", "穿著也能上牽繩", "領圍開口設計，穿上 apetto 仍然可以扣上牽繩。"),
              ("f_snap", "快速穿脫", "前扣式鈕扣與腹部插扣，扣上就能出門。"),
              ("f_name", "寫上名字", "專屬名牌，寫上毛孩的名字，衣服就是他的。")]
-    news = [(date, title, rel) for rel in ("information/news.html", "information/notice.html") for (date, title, target) in info_items(rel) for rel in [target]]
-    news_html = "".join(f'<a href="{link(d, rel, lang)}"><time>{esc(date)}</time><b>{esc(title)}</b></a>' for date, title, rel in news[:6])
+    news_html = "".join(f'<a href="{link(d, news_page(n), lang)}"><time>{esc(n.get("date", ""))}</time><b>{esc(news_text(n, lang, "title"))}</b></a>' for n in load_news()[:6])
     news_html = f'<div class="news-list home">{news_html}</div>' if news_html else ""
     feats_html = "".join(f'<div class="feat"><div class="img"><img src="{asset(d, IMG[k])}" alt="" loading="lazy"></div>'
                          f'<div class="body"><h3>{esc(t)}</h3><p>{esc(s)}</p></div></div>' for k, t, s in feats)
@@ -927,6 +928,63 @@ def render_terms(data, rel, lang, crumbs):
     return page(data, rel, lang, f"購物流程 | {BRAND}", body, "購物流程", current=rel)
 
 
+# ----------------------------------------------------------------- news (admin-managed _data/news.json)
+NEWS_FILE = sb.DATA_DIR / "news.json"
+
+
+def load_news():
+    items = json.loads(NEWS_FILE.read_text(encoding="utf-8")).get("items", []) if NEWS_FILE.exists() else []
+    return sorted([n for n in items if n.get("visible", True)], key=lambda n: n.get("date", ""), reverse=True)
+
+
+def news_page(n):
+    return f"information/news&news_id={n['id']}.html"
+
+
+def news_text(n, lang, field):
+    """Admin-entered translation when present, else the Chinese text (the i18n table may still translate it)."""
+    o = (n.get("i18n") or {}).get(lang) or {}
+    return (o.get(field) or "").strip() or (n.get(field) or "")
+
+
+_URL_RE = re.compile(r"(https?://[^\s<>\"]+)")
+
+
+def news_body_html(text):
+    out = []
+    for line in (text or "").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        parts = _URL_RE.split(line)
+        html_line = "".join(f'<a href="{esc(p)}" target="_blank" rel="noopener">{esc(p)}</a>' if _URL_RE.fullmatch(p) else esc(p) for p in parts)
+        out.append(f"<p>{html_line}</p>")
+    return "\n".join(out)
+
+
+def render_news_list(data, lang, rel="information/news.html"):
+    d = rel_dir(rel)
+    crumbs = f'<li><a href="{link(d, "index.html", lang)}">首頁</a></li><li><span>最新消息</span></li>'
+    items = "".join(f'<a href="{link(d, news_page(n), lang)}"><time>{esc(n.get("date", ""))}</time><b>{esc(news_text(n, lang, "title"))}</b></a>' for n in load_news())
+    content = f'<div class="news-list">{items or "<p class=empty>目前沒有消息</p>"}</div>'
+    body = f'<div class="wrap"><ol class="breadcrumb">{crumbs}</ol><div class="ph"><h1>最新消息</h1></div><div style="height:24px"></div>{content}</div>'
+    return page(data, rel, lang, f"最新消息 | {BRAND}", body, "最新消息", current="information/news.html")
+
+
+def render_news_article(data, n, lang, rel=None):
+    rel = rel or news_page(n)
+    d = rel_dir(rel)
+    title = news_text(n, lang, "title")
+    crumbs = (f'<li><a href="{link(d, "index.html", lang)}">首頁</a></li><li><a href="{link(d, "information/news.html", lang)}">最新消息</a></li>'
+              f'<li><span>{esc(title)}</span></li>')
+    extra = ""
+    if n.get("link"):
+        extra = f'<p><a href="{esc(n["link"])}" target="_blank" rel="noopener">{esc(n.get("link_text") or "查看連結")}</a></p>'
+    body = (f'<div class="wrap"><ol class="breadcrumb">{crumbs}</ol><article class="article"><div class="ph"><h1>{esc(title)}</h1></div>'
+            f'<p class="date">{esc(n.get("date", ""))}</p>{news_body_html(news_text(n, lang, "body"))}{extra}</article></div>')
+    return page(data, rel, lang, f"{title} | {BRAND}", body, title, current="information/news.html")
+
+
 def render_404(data, lang):
     body = (f'<div class="wrap" style="padding:80px 0 120px;text-align:center"><div class="ph"><h1>找不到頁面</h1><p>這個頁面不存在或已被移除。</p></div>'
             f'<a class="btn" href="{sb.lang_variant("index.html", lang)}">回到首頁</a></div>')
@@ -960,6 +1018,10 @@ def i18n_table(data):
     table = sb.load_i18n(data)
     for k, v in UI.items():
         table.setdefault(k, {}).update({kk: vv for kk, vv in v.items() if kk not in table.get(k, {})})
+    for n in load_news():
+        for lang, o in (n.get("i18n") or {}).items():
+            if (o or {}).get("title") and n.get("title"):
+                table.setdefault(re.sub(r"\s+", " ", n["title"]).strip(), {})[lang] = o["title"]
     return table
 
 
@@ -983,8 +1045,18 @@ def build_all(data, visible):
         write_page(render_listing(data, "bestsellers.html", lang, "暢銷商品", best, current="best"), "bestsellers.html", lang, table)
         for p in visible:
             write_page(render_product(data, visible, p, lang, sb.product_i18n(p)), sb.product_page(p), lang, table)
-        for rel in sb.INFO_PAGES:
+        for rel in ("pages/4.html", "pages/5.html"):
             out = render_info(data, rel, lang)
             if out:
                 write_page(out, rel, lang, table)
+        write_page(render_news_list(data, lang), "information/news.html", lang, table)
+        write_page(render_news_list(data, lang, "information/notice.html"), "information/notice.html", lang, table)  # old link
+        for n in load_news():
+            write_page(render_news_article(data, n, lang), news_page(n), lang, table)
+            if n.get("alias"):
+                write_page(render_news_article(data, n, lang, n["alias"]), n["alias"], lang, table)
         write_page(render_404(data, lang), "404.html", lang, table)
+    keep = {sb.lang_variant(p, c) for n in load_news() for p in [news_page(n)] + ([n["alias"]] if n.get("alias") else []) for c in LANG_CODES}
+    for f in list((sb.SITE / "information").glob("news&news_id=*.html")) + list((sb.SITE / "information").glob("notice&notice_id=*.html")):
+        if f.relative_to(sb.SITE).as_posix() not in keep:
+            f.unlink()

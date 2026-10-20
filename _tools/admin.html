@@ -19,6 +19,8 @@
   #deploy a { color:inherit; }
   main { max-width:1200px; margin:24px auto; padding:0 16px; }
   .toolbar { display:flex; gap:10px; align-items:center; margin-bottom:16px; flex-wrap:wrap; }
+  .sec-title { font-size:17px; margin:36px 0 12px; }
+  input[type=date] { width:100%; font:inherit; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; }
   .toolbar .count { color:var(--muted); font-size:14px; }
   button { font:inherit; border:1px solid var(--line); background:#fff; color:var(--text); padding:7px 12px; border-radius:8px; cursor:pointer; }
   button:hover { background:#f1f3f5; }
@@ -113,6 +115,9 @@
     /* product table becomes a list of cards */
     table, tbody { display:block; border:0; background:none; }
     thead { display:none; }
+    #news-table tbody tr { display:block; }
+    #news-table tbody td { display:block; padding:2px 0; }
+    #news-table .actions { grid-template-columns:1fr 1fr 1fr; }
     tbody tr { display:grid; grid-template-columns:72px 1fr auto; grid-template-areas:"img name name" "img price status" "act act act";
                gap:4px 12px; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:12px;
                padding:12px; margin-bottom:10px; }
@@ -193,8 +198,45 @@
       </thead>
       <tbody id="rows"></tbody>
     </table>
+
+    <h2 class="sec-title">最新消息</h2>
+    <div class="toolbar">
+      <button class="primary" id="btn-news-add">＋ 新增消息</button>
+      <span class="count" id="news-count"></span>
+    </div>
+    <table id="news-table">
+      <thead><tr><th style="width:120px">日期</th><th>標題</th><th>狀態</th><th style="width:300px">操作</th></tr></thead>
+      <tbody id="news-rows"></tbody>
+    </table>
   </section>
 </main>
+
+<dialog id="ndlg">
+  <form id="nform" method="dialog">
+    <div class="dlg-head"><h2 id="ndlg-title">新增消息</h2><button type="button" id="ndlg-close" class="small">✕</button></div>
+    <div class="dlg-body">
+      <div class="grid">
+        <div><label class="f">日期 *</label><input type="date" name="date" required></div>
+        <div class="full"><label class="f">標題 *</label><input type="text" name="title" required placeholder="例如：春季新色上市"></div>
+        <div class="full"><label class="f">內容（每行一段，網址會自動變成連結）</label><textarea name="body" class="tall" style="font-family:inherit;font-size:14px"></textarea></div>
+        <div><label class="f">相關連結（選填）</label><input type="url" name="link" placeholder="https://…"></div>
+        <div><label class="f">連結文字（選填）</label><input type="text" name="link_text" placeholder="例如：在 Facebook 查看貼文"></div>
+        <div class="full"><label class="checks"><input type="checkbox" name="nvisible" value="1" checked> 顯示在前台</label></div>
+        <div class="full">
+          <label class="f">外語版內容（選填）</label>
+          <div class="hint" style="margin-bottom:6px">沒填的會自動用翻譯表；表裡沒有的句子會維持中文。</div>
+          <div id="ntr-blocks"></div>
+        </div>
+      </div>
+    </div>
+    <div class="dlg-foot">
+      <span class="err" id="nform-err"></span>
+      <span class="progress" id="nform-progress"></span>
+      <button type="button" id="ndlg-cancel">取消</button>
+      <button type="submit" class="primary" id="ndlg-save">儲存並發布</button>
+    </div>
+  </form>
+</dialog>
 
 <dialog id="dlg">
   <form id="form" method="dialog">
@@ -319,6 +361,12 @@ const DE = {
   '沒填的會自動用翻譯表；表裡沒有的句子會維持中文。': 'Leere Felder werden über die Übersetzungstabelle gefüllt; Sätze ohne Übersetzung bleiben chinesisch.',
   '介紹文字（每行一段）': 'Beschreibungstext (ein Absatz pro Zeile)', '重點標題': 'Highlight-Titel', '重點一句話': 'Highlight-Satz',
   '尺寸表：': 'Größentabelle: ',
+  '最新消息': 'Neuigkeiten', '＋ 新增消息': '＋ Neue Meldung', '新增消息': 'Neue Meldung', '編輯消息': 'Meldung bearbeiten', '日期': 'Datum', '日期 *': 'Datum *', '標題 *': 'Titel *',
+  '例如：春季新色上市': 'z. B. Neue Frühlingsfarben', '內容（每行一段，網址會自動變成連結）': 'Inhalt (ein Absatz pro Zeile; Web-Adressen werden automatisch zu Links)',
+  '相關連結（選填）': 'Link (optional)', '連結文字（選填）': 'Linktext (optional)', '例如：在 Facebook 查看貼文': 'z. B. Beitrag auf Facebook ansehen', '顯示在前台': 'Im Shop anzeigen',
+  '共 {n} 則，顯示中 {m} 則': '{n} Meldungen, davon {m} sichtbar', '隱藏': 'Ausblenden', '顯示': 'Anzeigen', '已隱藏': 'ausgeblendet', '顯示中': 'sichtbar',
+  '標題不能空白': 'Der Titel darf nicht leer sein', '請選日期': 'Bitte ein Datum wählen', '已儲存，網站重新部署中': 'Gespeichert, Website wird neu gebaut',
+  '確定要刪除「{title}」嗎？': '„{title}“ wirklich löschen?', '內容（每行一段）': 'Inhalt (ein Absatz pro Zeile)',
 };
 const t = (s, vars) => { let out = (UI_LANG === 'de' && DE[s]) || s; if (vars) Object.entries(vars).forEach(([k, v]) => { out = out.split('{' + k + '}').join(v); }); return out; };
 let SITE_TR = {};  // the shop's own translation table (category / section / product names)
@@ -517,9 +565,11 @@ function render() {
 
 async function load() {
   S = await readProducts();
+  await readNews();
   $('#repo-label').textContent = `${cfg.repo} @ ${cfg.branch}`;
   $('#site-link').href = siteUrl();
   render();
+  renderNews();
   watchDeploy();
 }
 
@@ -753,6 +803,89 @@ function openForm(p) {
   $('#tr-blocks').oninput = markFilled;
   $('#dlg').showModal();
 }
+
+/* ---------------------------------------------------------------- news (_data/news.json) */
+const newsPath = () => `${SITE_DIR}/_data/news.json`;
+let N = { items: [] }, editingNews = null;
+async function readNews() {
+  try {
+    const j = await gh(`/repos/${cfg.repo}/contents/${encPath(newsPath())}?ref=${encodeURIComponent(cfg.branch)}&t=${Date.now()}`);
+    N = JSON.parse(b64decodeUtf8(j.content)); if (!Array.isArray(N.items)) N.items = [];
+  } catch (e) { N = { items: [] }; }
+}
+const dateOut = v => (v || '').replace(/-/g, '/');          // input[type=date] -> 2024/03/01
+const dateIn = v => (v || '').replace(/\//g, '-');          // 2024/03/01 -> input[type=date]
+function renderNews() {
+  const rows = $('#news-rows'); rows.innerHTML = '';
+  const items = [...N.items].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  $('#news-count').textContent = t('共 {n} 則，顯示中 {m} 則', { n: items.length, m: items.filter(x => x.visible !== false).length });
+  items.forEach(n => {
+    const tr = document.createElement('tr'); if (n.visible === false) tr.className = 'hidden-row';
+    const url = `${siteUrl()}information/news&news_id=${n.id}.html`;
+    tr.innerHTML = `<td>${escHtml(n.date || '')}</td>
+      <td class="name"><a href="${url}" target="_blank" title="${t('在前台開啟')}">${escHtml(tName(n.title))}</a></td>
+      <td>${n.visible === false ? `<span class="badge off">${t('已隱藏')}</span>` : `<span class="badge on">${t('顯示中')}</span>`}</td>
+      <td><div class="actions"><button class="small" data-act="edit">${t('編輯')}</button><button class="small" data-act="toggle">${t(n.visible === false ? '顯示' : '隱藏')}</button><button class="small danger" data-act="del">${t('刪除')}</button></div></td>`;
+    tr.querySelectorAll('button[data-act]').forEach(b => b.onclick = () => newsAction(b.dataset.act, n));
+    rows.appendChild(tr);
+  });
+}
+async function saveNews(message) {
+  const sha = await commitFiles([{ path: newsPath(), base64: b64encodeUtf8(JSON.stringify(N, null, 1)) }], message);
+  await load(); watchDeploy(sha);
+}
+async function newsAction(act, n) {
+  if (act === 'edit') return openNewsForm(n);
+  try {
+    busy(true);
+    const i = N.items.findIndex(x => x.id === n.id);
+    if (act === 'toggle') { N.items[i].visible = n.visible === false; await saveNews(`${N.items[i].visible ? '顯示' : '隱藏'}消息 #${n.id} ${n.title}`); toast(t('已儲存，網站重新部署中')); }
+    if (act === 'del') {
+      if (!confirm(t('確定要刪除「{title}」嗎？', { title: n.title }))) return;
+      N.items = N.items.filter(x => x.id !== n.id);
+      await saveNews(`刪除消息 #${n.id} ${n.title}`); toast(t('已刪除，網站重新部署中'));
+    }
+  } catch (e) { alert(t('操作失敗：') + e.message); await load().catch(() => {}); }
+  finally { busy(false); }
+}
+function openNewsForm(n) {
+  editingNews = n || null;
+  const f = $('#nform'); f.reset(); $('#nform-err').textContent = ''; $('#nform-progress').textContent = '';
+  $('#ndlg-title').textContent = n ? t('編輯消息') : t('新增消息');
+  $('#ntr-blocks').innerHTML = TR_LANGS.map(([k, label]) => `
+    <details class="tr" data-lang="${k}"><summary>${label}<span class="muted" data-filled></span></summary>
+      <div class="grid"><div class="full"><label class="f">${t('標題')}</label><input type="text" name="ntr_${k}_title"></div>
+      <div class="full"><label class="f">${t('內容（每行一段）')}</label><textarea name="ntr_${k}_body"></textarea></div></div></details>`).join('');
+  if (n) {
+    f.date.value = dateIn(n.date); f.title.value = n.title || ''; f.body.value = n.body || ''; f.link.value = n.link || ''; f.link_text.value = n.link_text || '';
+    f.nvisible.checked = n.visible !== false;
+    TR_LANGS.forEach(([k]) => { const o = (n.i18n || {})[k] || {}; f[`ntr_${k}_title`].value = o.title || ''; f[`ntr_${k}_body`].value = o.body || ''; });
+  } else {
+    const now = new Date(); f.date.value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  }
+  const mark = () => $('#ntr-blocks').querySelectorAll('details.tr').forEach(d => { const c = [...d.querySelectorAll('input,textarea')].filter(i => i.value.trim()).length; d.querySelector('[data-filled]').textContent = c ? t('已填 {n} 欄', { n: c }) : t('未填'); });
+  mark(); $('#ntr-blocks').oninput = mark;
+  $('#ndlg').showModal();
+}
+$('#nform').onsubmit = async (ev) => {
+  ev.preventDefault();
+  const f = $('#nform'), fd = new FormData(f), btn = $('#ndlg-save'); btn.disabled = true; $('#nform-err').textContent = '';
+  try {
+    const title = (fd.get('title') || '').trim(); if (!title) throw new Error(t('標題不能空白'));
+    if (!fd.get('date')) throw new Error(t('請選日期'));
+    const n = editingNews ? N.items.find(x => x.id === editingNews.id) : { id: Math.max(0, ...N.items.map(x => x.id)) + 1 };
+    const i18n = {};
+    TR_LANGS.forEach(([k]) => { const o = { title: (fd.get(`ntr_${k}_title`) || '').trim(), body: (fd.get(`ntr_${k}_body`) || '').trim() }; Object.keys(o).forEach(x => { if (!o[x]) delete o[x]; }); if (Object.keys(o).length) i18n[k] = o; });
+    Object.assign(n, { date: dateOut(fd.get('date')), title, body: (fd.get('body') || '').trim(), link: (fd.get('link') || '').trim(), link_text: (fd.get('link_text') || '').trim(), visible: !!fd.get('nvisible'), i18n });
+    if (!editingNews) N.items.push(n);
+    $('#nform-progress').textContent = t('建立 commit…');
+    await saveNews(`${editingNews ? '更新' : '新增'}消息 #${n.id} ${title}`);
+    $('#ndlg').close(); toast(t('已儲存，網站重新部署中'));
+  } catch (e) { $('#nform-err').textContent = e.message; await load().catch(() => {}); }
+  finally { btn.disabled = false; $('#nform-progress').textContent = ''; }
+};
+$('#btn-news-add').onclick = () => openNewsForm(null);
+$('#ndlg-close').onclick = $('#ndlg-cancel').onclick = () => $('#ndlg').close();
 
 /* ---------------------------------------------------------------- preview (built in the browser from a published product page) */
 const pvUrls = [];

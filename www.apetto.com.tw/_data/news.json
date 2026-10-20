@@ -1,0 +1,51 @@
+{
+ "items": [
+  {
+   "id": 1,
+   "date": "2022/02/10",
+   "title": "<我的寵物情人展售會> SOGO 復興館 快閃活動",
+   "body": "apetto 於 2022 年 2 月 8 日~ 2 月 16 日 於 SOGO 百貨復興館 8 樓，參加 #我的寵物情人 寵物用品展售會。\n現場將推出特殊隱藏版新色，只在 SOGO 復興館銷售，活動期間更有快閃優惠，1 件 9 折、2 件 8 折。\n機會難得，千萬別錯過 !!!",
+   "link": "https://www.facebook.com/sogoyoung/posts/5068324136523782",
+   "link_text": "在 Facebook 查看貼文",
+   "visible": true,
+   "i18n": {
+    "en": {
+     "title": "“My Pet Valentine” fair: pop-up at SOGO Fuxing",
+     "body": "From 8 to 16 February 2022, apetto is joining the #MyPetValentine pet products fair on the 8th floor of SOGO Fuxing.\nWe'll launch special hidden colours sold only at SOGO Fuxing, with pop-up deals during the event: 10% off one item, 20% off two.\nDon't miss this rare chance!!!"
+    },
+    "ja": {
+     "title": "「マイ・ペット・バレンタイン」展示販売会：SOGO 復興館ポップアップ",
+     "body": "apetto は 2022 年 2 月 8 日〜2 月 16 日、SOGO 百貨復興館 8 階で開催される #マイ・ペット・バレンタイン ペット用品展示販売会に出展します。\n会場では SOGO 復興館限定の隠れ新色を販売。期間中は 1 点 10% オフ、2 点 20% オフのポップアップ特典もあります。\nめったにないチャンス、お見逃しなく！！！"
+    },
+    "de": {
+     "title": "Messe „My Pet Valentine“: Pop-up im SOGO Fuxing",
+     "body": "Vom 8. bis 16. Februar 2022 ist apetto im 8. Stock des SOGO-Kaufhauses Fuxing bei der #MyPetValentine Heimtiermesse dabei.\nVor Ort gibt es versteckte Sonderfarben nur im SOGO Fuxing und Pop-up-Rabatte: 10 % auf ein Teil, 20 % auf zwei.\nDiese seltene Gelegenheit nicht verpassen!!!"
+    }
+   }
+  },
+  {
+   "id": 2,
+   "date": "2022/02/04",
+   "title": "Follow apetto IG",
+   "body": "關注 apetto\nInstagram：apetto_fun\n其他官方通路\nPinkoi：https://www.pinkoi.com/store/apetto",
+   "link": "https://www.instagram.com/apetto_fun/",
+   "link_text": "Instagram",
+   "visible": true,
+   "alias": "information/notice&notice_id=1.html",
+   "i18n": {
+    "en": {
+     "title": "Follow apetto IG",
+     "body": "Follow apetto on\nInstagram: apetto_fun\nOther official stores\nPinkoi: https://www.pinkoi.com/store/apetto"
+    },
+    "ja": {
+     "title": "Follow apetto IG",
+     "body": "apetto をフォロー：\nInstagram: apetto_fun\nその他の公式ショップ\nPinkoi: https://www.pinkoi.com/store/apetto"
+    },
+    "de": {
+     "title": "Follow apetto IG",
+     "body": "Folgen Sie apetto auf\nInstagram: apetto_fun\nWeitere offizielle Shops\nPinkoi: https://www.pinkoi.com/store/apetto"
+    }
+   }
+  }
+ ]
+}
