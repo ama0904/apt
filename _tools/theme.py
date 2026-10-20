@@ -350,7 +350,8 @@ p{margin:0 0 1em}ul,ol{margin:0;padding:0;list-style:none}button{font:inherit}
 .ft .social{display:flex;gap:10px;margin-top:14px}.ft .social a{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;border:1.5px solid var(--line2);font-weight:600;font-size:14px}
 .ft .social a:hover{border-color:var(--ink)}
 .ft-bottom{border-top:1px solid var(--line);padding:18px 0;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13.5px;color:var(--mute)}
-@media (max-width:980px){.ft-in{grid-template-columns:1fr 1fr;gap:28px;padding:40px 0 28px}.ft .brand{grid-column:1/-1}}
+@media (max-width:980px){.ft-in{grid-template-columns:1fr 1fr;gap:28px;padding:40px 0 28px}.ft .brand,.ft .contact{grid-column:1/-1}.ft .contact li{white-space:nowrap}.ft .contact li a{white-space:nowrap}}
+@media (max-width:420px){.ft .contact li{white-space:normal}}
 """
 
 JS = r"""(function(){
@@ -428,7 +429,7 @@ def footer(data, site_rel, lang):
     <div class="social"><a href="{INSTAGRAM}" target="_blank" rel="noopener">Instagram</a><a href="{PINKOI}" target="_blank" rel="noopener">Pinkoi</a></div></div>
    <div><h4>商品</h4><ul>{cats}<li><a href="{link(d, 'bestsellers.html', lang)}">暢銷商品</a></li><li><a href="{link(d, 'search.html', lang)}">全系列</a></li></ul></div>
    <div><h4>商店訊息</h4><ul><li><a href="{link(d, 'pages/4.html', lang)}">關於我們</a></li><li><a href="{link(d, 'pages/5.html', lang)}">服務條款</a></li><li><a href="{link(d, 'information/news.html', lang)}">最新消息</a></li><li><a href="{link(d, 'information/notice.html', lang)}">最新公告</a></li></ul></div>
-   <div><h4>聯絡我們</h4><ul><li><a href="mailto:info@hweider.url.tw">客服信箱：info@hweider.url.tw</a></li><li><a href="tel:+886289915001">連絡電話: 02-89915001</a></li><li>服務時間：週一~週五 10:00-12:00、14:00-18:00</li><li>LINE @apetto</li></ul></div>
+   <div class="contact"><h4>聯絡我們</h4><ul><li><a href="mailto:info@hweider.url.tw">客服信箱：info@hweider.url.tw</a></li><li><a href="tel:+886289915001">連絡電話: 02-89915001</a></li><li>服務時間：週一~週五 10:00-12:00、14:00-18:00</li><li>LINE @apetto</li></ul></div>
   </div>
   <div class="ft-bottom"><span>Copyright ©2026 apetto 機能寵物衣</span><span>apetto © 匯得興業有限公司</span></div>
  </div>
@@ -529,13 +530,6 @@ def render_home(data, visible, lang):
  <div class="hero-img rv in"><img src="{asset(d, IMG['hero'])}" alt="大汪系列" fetchpriority="high"></div>
 </div></section>
 {section('三大系列', f'<div class="tiles">{tiles}</div>', sub='依毛孩體型與季節挑選', cls='tight', page_dir=d, lang=lang)}
-<section class="sec"><div class="wrap"><div class="story rv">
- <div class="story-img zoom"><img src="{asset(d, IMG['story'])}" alt="" loading="lazy"></div>
- <div><span class="eyebrow">為專業、機能狗衣而生</span><h2>陪你走過每一個下雨的日子</h2>
-  <p>無論是春日裡的梅雨，還是冬日裡的綿綿細雨，每一個下雨的日子，apetto 狗衣系列，讓毛孩子盡情在戶外奔跑。</p>
-  <p>apetto 提供高品質、防風保護，頂級布料耐水壓 10000mmH2O，水滴在布料上能輕易滑落，提供舒適的防水防護。</p>
-  <a class="btn ghost" href="{link(d, 'pages/4.html', lang)}">關於我們</a></div>
-</div></div></section>
 {section('為什麼選擇 apetto', f'<div class="feats">{feats_html}</div>', sub='機能細節', cls='tight', page_dir=d, lang=lang)}
 {section('推薦商品', product_grid(latest, d, lang, tag='new'), more=('search.html', '查看全部'), sid='latest-products', cls='tight', page_dir=d, lang=lang) if latest else ''}
 {section('最新消息', news_html, more=('information/news.html', '查看全部'), sid='home-news', cls='tight', page_dir=d, lang=lang) if news_html else ''}
@@ -740,9 +734,19 @@ def render_info(data, rel, lang):
                 if a and posixpath.basename(sb.to_site_path(d, a["href"].replace("&amp;", "&"))) == posixpath.basename(rel):
                     small = li.select_one("small")
                     date = small.get_text(strip=True) if small else ""
-        body = (f'<div class="wrap"><ol class="breadcrumb">{crumbs}</ol><article class="article"><div class="ph"><h1>{esc(heading)}</h1></div>'
+        intro = story_block(d) if rel == "pages/4.html" else ""
+        body = (f'<div class="wrap"><ol class="breadcrumb">{crumbs}</ol></div>{intro}<div class="wrap"><article class="article"><div class="ph"><h1>{esc(heading)}</h1></div>'
                 f'{f"<p class=date>{esc(date)}</p>" if date else "<div style=height:20px></div>"}{inner}</article></div>')
     return page(data, rel, lang, f"{title} | {BRAND}", body, title, current=rel if rel in INFO_TITLES else "")
+
+
+def story_block(d):
+    return f"""<section class="sec tight"><div class="wrap"><div class="story rv">
+ <div class="story-img zoom"><img src="{asset(d, IMG['story'])}" alt="" loading="lazy"></div>
+ <div><span class="eyebrow">為專業、機能狗衣而生</span><h2>陪你走過每一個下雨的日子</h2>
+  <p>無論是春日裡的梅雨，還是冬日裡的綿綿細雨，每一個下雨的日子，apetto 狗衣系列，讓毛孩子盡情在戶外奔跑。</p>
+  <p>apetto 提供高品質、防風保護，頂級布料耐水壓 10000mmH2O，水滴在布料上能輕易滑落，提供舒適的防水防護。</p></div>
+</div></div></section>"""
 
 
 def render_404(data, lang):
