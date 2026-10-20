@@ -434,6 +434,10 @@ def translate_soup(soup, lang, table):
                 new = tr(v)
                 if new is not None:
                     tag[a] = new
+        if tag.name == "input" and (tag.get("type") or "").lower() in ("button", "submit") and isinstance(tag.get("value"), str):
+            new = tr(tag["value"])
+            if new is not None:
+                tag["value"] = new
         if tag.name == "meta" and isinstance(tag.get("content"), str):
             new = tr(tag["content"])
             if new is not None:
@@ -618,9 +622,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 def add_lang_switch(soup, current, site_rel="index.html"):
     style = soup.new_tag("style")
-    style.string = (".apt-lang{position:fixed;right:12px;bottom:12px;z-index:2147483000;background:rgba(255,255,255,.96);"
-                    "border:1px solid #d9d9d9;border-radius:22px;padding:6px 12px;font:13px/1.6 -apple-system,'Segoe UI',"
-                    "'Noto Sans TC',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.18);white-space:nowrap}"
+    # in normal page flow at the very top: never floats over checkout / cart / chat buttons
+    style.string = (".apt-lang{position:relative;z-index:10;display:block;text-align:right;background:#f5f5f5;"
+                    "border-bottom:1px solid #e3e3e3;padding:4px 12px;font:13px/1.6 -apple-system,'Segoe UI',"
+                    "'Noto Sans TC',sans-serif;white-space:nowrap;overflow-x:auto}"
+                    "@media (max-width:767px){.apt-lang{text-align:left;position:sticky;left:0;max-width:100vw;box-sizing:border-box}}"
                     ".apt-lang a{color:#444;text-decoration:none;margin:0 5px}.apt-lang a:hover{color:#000}"
                     ".apt-lang a.cur{font-weight:700;color:#000;text-decoration:underline}")
     div = soup.new_tag("div", attrs={"class": "apt-lang", "aria-label": "Language"})
@@ -637,6 +643,52 @@ def add_lang_switch(soup, current, site_rel="index.html"):
 
 _TABLE = None
 
+# Foreign-language pages are showcase only: shopping, checkout and member features stay on the Chinese site.
+COMMERCE_SELECTORS = [
+    "li.shopping-cart", "section#cart", "#header-logged-menu", "#btnLogin",
+    ".rightcol .cart", ".rightcol .discount", ".rightcol .description", ".more-actions",
+    "#buy_together_list", "#error_buy_togther", "#free_present_list", "#cloudmaker_stock",
+    ".InstantAddCart", "a.ToWishList", "a.ToCompare", ".grid-box .cart", ".product-filter",
+    "#button-quick-checkout", "#button-instant-checkout", "#button-cart",
+]
+COMMERCE_HREF = re.compile(r"(^|/)(login|register|account|wishlist|compare|guestorder|return|order|cart|checkout|newsletter)"
+                           r"(\.html|/|$|&|\?)", re.I)
+
+
+def strip_commerce(soup):
+    for sel in COMMERCE_SELECTORS:
+        for el in soup.select(sel):
+            el.decompose()
+    # mobile checkout block and the cart-options modal
+    for el in soup.select(".hidden-lg.hidden-md"):
+        if el.select_one("center") and not el.get_text(strip=True):
+            el.decompose()
+    for el in soup.select("#cart_options_list"):
+        modal = el.find_parent(class_="modal")
+        (modal or el).decompose()
+    # member / order links in menus and footer: drop the whole list item
+    for a in soup.select("a[href]"):
+        if a.decomposed if hasattr(a, "decomposed") else False:
+            continue
+        href_v = a.get("href", "").replace("&amp;", "&")
+        path = href_v.split("#")[0]
+        if path.startswith(("http:", "https:")) and "apetto.com.tw" not in path:
+            continue
+        if COMMERCE_HREF.search(path.replace("https://www.apetto.com.tw/", "")):
+            li = a.find_parent("li")
+            (li or a).decompose()
+    # footer columns whose links were all member/order links: drop the column with its heading
+    for col in soup.select("#footer-inner-row .column"):
+        if not col.select("a[href]"):
+            col.decompose()
+    # empty wrappers left behind (e.g. the "+ wishlist / + compare" line in cards)
+    for small in soup.select(".grid-box .description small"):
+        if not small.get_text(strip=True):
+            parent = small.parent
+            small.decompose()
+            if parent is not None and parent.name == "div" and not parent.get_text(strip=True):
+                parent.decompose()
+
 
 def write_language_variants(zh_html, site_rel, data):
     """Write the zh page plus en/ja/de copies (translated, same-language links, switcher, hreflang)."""
@@ -648,6 +700,7 @@ def write_language_variants(zh_html, site_rel, data):
     for code, _, _, html_lang in LANGS:
         soup = BeautifulSoup(zh_html, "lxml")
         if code != "zh":
+            strip_commerce(soup)
             translate_soup(soup, code, _TABLE)
             localize_links(soup, code, page_dir)
         soup.html["lang"] = html_lang
