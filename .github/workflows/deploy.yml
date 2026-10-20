@@ -33,6 +33,7 @@ jobs:
       - name: Assemble Pages artifact
         run: |
           cp _tools/admin.html www.apetto.com.tw/admin.html
+          if [ -f _tools/admin_secret.json ]; then cp _tools/admin_secret.json www.apetto.com.tw/admin_secret.json; fi
           touch www.apetto.com.tw/.nojekyll
           rm -rf www.apetto.com.tw/_raw_html
 

@@ -78,10 +78,22 @@
   <span class="sp"></span>
   <a id="site-link" href="./" target="_blank">開啟前台 ↗</a>
   <button class="link" id="btn-settings">設定</button>
+  <button class="link" id="btn-logout">登出</button>
 </header>
 <div id="deploy"></div>
 
 <main>
+  <section class="card" id="pwlogin" style="display:none">
+    <h2>登入後台</h2>
+    <p>請輸入後台密碼。</p>
+    <input type="password" id="in-pw" placeholder="密碼" autocomplete="current-password">
+    <div class="dlg-foot" style="padding:14px 0 0; border:none">
+      <span class="err" id="pw-err"></span>
+      <button class="link" id="btn-advanced" style="color:var(--muted);background:none;border:none;font-size:13px">改用 token 登入</button>
+      <button class="primary" id="btn-pw">登入</button>
+    </div>
+  </section>
+
   <section class="card" id="login" style="display:none">
     <h2>連接 GitHub</h2>
     <p>後台直接把商品資料寫進 GitHub repo，再由 GitHub Actions 重新產生網站。請貼上一組 GitHub token：
@@ -430,8 +442,40 @@ $('#form').onsubmit = async (ev) => {
   finally { btn.disabled = false; prog(''); }
 };
 
+/* ---------------------------------------------------------------- password login (token encrypted in admin_secret.json) */
+let SECRET = null;
+async function loadSecret() {
+  try { const r = await fetch('admin_secret.json', { cache: 'no-store' }); if (r.ok) SECRET = await r.json(); } catch (e) { SECRET = null; }
+}
+const b64bytes = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function decryptToken(password) {
+  const enc = new TextEncoder();
+  const baseKey = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b64bytes(SECRET.salt), iterations: SECRET.iter, hash: 'SHA-256' }, baseKey, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64bytes(SECRET.iv) }, key, b64bytes(SECRET.ct));
+  return new TextDecoder().decode(pt);
+}
+function showPw(err) {
+  $('#pwlogin').style.display = ''; $('#login').style.display = 'none'; $('#app').style.display = 'none';
+  $('#pw-err').textContent = err || ''; $('#in-pw').value = ''; $('#in-pw').focus();
+}
+async function pwConnect() {
+  const pw = $('#in-pw').value; if (!pw) return $('#pw-err').textContent = '請輸入密碼';
+  $('#pw-err').textContent = '驗證中…'; $('#btn-pw').disabled = true;
+  try {
+    const token = await decryptToken(pw);
+    localStorage.setItem(LS.token, token);
+    await load(); $('#pwlogin').style.display = 'none'; $('#app').style.display = '';
+  } catch (e) { $('#pw-err').textContent = e.name === 'OperationError' ? '密碼錯誤' : '連接失敗：' + e.message; }
+  finally { $('#btn-pw').disabled = false; }
+}
+$('#btn-pw').onclick = pwConnect;
+$('#in-pw').addEventListener('keydown', e => { if (e.key === 'Enter') pwConnect(); });
+$('#btn-advanced').onclick = () => showLogin('');
+
 /* ---------------------------------------------------------------- wiring */
 function showLogin(err) {
+  $('#pwlogin').style.display = 'none';
   $('#login').style.display = ''; $('#app').style.display = 'none';
   $('#in-repo').value = cfg.repo; $('#in-branch').value = cfg.branch; $('#in-token').value = cfg.token;
   $('#login-err').textContent = err || '';
@@ -447,15 +491,18 @@ async function connect() {
 $('#btn-login').onclick = connect;
 $('#in-token').addEventListener('keydown', e => { if (e.key === 'Enter') connect(); });
 $('#btn-settings').onclick = () => showLogin('');
+$('#btn-logout').onclick = () => { localStorage.removeItem(LS.token); location.reload(); };
 $('#btn-add').onclick = () => openForm(null);
 $('#btn-reload').onclick = () => load().then(() => toast('已重新載入')).catch(e => alert(e.message));
 $('#btn-redeploy').onclick = async () => { try { await gh(`/repos/${cfg.repo}/actions/workflows/deploy.yml/dispatches`, { method: 'POST', body: JSON.stringify({ ref: cfg.branch }) }); toast('已觸發重新部署'); setTimeout(() => watchDeploy(), 3000); } catch (e) { alert(e.message); } };
 $('#dlg-close').onclick = $('#dlg-cancel').onclick = () => $('#dlg').close();
 
 (async () => {
-  if (!cfg.token) return showLogin('');
+  await loadSecret();
+  const entry = err => SECRET ? showPw(err) : showLogin(err);
+  if (!cfg.token) return entry('');
   try { await load(); $('#app').style.display = ''; }
-  catch (e) { showLogin('連接失敗：' + e.message); }
+  catch (e) { localStorage.removeItem(LS.token); entry('登入已失效，請重新登入。' + (SECRET ? '' : e.message)); }
 })();
 </script>
 </body>

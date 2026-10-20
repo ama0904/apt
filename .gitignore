@@ -4,4 +4,5 @@ __pycache__/
 Thumbs.db
 # generated at deploy time
 www.apetto.com.tw/admin.html
+www.apetto.com.tw/admin_secret.json
 www.apetto.com.tw/.nojekyll

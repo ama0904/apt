@@ -10,7 +10,9 @@
 
 ## 後台怎麼用
 
-1. 打開後台網址，貼上一組 GitHub token（需要這個 repo 的 Contents 讀寫權限；要看部署進度另需 Actions 讀取權限）。token 只存在你瀏覽器的 localStorage，不會上傳到任何地方。
+1. 打開後台網址，輸入後台密碼。密碼用來解開 `admin_secret.json` 裡加密的 GitHub token（PBKDF2 60 萬次 + AES-256-GCM），解開後 token 存在你瀏覽器的 localStorage。右上角「改用 token 登入」可以直接貼 token。
+   - 更換密碼或 token：`python _tools/set_admin_password.py <token> <密碼>`，然後 commit 推送。
+   - 密碼越長越安全；這個檔案是公開的，三個字元的密碼只能擋住隨手亂試的人。token 建議用只有這個 repo Contents 讀寫（加 Actions 讀取）權限的 fine-grained token。
 2. 「新增商品」：填名稱、價格、分類、首頁區塊、介紹文字，上傳主圖（可再加多張圖）。瀏覽器會自動裁出列表方塊圖與縮圖，然後連同 `products.json` 一次 commit 進 repo。
 3. 「下架」會把商品從前台所有頁面拿掉但保留資料，「刪除」則連資料與上傳圖片一起移除。
 4. 每次儲存後 Actions 會重新產生網站，大約 1 到 2 分鐘後前台更新。後台上方會顯示部署狀態。
