@@ -54,6 +54,7 @@ UI = {
         "en": "Premium waterproof, windproof fabric. Drops roll right off, even in rainy, damp weather.",
         "ja": "高品質な防水・防風生地。水滴は転がり落ち、雨の多い湿った寒さでも安心です。",
         "de": "Hochwertiger wasser- und winddichter Stoff. Tropfen perlen einfach ab, auch bei nasskaltem Wetter."},
+    "3M 反光條": {"en": "3M reflective strips", "ja": "3M 反射テープ", "de": "3M-Reflexstreifen"},
     "穿著也能上牽繩": {"en": "Leash-ready collar", "ja": "着たままリード装着", "de": "Leine trotz Jacke"},
     "領圍開口設計，穿上 apetto 仍然可以扣上牽繩。": {
         "en": "A collar opening lets the leash clip on with the coat on.",
@@ -509,7 +510,7 @@ def render_home(data, visible, lang):
         n = len([p for p in visible if c["id"] in p.get("categories", [])])
         tiles += (f'<a class="tile" href="{link(d, sb.category_page(c["id"]), lang)}"><div class="img">{img_html}</div>'
                   f'<div class="body"><h3>{esc(c["name"])}</h3><p>{esc(CAT_BLURB.get(c["id"], ""))}</p>'
-                  f'<span class="go">探索系列 →</span></div></a>')
+                  f'<span class="go">探索系列<span aria-hidden="true"> →</span></span></div></a>')
     feats = [("f_water", "耐水壓 10000mmH2O", "頂級防水防風布料，水滴輕易滑落，台灣多雨濕冷也不怕。"),
              ("f_leash", "穿著也能上牽繩", "領圍開口設計，穿上 apetto 仍然可以扣上牽繩。"),
              ("f_snap", "快速穿脫", "前扣式鈕扣與腹部插扣，扣上就能出門。"),
@@ -605,7 +606,7 @@ def render_product(data, visible, p, lang, overrides):
         buy = (f'<div class="buy"><a class="btn big brand" href="{esc(buy_link(p, data))}" target="_blank" rel="noopener">立即購買</a>'
                f'<p class="buy-note">將前往官方賣場完成結帳</p></div>')
     else:
-        buy = f'<p class="showcase-note">本站為商品介紹，購買請至台灣官方商店。 <a href="{esc(online_url)}" target="_blank" rel="noopener">前往官方商店 →</a></p>'
+        buy = f'<p class="showcase-note">本站為商品介紹，購買請至台灣官方商店。 <a href="{esc(online_url)}" target="_blank" rel="noopener">前往官方商店<span aria-hidden="true"> →</span></a></p>'
     related = [q for q in visible if q["id"] != p["id"] and (not cat or cat["id"] in q.get("categories", []))][:4]
     crumbs = f'<li><a href="{link(d, "index.html", lang)}">首頁</a></li>'
     if cat:
