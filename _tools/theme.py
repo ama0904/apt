@@ -532,7 +532,8 @@ ASSET_VER = {"css": digest(CSS), "js": digest(JS)}
 # ----------------------------------------------------------------- components
 def product_card(p, page_dir, lang, tag=None):
     url = link(page_dir, sb.product_page(p), lang)
-    thumb = asset(page_dir, crop(p["image"]["full"], "sq") if p["image"]["full"] in (_CROPS or {}) else (p["image"]["thumb"] or p["image"]["full"]))
+    sq = crop(p["image"]["full"], "sq")
+    thumb = asset(page_dir, sq if sq != p["image"]["full"] else (p["image"]["thumb"] or p["image"]["full"]))
     badge = ""
     if tag == "hot":
         badge = '<span class="tag hot">熱賣</span>'
