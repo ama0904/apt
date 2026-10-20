@@ -17,11 +17,20 @@
 3. 「下架」會把商品從前台所有頁面拿掉但保留資料，「刪除」則連資料與上傳圖片一起移除。
 4. 每次儲存後 Actions 會重新產生網站，大約 1 到 2 分鐘後前台更新。後台上方會顯示部署狀態。
 
-## 首頁多語版本
+## 多語版本（首頁、分類頁、商品頁）
 
-首頁有中文、英文、日文、德文四個版本：`index.html`、`index.en.html`、`index.ja.html`、`index.de.html`，右下角有語言切換鈕。
-翻譯對照表在 `www.apetto.com.tw/_data/i18n.json`（中文原文 → 各語言），建置時逐字串替換；不在表裡的字串維持中文。
-後台新增商品時可填英 / 日 / 德文名稱，會用在對應語言的首頁上。其他頁面目前只有中文。
+每個頁面有中文、英文、日文、德文四個版本：`index.html` / `index.en.html` / `index.ja.html` / `index.de.html`，分類頁與商品頁同樣以 `.en` / `.ja` / `.de` 結尾。右下角有語言切換鈕，同語言內的連結互相串接，並帶 hreflang 標記。
+翻譯對照表在 `www.apetto.com.tw/_data/i18n.json`（中文原文 → 各語言），建置時逐字串替換；含數字的樣板字串用 `{n}` 佔位；不在表裡的字串維持中文。
+後台新增商品時可填英 / 日 / 德文名稱。商品介紹若是新寫的中文，需要把對應句子加進 `i18n.json` 才會翻譯。
+
+### 圖片裡的文字
+
+圖片不再寫死文字。含中文的圖分兩種處理，設定都在 `www.apetto.com.tw/_data/image_text.json`：
+
+- **橫幅、示意圖**：保留一張去掉文字的底圖（`*.clean.jpg|png`，由 `_tools/clean_images.py` 用 OpenCV 修補產生），文字改成 HTML 疊在圖上，位置與字級以圖片寬度百分比記錄，依語言顯示翻譯。
+- **尺寸表**：整張圖換成真正的 HTML 表格，內容在 `image_text.json` 的 `charts`。
+
+重新掃描或調整位置：`_tools/ocr/ocr.ps1`（Windows 內建 OCR）找出文字框，`_tools/make_image_text.py` 產生設定，`_tools/clean_images.py` 產生底圖，再 `site_builder.py build`。
 
 ## 檔案結構
 

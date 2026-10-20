@@ -361,7 +361,7 @@ def fix_legacy_links(html_str):
     return re.sub(r"product&(amp;)?path=\d+&(amp;)?product_id=", lambda m: f"product&{m.group(1) or ''}product_id=", html_str)
 
 
-# ----------------------------------------------------------------- i18n (homepage only)
+# ----------------------------------------------------------------- i18n
 def load_i18n(data):
     table = json.loads(I18N_FILE.read_text(encoding="utf-8")) if I18N_FILE.exists() else {}
     for p in data["products"]:
@@ -371,14 +371,55 @@ def load_i18n(data):
     return table
 
 
+_PATTERN_CACHE = {}
+
+
+def _patterns(table):
+    """Keys containing {name} placeholders become regexes, e.g. '商品比較清單 ({n})'."""
+    key = id(table)
+    if key not in _PATTERN_CACHE:
+        pats = []
+        for k, v in table.items():
+            if "{" in k and "}" in k:
+                rx = "^" + re.sub(r"\\\{(\w+)\\\}", r"(?P<\1>.+?)", re.escape(k)) + "$"
+                pats.append((re.compile(rx, re.S), v))
+        _PATTERN_CACHE[key] = pats
+    return _PATTERN_CACHE[key]
+
+
+def translate_text(key, lang, table):
+    """Translate one normalized string; returns None when nothing matches."""
+    entry = table.get(key)
+    if entry and entry.get(lang):
+        return entry[lang]
+    for rx, v in _patterns(table):
+        m = rx.match(key)
+        if m and v.get(lang):
+            try:
+                return v[lang].format(**m.groupdict())
+            except (KeyError, IndexError):
+                continue
+    if " | " in key:  # page titles: "<page> | apetto | <slogan>"
+        parts = [translate_text(p, lang, table) or p for p in key.split(" | ")]
+        if parts != key.split(" | "):
+            return " | ".join(parts)
+    if " - " in key:
+        parts = [translate_text(p, lang, table) or p for p in key.split(" - ", 1)]
+        if parts != key.split(" - ", 1):
+            return " - ".join(parts)
+    return None
+
+
 def translate_soup(soup, lang, table):
     def tr(s):
         key = re.sub(r"\s+", " ", s).strip()
-        entry = table.get(key)
-        if not entry or not entry.get(lang):
+        if not key:
+            return None
+        out = translate_text(key, lang, table)
+        if out is None:
             return None
         m = re.match(r"^(\s*)(.*?)(\s*)$", s, re.S)
-        return m.group(1) + entry[lang] + m.group(3)
+        return m.group(1) + out + m.group(3)
 
     for t in list(soup.find_all(string=True)):
         if isinstance(t, Comment) or t.parent is None or t.parent.name in ("script", "style"):
@@ -399,7 +440,163 @@ def translate_soup(soup, lang, table):
                 tag["content"] = new
 
 
-def add_lang_switch(soup, current):
+def lang_variant(site_rel, lang):
+    """index.html -> index.en.html ; product/category&path=1.html -> product/category&path=1.en.html"""
+    if lang == "zh":
+        return site_rel
+    root, ext = posixpath.splitext(site_rel)
+    return f"{root}.{lang}{ext}"
+
+
+_LOCALIZED_RE = re.compile(r"^(index|(?:product/)?category&path=\d+|(?:product/)?product&product_id=\d+)\.html$")
+
+
+def localize_links(soup, lang, page_dir):
+    """Point links at the same-language version of pages that have one."""
+    if lang == "zh":
+        return
+    for tag in soup.select("a[href], link[rel=canonical][href]"):
+        v = tag["href"].replace("&amp;", "&")
+        m = re.match(r"^((?:\.\./)*)(.+)$", v)
+        prefix, rest = m.group(1), m.group(2)
+        if _LOCALIZED_RE.match(rest):
+            tag["href"] = prefix + lang_variant(rest, lang)
+
+
+# ----------------------------------------------------------------- text-in-image -> live text overlays / HTML tables
+IMAGE_TEXT_FILE = DATA_DIR / "image_text.json"
+_IMAGE_TEXT = None
+OVERLAY_CSS = (
+    ".apt-ov{position:relative;display:inline-block;max-width:100%;container-type:inline-size;vertical-align:top}"
+    ".apt-ov.full{display:block;width:100%}"
+    ".apt-ov>img{display:block;width:100%;height:auto}"
+    ".apt-ov .t{position:absolute;margin:0;white-space:pre;line-height:1.2;pointer-events:none;"
+    "font-family:'Noto Sans TC','Noto Sans JP','Microsoft JhengHei','PingFang TC','Hiragino Sans',sans-serif}"
+    ".apt-chart{max-width:720px;margin:0 auto 1.2em;font-size:13px;line-height:1.5;color:#222;text-align:center}"
+    ".apt-chart .unit{margin:0}"
+    ".apt-chart table{border-collapse:collapse;margin:8px auto;width:88%;background:#fff}"
+    ".apt-chart th,.apt-chart td{border:1px solid #333;padding:4px 6px;text-align:center;font-weight:400}"
+    ".apt-chart th.ttl{background:#eee;font-weight:700;padding:8px}"
+    ".apt-chart th.ttl small{display:block;font-weight:400}"
+    ".apt-chart ul{list-style:none;margin:0;padding:0;text-align:left;font-size:12px}"
+)
+
+
+def load_image_text():
+    global _IMAGE_TEXT
+    if _IMAGE_TEXT is None:
+        _IMAGE_TEXT = json.loads(IMAGE_TEXT_FILE.read_text(encoding="utf-8")) if IMAGE_TEXT_FILE.exists() else {"overlays": {}, "tables": {}, "charts": {}}
+    return _IMAGE_TEXT
+
+
+def _img_site_path(img, page_dir):
+    for a in ("data-lazy-src", "data-src", "src"):
+        v = img.get(a)
+        if isinstance(v, str) and not v.startswith("data:"):
+            return to_site_path(page_dir, v), a
+    return None, None
+
+
+def _chart_html(soup, chart):
+    wrap = soup.new_tag("div", attrs={"class": "apt-chart"})
+    unit = soup.new_tag("p", attrs={"class": "unit"})
+    unit.string = chart["unit"]
+    wrap.append(unit)
+    tol = soup.new_tag("p", attrs={"class": "unit"})
+    tol.string = chart["notes"][-1]
+    wrap.append(tol)
+    table = soup.new_tag("table")
+    thead = soup.new_tag("thead")
+    tr = soup.new_tag("tr")
+    th = soup.new_tag("th", attrs={"class": "ttl", "colspan": str(len(chart["cols"]) + 1)})
+    th.string = chart["title"]
+    if chart.get("sub_unit"):
+        small = soup.new_tag("small")
+        small.string = chart["unit"]
+        th.append(small)
+    tr.append(th)
+    thead.append(tr)
+    tr = soup.new_tag("tr")
+    tr.append(soup.new_tag("th"))
+    for c in chart["cols"]:
+        th = soup.new_tag("th")
+        th.string = c
+        tr.append(th)
+    thead.append(tr)
+    table.append(thead)
+    tbody = soup.new_tag("tbody")
+    for row in chart["rows"]:
+        tr = soup.new_tag("tr")
+        for cell in row:
+            td = soup.new_tag("td")
+            td.string = cell
+            tr.append(td)
+        tbody.append(tr)
+    table.append(tbody)
+    wrap.append(table)
+    ul = soup.new_tag("ul")
+    for n in chart["notes"]:
+        li = soup.new_tag("li")
+        li.string = n
+        ul.append(li)
+    wrap.append(ul)
+    return wrap
+
+
+def apply_image_text(soup, page_dir):
+    """Replace text-bearing images with clean image + positioned live text, or with an HTML size chart."""
+    spec = load_image_text()
+    if not spec["overlays"] and not spec["tables"]:
+        return
+    touched = False
+    for img in list(soup.find_all("img")):
+        site_path, attr = _img_site_path(img, page_dir)
+        if not site_path:
+            continue
+        if site_path in spec["tables"]:
+            chart = spec["charts"][spec["tables"][site_path]]
+            block = _chart_html(soup, chart)
+            parent = img.parent
+            if parent is not None and parent.name == "p" and not parent.get_text(strip=True) and len(parent.find_all(True)) == 1:
+                parent.replace_with(block)
+            else:
+                img.replace_with(block)
+            touched = True
+        elif site_path in spec["overlays"]:
+            info = spec["overlays"][site_path]
+            img[attr] = href(page_dir, info["clean"])
+            full = "width:100%" in (img.get("style") or "").replace(" ", "")
+            wrap = soup.new_tag("span", attrs={"class": "apt-ov full" if full else "apt-ov"})
+            if not full:
+                wrap["style"] = f"width:{info['width']}px"
+            img.replace_with(wrap)
+            img["style"] = f"aspect-ratio:{info['width']}/{info['height']}"
+            wrap.append(img)
+            for it in info["items"]:
+                t = soup.new_tag("span", attrs={"class": "t"})
+                if it["align"] == "center":
+                    maxw = it.get("maxw", 96)
+                    pos = f"left:{it['cx']}%;transform:translateX(-50%);text-align:center;max-width:{maxw}%;white-space:pre-line"
+                else:
+                    pos = f"left:{it['left']}%;max-width:{max(10, 99 - it['left']):.2f}%;text-align:left;white-space:pre-line"
+                t["style"] = f"{pos};top:{it['top']}%;font-size:{it.get('size', 1)}cqw;color:{it['color']};font-weight:{it.get('weight', 400)}"
+                if "lines" in it:  # multi-line block: each line its own element with its own size
+                    for ln in it["lines"]:
+                        s = soup.new_tag("span", attrs={"class": "l"})
+                        s["style"] = f"display:block;font-size:{ln['size']}cqw;font-weight:{ln.get('weight', 400)}"
+                        s.string = ln["text"]
+                        t.append(s)
+                else:
+                    t.string = it["text"]
+                wrap.append(t)
+            touched = True
+    if touched and soup.head is not None and not soup.select_one("style#apt-ov-css"):
+        st = soup.new_tag("style", id="apt-ov-css")
+        st.string = OVERLAY_CSS
+        soup.head.append(st)
+
+
+def add_lang_switch(soup, current, site_rel="index.html"):
     style = soup.new_tag("style")
     style.string = (".apt-lang{position:fixed;right:12px;bottom:12px;z-index:2147483000;background:rgba(255,255,255,.96);"
                     "border:1px solid #d9d9d9;border-radius:22px;padding:6px 12px;font:13px/1.6 -apple-system,'Segoe UI',"
@@ -407,8 +604,9 @@ def add_lang_switch(soup, current):
                     ".apt-lang a{color:#444;text-decoration:none;margin:0 5px}.apt-lang a:hover{color:#000}"
                     ".apt-lang a.cur{font-weight:700;color:#000;text-decoration:underline}")
     div = soup.new_tag("div", attrs={"class": "apt-lang", "aria-label": "Language"})
-    for code, label, fname, _ in LANGS:
-        a = soup.new_tag("a", href=fname, hreflang=code)
+    base = posixpath.basename(site_rel)
+    for code, label, _, _ in LANGS:
+        a = soup.new_tag("a", href=lang_variant(base, code), hreflang=code)
         a.string = label
         if code == current:
             a["class"] = "cur"
@@ -417,21 +615,32 @@ def add_lang_switch(soup, current):
     soup.body.insert(0, div)
 
 
-def write_index_languages(data, zh_html):
-    """Write index.html (zh) plus translated copies, each with a language switcher."""
-    table = load_i18n(data)
-    for code, _, fname, html_lang in LANGS:
+_TABLE = None
+
+
+def write_language_variants(zh_html, site_rel, data):
+    """Write the zh page plus en/ja/de copies (translated, same-language links, switcher, hreflang)."""
+    global _TABLE
+    if _TABLE is None:
+        _TABLE = load_i18n(data)
+    page_dir = posixpath.dirname(site_rel)
+    base = posixpath.basename(site_rel)
+    for code, _, _, html_lang in LANGS:
         soup = BeautifulSoup(zh_html, "lxml")
         if code != "zh":
-            translate_soup(soup, code, table)
+            translate_soup(soup, code, _TABLE)
+            localize_links(soup, code, page_dir)
         soup.html["lang"] = html_lang
         for alt in soup.select('link[rel="alternate"][hreflang]'):
             alt.decompose()
-        for c, _, f, hl in LANGS:
-            link = soup.new_tag("link", rel="alternate", hreflang=hl, href=f)
-            soup.head.append(link)
-        add_lang_switch(soup, code)
-        write_text(SITE / fname, fix_legacy_links(str(soup)))
+        for c, _, _, hl in LANGS:
+            soup.head.append(soup.new_tag("link", rel="alternate", hreflang=hl, href=lang_variant(base, c)))
+        add_lang_switch(soup, code, site_rel)
+        write_text(SITE / lang_variant(site_rel, code), fix_legacy_links(str(soup)))
+
+
+def write_index_languages(data, zh_html):
+    write_language_variants(zh_html, "index.html", data)
 
 
 # ----------------------------------------------------------------- page builders
@@ -454,10 +663,11 @@ def build_index(data, visible):
                     sec["style"] = re.sub(r"display\s*:\s*none;?", "", sec["style"])
             else:
                 sec["style"] = (sec.get("style") or "") + ";display:none;"
+    apply_image_text(soup, "")
     write_index_languages(data, str(soup))
 
 
-def build_category(cat, items):
+def build_category(cat, items, data):
     soup = soup_of(TPL / "category.html")
     soup.title.string = cat["name"] + TITLE_SUFFIX
     set_meta(soup, cat["name"] + TITLE_SUFFIX, prop="og:title")
@@ -474,7 +684,7 @@ def build_category(cat, items):
     for grid in soup.select(".product-grid"):
         rebuild_grid(grid, items, fill_list_card, "product")
     set_pagination(soup, len(items))
-    write_text(SITE / category_page(cat["id"]), fix_legacy_links(str(soup)))
+    write_language_variants(str(soup), category_page(cat["id"]), data)
 
 
 def build_listing(tpl_name, out_names, items):
@@ -622,6 +832,7 @@ def build_product(p, data):
     inp = soup.select_one("#product_id")
     if inp:
         inp["value"] = pid
+    apply_image_text(soup, page_dir)
 
     for sc in soup.select('script[type="application/ld+json"]'):
         try:
@@ -664,7 +875,7 @@ def build_product(p, data):
     out = re.sub(r"'(category|item_category)': '[^']*'", lambda m: f"'{m.group(1)}': '{js_cat}'", out)
     out = re.sub(rf"product_id={tpl_pid}\b", f"product_id={pid}", out)
     out = re.sub(rf"product_id%3D{tpl_pid}\b", f"product_id%3D{pid}", out)
-    write_text(SITE / product_page(p), fix_legacy_links(out))
+    write_language_variants(out, product_page(p), data)
 
 
 def build_sitemap(visible, data):
@@ -676,18 +887,23 @@ def build_sitemap(visible, data):
 
 
 def build_all(data=None):
+    global _TABLE
     data = data or load_data()
+    _TABLE = load_i18n(data)
+    _PATTERN_CACHE.clear()
+    global _IMAGE_TEXT
+    _IMAGE_TEXT = None
     visible = [p for p in data["products"] if p.get("visible", True)]
     build_index(data, visible)
     for cat in data["categories"]:
-        build_category(cat, [p for p in visible if cat["id"] in p.get("categories", [])])
+        build_category(cat, [p for p in visible if cat["id"] in p.get("categories", [])], data)
     for p in visible:
         build_product(p, data)
     build_listing("search.html", ["search.html", "search@filter_name=&filter_tag=&filter_description=.html"], visible)
     build_listing("bestsellers.html", ["bestsellers.html"], [p for p in visible if "bestseller" in p.get("sections", [])])
     build_sitemap(visible, data)
     # remove pages of hidden/deleted products and the legacy path= duplicates
-    keep = {product_page(p) for p in visible}
+    keep = {lang_variant(product_page(p), code) for p in visible for code, _, _, _ in LANGS}
     for f in SITE.glob("product/product&*product_id=*.html"):
         rel = f.relative_to(SITE).as_posix()
         if rel not in keep:

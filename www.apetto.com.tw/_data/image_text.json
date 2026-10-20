@@ -1,0 +1,950 @@
+{
+ "charts": {
+  "big_raincoat": {
+   "title": "大汪雨衣",
+   "sub_unit": false,
+   "rows": [
+    [
+     "S",
+     "35",
+     "41",
+     "48~67"
+    ],
+    [
+     "M",
+     "40",
+     "48",
+     "50~71"
+    ],
+    [
+     "L",
+     "45",
+     "51",
+     "55~78"
+    ],
+    [
+     "XL",
+     "50",
+     "54",
+     "56~80"
+    ],
+    [
+     "2XL",
+     "55",
+     "57",
+     "57~86"
+    ]
+   ],
+   "small": false,
+   "unit": "單位為 cm，皆為圈量",
+   "cols": [
+    "衣長",
+    "領圍",
+    "腹圍"
+   ],
+   "notes": [
+    "※ 請先測量毛小孩的背長，從脖子最底部(建議再往後一點，約莫是前腳的位置)，一直量到尾巴。",
+    "※ 建議選擇比背長短 10 公分的尺寸。例如背長 52 公分，M 號合身、L 號寬鬆。",
+    "※ 尺寸測量會因商品素材不同，可能會有 1~3 公分的誤差。"
+   ]
+  },
+  "big_jacket": {
+   "title": "大汪保暖夾克（加毛）",
+   "sub_unit": false,
+   "rows": [
+    [
+     "S",
+     "37",
+     "42",
+     "49~68"
+    ],
+    [
+     "M",
+     "42",
+     "49",
+     "51~72"
+    ],
+    [
+     "L",
+     "47",
+     "52",
+     "56~79"
+    ],
+    [
+     "XL",
+     "52",
+     "55",
+     "57~81"
+    ],
+    [
+     "2XL",
+     "57",
+     "58",
+     "58~87"
+    ]
+   ],
+   "small": false,
+   "unit": "單位為 cm，皆為圈量",
+   "cols": [
+    "衣長",
+    "領圍",
+    "腹圍"
+   ],
+   "notes": [
+    "※ 請先測量毛小孩的背長，從脖子最底部(建議再往後一點，約莫是前腳的位置)，一直量到尾巴。",
+    "※ 建議選擇比背長短 10 公分的尺寸。例如背長 52 公分，M 號合身、L 號寬鬆。",
+    "※ 尺寸測量會因商品素材不同，可能會有 1~3 公分的誤差。"
+   ]
+  },
+  "small_cape": {
+   "title": "小汪防水斗篷",
+   "sub_unit": true,
+   "rows": [
+    [
+     "S",
+     "28",
+     "35",
+     "45"
+    ],
+    [
+     "M",
+     "32",
+     "38",
+     "50"
+    ],
+    [
+     "L",
+     "36",
+     "42",
+     "55"
+    ],
+    [
+     "XL",
+     "40",
+     "45",
+     "60"
+    ]
+   ],
+   "small": true,
+   "unit": "單位為 cm，皆為圈量",
+   "cols": [
+    "衣長",
+    "領圍",
+    "腹圍"
+   ],
+   "notes": [
+    "※ 請先測量毛小孩的背長，從脖子最底部(建議再往後一點，約莫是前腳的位置)，一直量到尾巴。",
+    "※ 建議選擇比背長短 5-7 公分的尺寸。例如背長 32 公分，S 號合身、M 號寬鬆。",
+    "※ 尺寸測量會因商品素材不同，可能會有 1~3 公分的誤差。"
+   ]
+  },
+  "small_warm_cape": {
+   "title": "小汪保暖防水斗篷(加毛)",
+   "sub_unit": true,
+   "rows": [
+    [
+     "S",
+     "29",
+     "36",
+     "47"
+    ],
+    [
+     "M",
+     "33",
+     "39",
+     "52"
+    ],
+    [
+     "L",
+     "37",
+     "43",
+     "57"
+    ],
+    [
+     "XL",
+     "41",
+     "46",
+     "62"
+    ]
+   ],
+   "small": true,
+   "unit": "單位為 cm，皆為圈量",
+   "cols": [
+    "衣長",
+    "領圍",
+    "腹圍"
+   ],
+   "notes": [
+    "※ 請先測量毛小孩的背長，從脖子最底部(建議再往後一點，約莫是前腳的位置)，一直量到尾巴。",
+    "※ 建議選擇比背長短 5-7 公分的尺寸。例如背長 32 公分，S 號合身、M 號寬鬆。",
+    "※ 尺寸測量會因商品素材不同，可能會有 1~3 公分的誤差。"
+   ]
+  }
+ },
+ "tables": {
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/20/8e3067ecf3aca73e3bdd771f5c52d703.png": "big_raincoat",
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/20/990faa9e8349f509257f4ecbd86a053c.png": "big_raincoat",
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/20/eec927e87fdb1b48d93122f1322df1a6.png": "big_raincoat",
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/28/468fcc8285fe4d50585d56a56ec5c841.png": "big_jacket",
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/28/6a0a0ba844c0c070427414e8abaf82b7.png": "big_jacket",
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/28/919f432674bcc76362f51b584b7f38ec.png": "small_cape",
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/28/ac4afea4d2029b7ec1021487f8f25b51.png": "small_warm_cape",
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/28/ea1fa9d335a6bdcd127954788f53d11e.png": "big_jacket",
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/02/01/90910a5b996522454ade9eb9c3774b4d.png": "small_cape"
+ },
+ "overlays": {
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/20/3154ff51ca68bd131b89e2b4b1e7c45a.png": {
+   "clean": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/20/3154ff51ca68bd131b89e2b4b1e7c45a.clean.png",
+   "width": 598,
+   "height": 378,
+   "erase": [
+    [
+     46,
+     306,
+     110,
+     47
+    ],
+    [
+     347,
+     310,
+     94,
+     65
+    ],
+    [
+     309,
+     33,
+     42,
+     23
+    ]
+   ],
+   "items": [
+    {
+     "text": "領圍的位置\n(圈量)",
+     "left": 7.692,
+     "cx": 16.89,
+     "top": 80.952,
+     "size": 3.532,
+     "color": "#6d6975",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "腹圍的位置\n(圈量)",
+     "left": 58.027,
+     "cx": 65.886,
+     "top": 82.011,
+     "size": 3.385,
+     "color": "#5c586a",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "衣長",
+     "left": 51.672,
+     "cx": 55.184,
+     "top": 8.73,
+     "size": 2.502,
+     "color": "#434152",
+     "align": "center",
+     "weight": 400
+    }
+   ],
+   "kind": "diagram"
+  },
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/20/5c9dcf6dbd7100bc53bd017191724cbc.png": {
+   "clean": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/20/5c9dcf6dbd7100bc53bd017191724cbc.clean.png",
+   "width": 600,
+   "height": 386,
+   "erase": [
+    [
+     53,
+     310,
+     109,
+     45
+    ],
+    [
+     299,
+     40,
+     43,
+     24
+    ],
+    [
+     347,
+     310,
+     110,
+     67
+    ]
+   ],
+   "items": [
+    {
+     "text": "領圍的位置\n(圈量)",
+     "left": 8.833,
+     "cx": 17.917,
+     "top": 80.311,
+     "size": 3.52,
+     "color": "#6d6d6d",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "衣長",
+     "left": 49.833,
+     "cx": 53.417,
+     "top": 10.363,
+     "size": 2.64,
+     "color": "#606060",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "腹圍的位置\n(圈量)",
+     "left": 57.833,
+     "cx": 67.0,
+     "top": 80.311,
+     "size": 3.667,
+     "color": "#606060",
+     "align": "center",
+     "weight": 400
+    }
+   ],
+   "kind": "diagram"
+  },
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/20/c82d3be7abc8c9473adadef652636754.png": {
+   "clean": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/20/c82d3be7abc8c9473adadef652636754.clean.png",
+   "width": 601,
+   "height": 381,
+   "erase": [
+    [
+     46,
+     306,
+     112,
+     47
+    ],
+    [
+     297,
+     31,
+     43,
+     24
+    ],
+    [
+     347,
+     317,
+     113,
+     58
+    ]
+   ],
+   "items": [
+    {
+     "text": "領圍的位置\n(圈量)",
+     "left": 7.654,
+     "cx": 16.972,
+     "top": 80.315,
+     "size": 3.807,
+     "color": "#6f6c78",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "衣長",
+     "left": 49.418,
+     "cx": 52.995,
+     "top": 8.136,
+     "size": 2.636,
+     "color": "#838083",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "腹圍的位置\n(圈量)",
+     "left": 57.737,
+     "cx": 67.138,
+     "top": 83.202,
+     "size": 3.807,
+     "color": "#6b6975",
+     "align": "center",
+     "weight": 400
+    }
+   ],
+   "kind": "diagram"
+  },
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/28/1745628c9d68a99dabe960f32342cbf9.png": {
+   "clean": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/28/1745628c9d68a99dabe960f32342cbf9.clean.png",
+   "width": 768,
+   "height": 480,
+   "erase": [
+    [
+     59,
+     389,
+     139,
+     56
+    ],
+    [
+     384,
+     36,
+     52,
+     30
+    ],
+    [
+     448,
+     385,
+     140,
+     88
+    ]
+   ],
+   "items": [
+    {
+     "text": "領圍的位置\n(圈量)",
+     "left": 7.682,
+     "cx": 16.732,
+     "top": 81.042,
+     "size": 3.552,
+     "color": "#807d84",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "衣長",
+     "left": 50.0,
+     "cx": 53.385,
+     "top": 7.5,
+     "size": 2.75,
+     "color": "#939399",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "腹圍的位置\n(圈量)",
+     "left": 58.333,
+     "cx": 67.448,
+     "top": 80.208,
+     "size": 3.667,
+     "color": "#7e7d84",
+     "align": "center",
+     "weight": 400
+    }
+   ],
+   "kind": "diagram"
+  },
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/28/387843df2149110a6db72dce4f97d0ac.png": {
+   "clean": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/28/387843df2149110a6db72dce4f97d0ac.clean.png",
+   "width": 572,
+   "height": 370,
+   "erase": [
+    [
+     34,
+     293,
+     105,
+     47
+    ],
+    [
+     294,
+     27,
+     42,
+     23
+    ],
+    [
+     328,
+     315,
+     105,
+     47
+    ]
+   ],
+   "items": [
+    {
+     "text": "領圍的位置\n(圈量)",
+     "left": 5.944,
+     "cx": 15.122,
+     "top": 79.189,
+     "size": 3.077,
+     "color": "#333131",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "衣長",
+     "left": 51.399,
+     "cx": 55.07,
+     "top": 7.297,
+     "size": 2.615,
+     "color": "#212020",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "腹圍的位置\n(圈量)",
+     "left": 57.343,
+     "cx": 66.521,
+     "top": 85.135,
+     "size": 3.077,
+     "color": "#272626",
+     "align": "center",
+     "weight": 400
+    }
+   ],
+   "kind": "diagram"
+  },
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/28/45ef4e4b6b88f30c8b0f0c34d2ecce21.png": {
+   "clean": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/28/45ef4e4b6b88f30c8b0f0c34d2ecce21.clean.png",
+   "width": 680,
+   "height": 506,
+   "erase": [
+    [
+     384,
+     46,
+     43,
+     23
+    ],
+    [
+     60,
+     382,
+     107,
+     47
+    ],
+    [
+     347,
+     457,
+     107,
+     48
+    ]
+   ],
+   "items": [
+    {
+     "text": "衣長",
+     "left": 56.471,
+     "cx": 59.632,
+     "top": 9.091,
+     "size": 2.2,
+     "color": "#817c81",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "領圍的位置\n(圈量)",
+     "left": 8.824,
+     "cx": 16.691,
+     "top": 75.494,
+     "size": 2.588,
+     "color": "#76727d",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "腹圍的位置\n(圈量)",
+     "left": 51.029,
+     "cx": 58.897,
+     "top": 90.316,
+     "size": 2.588,
+     "color": "#787279",
+     "align": "center",
+     "weight": 400
+    }
+   ],
+   "kind": "diagram"
+  },
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/28/afacdaa06bd09e63e9099afa8a53f13b.png": {
+   "clean": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/28/afacdaa06bd09e63e9099afa8a53f13b.clean.png",
+   "width": 571,
+   "height": 500,
+   "erase": [
+    [
+     325,
+     36,
+     37,
+     21
+    ],
+    [
+     47,
+     319,
+     82,
+     41
+    ],
+    [
+     277,
+     369,
+     92,
+     43
+    ]
+   ],
+   "items": [
+    {
+     "text": "衣長",
+     "left": 56.918,
+     "cx": 60.158,
+     "top": 7.2,
+     "size": 2.312,
+     "color": "#9e9f9f",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "領圍的位置\n(圈量)",
+     "left": 8.231,
+     "cx": 15.412,
+     "top": 63.8,
+     "size": 2.774,
+     "color": "#9fa0a0",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "腹圍的位置\n(圈量)",
+     "left": 48.511,
+     "cx": 56.567,
+     "top": 73.8,
+     "size": 2.928,
+     "color": "#969797",
+     "align": "center",
+     "weight": 400
+    }
+   ],
+   "kind": "diagram"
+  },
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/28/e60c77a36abbb6a5b24bf0c4c547e028.jpg": {
+   "clean": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/28/e60c77a36abbb6a5b24bf0c4c547e028.clean.jpg",
+   "width": 571,
+   "height": 500,
+   "erase": [
+    [
+     58,
+     273,
+     92,
+     41
+    ],
+    [
+     286,
+     47,
+     37,
+     20
+    ],
+    [
+     311,
+     292,
+     93,
+     41
+    ]
+   ],
+   "items": [
+    {
+     "text": "領圍的位置\n(圈量)",
+     "left": 10.158,
+     "cx": 18.214,
+     "top": 54.6,
+     "size": 2.62,
+     "color": "#606060",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "衣長",
+     "left": 50.088,
+     "cx": 53.327,
+     "top": 9.4,
+     "size": 2.158,
+     "color": "#5d5d5d",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "腹圍的位置\n(圈量)",
+     "left": 54.466,
+     "cx": 62.609,
+     "top": 58.4,
+     "size": 2.62,
+     "color": "#5e5e5e",
+     "align": "center",
+     "weight": 400
+    }
+   ],
+   "kind": "diagram"
+  },
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/28/f8dbeaa68ea2d2339db4767b3e891cb3.png": {
+   "clean": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/28/f8dbeaa68ea2d2339db4767b3e891cb3.clean.png",
+   "width": 685,
+   "height": 489,
+   "erase": [
+    [
+     386,
+     29,
+     43,
+     23
+    ],
+    [
+     73,
+     378,
+     106,
+     47
+    ],
+    [
+     355,
+     440,
+     107,
+     48
+    ]
+   ],
+   "items": [
+    {
+     "text": "衣長",
+     "left": 56.35,
+     "cx": 59.489,
+     "top": 5.93,
+     "size": 2.184,
+     "color": "#817c81",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "領圍的位置\n(圈量)",
+     "left": 10.657,
+     "cx": 18.394,
+     "top": 77.301,
+     "size": 2.569,
+     "color": "#75717c",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "腹圍的位置\n(圈量)",
+     "left": 51.825,
+     "cx": 59.635,
+     "top": 89.98,
+     "size": 2.569,
+     "color": "#787279",
+     "align": "center",
+     "weight": 400
+    }
+   ],
+   "kind": "diagram"
+  },
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/02/01/2f72b6a1454eff61691259545d3af25b.png": {
+   "clean": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/02/01/2f72b6a1454eff61691259545d3af25b.clean.png",
+   "width": 590,
+   "height": 458,
+   "erase": [
+    [
+     360,
+     38,
+     39,
+     20
+    ],
+    [
+     51,
+     347,
+     96,
+     44
+    ],
+    [
+     292,
+     412,
+     96,
+     43
+    ]
+   ],
+   "items": [
+    {
+     "text": "衣長",
+     "left": 61.017,
+     "cx": 64.322,
+     "top": 8.297,
+     "size": 2.088,
+     "color": "#7a7874",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "領圍的位置\n(圈量)",
+     "left": 8.644,
+     "cx": 16.78,
+     "top": 75.764,
+     "size": 2.685,
+     "color": "#73726e",
+     "align": "center",
+     "weight": 400
+    },
+    {
+     "text": "腹圍的位置\n(圈量)",
+     "left": 49.492,
+     "cx": 57.627,
+     "top": 89.956,
+     "size": 2.685,
+     "color": "#73716e",
+     "align": "center",
+     "weight": 400
+    }
+   ],
+   "kind": "diagram"
+  },
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2026/08/26/2e2d960fcdd9a821b141df7d41b8f5c7.jpg": {
+   "clean": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2026/08/26/2e2d960fcdd9a821b141df7d41b8f5c7.clean.jpg",
+   "width": 1024,
+   "height": 771,
+   "erase": [
+    [
+     396,
+     72,
+     226,
+     56
+    ],
+    [
+     300,
+     130,
+     550,
+     58
+    ]
+   ],
+   "items": [
+    {
+     "left": 29.297,
+     "cx": 52.832,
+     "top": 9.598,
+     "size": 1,
+     "color": "#534c42",
+     "align": "center",
+     "weight": 400,
+     "lines": [
+      {
+       "text": "阻擋風雨，",
+       "size": 4.6,
+       "weight": 400
+      },
+      {
+       "text": "擁抱無憂的舒適時光",
+       "size": 4.6,
+       "weight": 400
+      }
+     ],
+     "maxw": 70
+    }
+   ],
+   "kind": "banner"
+  },
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2026/08/26/b2963b09f6f2a473a8f3367f8d8ac9e2.jpg": {
+   "clean": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2026/08/26/b2963b09f6f2a473a8f3367f8d8ac9e2.clean.jpg",
+   "width": 1200,
+   "height": 670,
+   "erase": [
+    [
+     76,
+     180,
+     420,
+     60
+    ],
+    [
+     76,
+     248,
+     410,
+     50
+    ]
+   ],
+   "items": [
+    {
+     "left": 6.333,
+     "cx": 23.833,
+     "top": 27.164,
+     "size": 1,
+     "color": "#ffffff",
+     "align": "left",
+     "weight": 400,
+     "lines": [
+      {
+       "text": "apetto 寵物機能衣",
+       "size": 4.2,
+       "weight": 400
+      },
+      {
+       "text": "極致防水，奔跑不受限。",
+       "size": 3.3,
+       "weight": 400
+      }
+     ]
+    }
+   ],
+   "kind": "banner"
+  },
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2026/08/26/cf1d3a5ae88219b7f6c3868005c2ff8d.jpg": {
+   "clean": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2026/08/26/cf1d3a5ae88219b7f6c3868005c2ff8d.clean.jpg",
+   "width": 1024,
+   "height": 687,
+   "erase": [
+    [
+     70,
+     90,
+     410,
+     58
+    ],
+    [
+     70,
+     156,
+     400,
+     46
+    ]
+   ],
+   "items": [
+    {
+     "left": 6.836,
+     "cx": 26.855,
+     "top": 13.392,
+     "size": 1,
+     "color": "#2b2b2b",
+     "align": "left",
+     "weight": 400,
+     "lines": [
+      {
+       "text": "apetto 全天候機能衣",
+       "size": 4.6,
+       "weight": 400
+      },
+      {
+       "text": "亮眼防護，大狗自在奔馳",
+       "size": 3.6,
+       "weight": 400
+      }
+     ]
+    }
+   ],
+   "kind": "banner"
+  },
+  "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/__4_1.jpg": {
+   "clean": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/__4_1.clean.jpg",
+   "width": 8334,
+   "height": 4500,
+   "erase": [
+    [
+     6140,
+     2350,
+     1720,
+     280
+    ],
+    [
+     6120,
+     2640,
+     1920,
+     270
+    ]
+   ],
+   "items": [
+    {
+     "left": 73.794,
+     "cx": 85.193,
+     "top": 52.667,
+     "size": 1,
+     "color": "#111111",
+     "align": "left",
+     "weight": 400,
+     "lines": [
+      {
+       "text": "apetto 小汪系列",
+       "size": 1.9,
+       "weight": 700
+      },
+      {
+       "text": "不只可愛，更有帥氣",
+       "size": 1.7,
+       "weight": 700
+      }
+     ]
+    }
+   ],
+   "kind": "banner"
+  }
+ }
+}

@@ -14,35 +14,151 @@
   "ja": "apetto の専門チームが高機能ペットウェアを開発。厳選した防水・防風素材に、すっきりとした立体裁断と高い実用性を組み合わせました。変わりやすい天気でも愛犬は快適、飼い主さんの日々のお手入れもぐっと楽に。最新の機能ウェアをぜひご覧ください。",
   "de": "Das Schneiderteam von apetto entwickelt funktionale Hundebekleidung. Sorgfältig ausgewählte wasserdichte und winddichte Stoffe treffen auf klare Schnitte und echte Alltagstauglichkeit: Ihr Hund trotzt jedem Wetter, und Sie haben weniger Putzarbeit. Entdecken Sie jetzt die neueste Funktionskleidung."
  },
- "會員中心": { "en": "Member Center", "ja": "マイページ", "de": "Mitgliederbereich" },
- "我的資料": { "en": "My Profile", "ja": "会員情報", "de": "Meine Daten" },
- "我的紅利": { "en": "My Rewards", "ja": "マイポイント", "de": "Meine Bonuspunkte" },
- "願望清單": { "en": "Wishlist", "ja": "ほしい物リスト", "de": "Wunschliste" },
- "願望清單 (0)": { "en": "Wishlist (0)", "ja": "ほしい物リスト (0)", "de": "Wunschliste (0)" },
- "商品比較": { "en": "Compare", "ja": "商品比較", "de": "Produktvergleich" },
- "我的訂閱": { "en": "My Subscriptions", "ja": "購読設定", "de": "Meine Abonnements" },
- "我的訂單": { "en": "My Orders", "ja": "注文履歴", "de": "Meine Bestellungen" },
- "填寫匯款單": { "en": "Payment Notice", "ja": "振込通知", "de": "Zahlungsmeldung" },
- "退/換貨紀錄": { "en": "Returns & Exchanges", "ja": "返品・交換履歴", "de": "Rücksendungen & Umtausch" },
- "會員中心 (登入)": { "en": "Member Center (Sign in)", "ja": "マイページ（ログイン）", "de": "Mitgliederbereich (Anmelden)" },
- "我要查訂單": { "en": "Track Order", "ja": "注文を確認", "de": "Bestellung verfolgen" },
- "找店長": { "en": "Contact Us", "ja": "お問い合わせ", "de": "Kontakt" },
- "電子郵件": { "en": "Email", "ja": "メール", "de": "E-Mail" },
- "寫Email": { "en": "Email us", "ja": "メールを送る", "de": "E-Mail schreiben" },
- "登出": { "en": "Sign out", "ja": "ログアウト", "de": "Abmelden" },
- "商店首頁": { "en": "Home", "ja": "ホーム", "de": "Startseite" },
- "大狗專區": { "en": "Large Dogs", "ja": "大型犬", "de": "Große Hunde" },
- "小狗專區": { "en": "Small Dogs", "ja": "小型犬", "de": "Kleine Hunde" },
- "保暖首選": { "en": "Warm Picks", "ja": "防寒アイテム", "de": "Warme Favoriten" },
- "0 件商品 $0": { "en": "0 items $0", "ja": "0点 $0", "de": "0 Artikel $0" },
- "購物車沒有加入任何商品": { "en": "Your cart is empty", "ja": "カートに商品がありません", "de": "Ihr Warenkorb ist leer" },
- "會員登入": { "en": "Sign in", "ja": "ログイン", "de": "Anmelden" },
- "選單": { "en": "Menu", "ja": "メニュー", "de": "Menü" },
- "商品關鍵字": { "en": "Search products", "ja": "商品キーワード", "de": "Produkt suchen" },
- "搜尋": { "en": "Search", "ja": "検索", "de": "Suchen" },
- "全館免運中": { "en": "Free shipping on all orders", "ja": "全品送料無料", "de": "Kostenloser Versand auf alles" },
- "為專業、機能狗衣而生": { "en": "Born for professional, functional dog wear", "ja": "プロ品質の機能ドッグウェアのために", "de": "Geboren für professionelle Funktionskleidung für Hunde" },
- "分開看，就是": { "en": "Look closely, and you'll see", "ja": "ひとつひとつ見れば、それは", "de": "Genau hingesehen heißt das" },
+ "會員中心": {
+  "en": "Member Center",
+  "ja": "マイページ",
+  "de": "Mitgliederbereich"
+ },
+ "我的資料": {
+  "en": "My Profile",
+  "ja": "会員情報",
+  "de": "Meine Daten"
+ },
+ "我的紅利": {
+  "en": "My Rewards",
+  "ja": "マイポイント",
+  "de": "Meine Bonuspunkte"
+ },
+ "願望清單": {
+  "en": "Wishlist",
+  "ja": "ほしい物リスト",
+  "de": "Wunschliste"
+ },
+ "願望清單 (0)": {
+  "en": "Wishlist (0)",
+  "ja": "ほしい物リスト (0)",
+  "de": "Wunschliste (0)"
+ },
+ "商品比較": {
+  "en": "Compare",
+  "ja": "商品比較",
+  "de": "Produktvergleich"
+ },
+ "我的訂閱": {
+  "en": "My Subscriptions",
+  "ja": "購読設定",
+  "de": "Meine Abonnements"
+ },
+ "我的訂單": {
+  "en": "My Orders",
+  "ja": "注文履歴",
+  "de": "Meine Bestellungen"
+ },
+ "填寫匯款單": {
+  "en": "Payment Notice",
+  "ja": "振込通知",
+  "de": "Zahlungsmeldung"
+ },
+ "退/換貨紀錄": {
+  "en": "Returns & Exchanges",
+  "ja": "返品・交換履歴",
+  "de": "Rücksendungen & Umtausch"
+ },
+ "會員中心 (登入)": {
+  "en": "Member Center (Sign in)",
+  "ja": "マイページ（ログイン）",
+  "de": "Mitgliederbereich (Anmelden)"
+ },
+ "我要查訂單": {
+  "en": "Track Order",
+  "ja": "注文を確認",
+  "de": "Bestellung verfolgen"
+ },
+ "找店長": {
+  "en": "Contact Us",
+  "ja": "お問い合わせ",
+  "de": "Kontakt"
+ },
+ "電子郵件": {
+  "en": "Email",
+  "ja": "メール",
+  "de": "E-Mail"
+ },
+ "寫Email": {
+  "en": "Email us",
+  "ja": "メールを送る",
+  "de": "E-Mail schreiben"
+ },
+ "登出": {
+  "en": "Sign out",
+  "ja": "ログアウト",
+  "de": "Abmelden"
+ },
+ "商店首頁": {
+  "en": "Home",
+  "ja": "ホーム",
+  "de": "Startseite"
+ },
+ "大狗專區": {
+  "en": "Large Dogs",
+  "ja": "大型犬",
+  "de": "Große Hunde"
+ },
+ "小狗專區": {
+  "en": "Small Dogs",
+  "ja": "小型犬",
+  "de": "Kleine Hunde"
+ },
+ "保暖首選": {
+  "en": "Warm Picks",
+  "ja": "防寒アイテム",
+  "de": "Warme Favoriten"
+ },
+ "0 件商品 $0": {
+  "en": "0 items $0",
+  "ja": "0点 $0",
+  "de": "0 Artikel $0"
+ },
+ "購物車沒有加入任何商品": {
+  "en": "Your cart is empty",
+  "ja": "カートに商品がありません",
+  "de": "Ihr Warenkorb ist leer"
+ },
+ "會員登入": {
+  "en": "Sign in",
+  "ja": "ログイン",
+  "de": "Anmelden"
+ },
+ "選單": {
+  "en": "Menu",
+  "ja": "メニュー",
+  "de": "Menü"
+ },
+ "商品關鍵字": {
+  "en": "Search products",
+  "ja": "商品キーワード",
+  "de": "Produkt suchen"
+ },
+ "搜尋": {
+  "en": "Search",
+  "ja": "検索",
+  "de": "Suchen"
+ },
+ "全館免運中": {
+  "en": "Free shipping on all orders",
+  "ja": "全品送料無料",
+  "de": "Kostenloser Versand auf alles"
+ },
+ "為專業、機能狗衣而生": {
+  "en": "Born for professional, functional dog wear",
+  "ja": "プロ品質の機能ドッグウェアのために",
+  "de": "Geboren für professionelle Funktionskleidung für Hunde"
+ },
+ "分開看，就是": {
+  "en": "Look closely, and you'll see",
+  "ja": "ひとつひとつ見れば、それは",
+  "de": "Genau hingesehen heißt das"
+ },
  "因為我們相信，每一位毛小孩對都是主人獨一無二的寶貝。": {
   "en": "Because we believe every dog is their owner's one and only treasure.",
   "ja": "私たちは、すべてのわんちゃんが飼い主にとってかけがえのない宝物だと信じています。",
@@ -53,20 +169,56 @@
   "ja": "専門の製衣チームが、防水・防風機能を備えた高機能でおしゃれなドッグウェアをデザイン。",
   "de": "Unser professionelles Schneiderteam entwirft funktionale, stilvolle Hundekleidung, wasserdicht und winddicht,"
  },
- "讓毛小孩們在下雨天也可以盡情奔跑": { "en": "so they can run freely even on rainy days", "ja": "雨の日でも思いきり走れるように", "de": "damit Ihr Hund auch bei Regen nach Herzenslust toben kann" },
- "大汪系列": { "en": "Big Dog Series", "ja": "大型犬シリーズ", "de": "Große-Hunde-Serie" },
- "專為中、大型毛孩子設計。": { "en": "Designed for medium and large dogs.", "ja": "中型・大型犬のために設計。", "de": "Entworfen für mittelgroße und große Hunde." },
+ "讓毛小孩們在下雨天也可以盡情奔跑": {
+  "en": "so they can run freely even on rainy days",
+  "ja": "雨の日でも思いきり走れるように",
+  "de": "damit Ihr Hund auch bei Regen nach Herzenslust toben kann"
+ },
+ "大汪系列": {
+  "en": "Big Dog Series",
+  "ja": "大型犬シリーズ",
+  "de": "Große-Hunde-Serie"
+ },
+ "專為中、大型毛孩子設計。": {
+  "en": "Designed for medium and large dogs.",
+  "ja": "中型・大型犬のために設計。",
+  "de": "Entworfen für mittelgroße und große Hunde."
+ },
  "頂級防風、防水布料，具有包覆、防水與穿脫便利的多重優點。": {
   "en": "Premium windproof, waterproof fabric with full coverage, waterproofing and easy on-off.",
   "ja": "最高級の防風・防水素材。しっかり包み込み、防水性と着脱のしやすさを兼ね備えています。",
   "de": "Hochwertiger wind- und wasserdichter Stoff: umhüllend, wasserdicht und leicht an- und auszuziehen."
  },
- "小汪系列": { "en": "Small Dog Series", "ja": "小型犬シリーズ", "de": "Kleine-Hunde-Serie" },
- "小毛孩子的首選。": { "en": "The first choice for small dogs.", "ja": "小さなわんちゃんの定番。", "de": "Die erste Wahl für kleine Hunde." },
- "前項三點鈕扣、前腳雙袖設計，": { "en": "Three-snap front closure and double front sleeves", "ja": "前面3点スナップと前足の両袖デザインで、", "de": "Dreifacher Druckknopfverschluss vorn und zwei Vorderärmel" },
- "更全面的防水保護。": { "en": "for more complete waterproof protection.", "ja": "より全面的な防水保護を。", "de": "für noch umfassenderen Schutz vor Nässe." },
- "領頂 3M 反光條，增加夜間行走的安全性。": { "en": "3M reflective strip at the collar for safer night walks.", "ja": "襟元の3M反射テープで夜のお散歩も安心。", "de": "3M-Reflexstreifen am Kragen für mehr Sicherheit bei Nacht." },
- "陪你走過每一個下雨的日子": { "en": "With you on every rainy day", "ja": "雨の日もいつも一緒に", "de": "An jedem Regentag an deiner Seite" },
+ "小汪系列": {
+  "en": "Small Dog Series",
+  "ja": "小型犬シリーズ",
+  "de": "Kleine-Hunde-Serie"
+ },
+ "小毛孩子的首選。": {
+  "en": "The first choice for small dogs.",
+  "ja": "小さなわんちゃんの定番。",
+  "de": "Die erste Wahl für kleine Hunde."
+ },
+ "前項三點鈕扣、前腳雙袖設計，": {
+  "en": "Three-snap front closure and double front sleeves",
+  "ja": "前面3点スナップと前足の両袖デザインで、",
+  "de": "Dreifacher Druckknopfverschluss vorn und zwei Vorderärmel"
+ },
+ "更全面的防水保護。": {
+  "en": "for more complete waterproof protection.",
+  "ja": "より全面的な防水保護を。",
+  "de": "für noch umfassenderen Schutz vor Nässe."
+ },
+ "領頂 3M 反光條，增加夜間行走的安全性。": {
+  "en": "3M reflective strip at the collar for safer night walks.",
+  "ja": "襟元の3M反射テープで夜のお散歩も安心。",
+  "de": "3M-Reflexstreifen am Kragen für mehr Sicherheit bei Nacht."
+ },
+ "陪你走過每一個下雨的日子": {
+  "en": "With you on every rainy day",
+  "ja": "雨の日もいつも一緒に",
+  "de": "An jedem Regentag an deiner Seite"
+ },
  "無論是春日裡的梅雨，還是冬日裡的綿綿細雨，每一個下雨的日子，apetto 狗衣系列，讓毛孩子盡情在戶外奔跑。": {
   "en": "From spring's plum rains to winter drizzle, on every rainy day apetto dog wear lets your dog run free outdoors.",
   "ja": "春の梅雨も冬の小雨も、雨の日はいつでも、apetto のドッグウェアがわんちゃんの外遊びを思いきり楽しませます。",
@@ -77,38 +229,739 @@
   "ja": "apetto は高品質な防風保護を提供。最高級素材は耐水圧10000mmH2O、水滴は生地の上を滑り落ち、快適な防水性能を実現します。",
   "de": "apetto bietet hochwertigen Windschutz. Der Premiumstoff hält 10.000 mmH2O Wassersäule stand, Tropfen perlen einfach ab, für komfortablen Nässeschutz."
  },
- "散步去 !": { "en": "Let's go for a walk!", "ja": "お散歩に行こう！", "de": "Auf zum Spaziergang!" },
- "特製領頂開口，讓牽繩扣項圈": { "en": "A special collar opening lets the leash clip to the collar", "ja": "襟元の特製開口部でリードを首輪に装着できます", "de": "Spezielle Kragenöffnung, damit die Leine am Halsband befestigt werden kann" },
- "跑起來 !": { "en": "Run free!", "ja": "走り出そう！", "de": "Lauf los!" },
- "兼具固定與靈活，小毛孩子的首選": { "en": "Secure yet flexible, the first choice for small dogs", "ja": "安定感と動きやすさを両立、小型犬の定番", "de": "Sicher und beweglich zugleich, die erste Wahl für kleine Hunde" },
- "寫上名字": { "en": "Add a name", "ja": "名前を入れる", "de": "Name drauf" },
- "寫上名字，是毛孩子專屬的衣服": { "en": "With their name on it, it's truly their own", "ja": "名前を入れて、わんちゃんだけの一着に", "de": "Mit Namen wird es ganz sein eigenes Kleidungsstück" },
- "不要炸毛 !": { "en": "No static frizz!", "ja": "静電気でモフモフにならない！", "de": "Kein Aufplustern!" },
- "MIT 抗靜電刷毛布料，毛小孩寒流不用怕": { "en": "Anti-static brushed fleece made in Taiwan keeps your dog warm in cold snaps", "ja": "台湾製の帯電防止フリースで、寒波もへっちゃら", "de": "Antistatisches Fleece aus Taiwan, damit Kälteeinbrüche kein Problem sind" },
- "全系列": { "en": "All Products", "ja": "全シリーズ", "de": "Alle Produkte" },
- "暢銷商品": { "en": "Bestsellers", "ja": "人気商品", "de": "Bestseller" },
- "推薦商品": { "en": "Recommended", "ja": "おすすめ商品", "de": "Empfehlungen" },
- "商店訊息": { "en": "Store Info", "ja": "ショップ情報", "de": "Shop-Info" },
- "關於我們": { "en": "About Us", "ja": "私たちについて", "de": "Über uns" },
- "服務條款": { "en": "Terms of Service", "ja": "利用規約", "de": "AGB" },
- "客戶服務": { "en": "Customer Service", "ja": "カスタマーサービス", "de": "Kundenservice" },
- "商品退/換貨": { "en": "Returns & Exchanges", "ja": "返品・交換", "de": "Rückgabe & Umtausch" },
- "快速查訂單": { "en": "Quick Order Lookup", "ja": "注文照会", "de": "Bestellstatus" },
- "其他服務": { "en": "More", "ja": "その他", "de": "Weitere Services" },
- "最新消息": { "en": "News", "ja": "新着情報", "de": "Neuigkeiten" },
- "最新公告": { "en": "Announcements", "ja": "お知らせ", "de": "Mitteilungen" },
- "訂購紀錄": { "en": "Order History", "ja": "注文履歴", "de": "Bestellverlauf" },
- "Copyright ©2026 apetto 機能寵物衣": { "en": "Copyright ©2026 apetto Functional Pet Wear", "ja": "Copyright ©2026 apetto 機能ペットウェア", "de": "Copyright ©2026 apetto Funktionale Hundebekleidung" },
- "網站地圖": { "en": "Sitemap", "ja": "サイトマップ", "de": "Seitenübersicht" },
- "大汪雨衣 太空灰": { "en": "Big Dog Raincoat – Space Gray", "ja": "大型犬レインコート スペースグレー", "de": "Regenmantel für große Hunde – Space Grau" },
- "大汪雨衣 檸檬螢光黃": { "en": "Big Dog Raincoat – Neon Lemon", "ja": "大型犬レインコート ネオンレモン", "de": "Regenmantel für große Hunde – Neongelb" },
- "小汪防水斗篷 太空灰": { "en": "Small Dog Waterproof Cape – Space Gray", "ja": "小型犬 防水ケープ スペースグレー", "de": "Wasserdichtes Cape für kleine Hunde – Space Grau" },
- "大汪雨衣 普魯士藍": { "en": "Big Dog Raincoat – Prussian Blue", "ja": "大型犬レインコート プルシアンブルー", "de": "Regenmantel für große Hunde – Preußischblau" },
- "大汪保暖夾克 冰川藍": { "en": "Big Dog Warm Jacket – Glacier Blue", "ja": "大型犬 防寒ジャケット グレイシャーブルー", "de": "Warme Jacke für große Hunde – Gletscherblau" },
- "大汪保暖夾克 萊姆綠": { "en": "Big Dog Warm Jacket – Lime Green", "ja": "大型犬 防寒ジャケット ライムグリーン", "de": "Warme Jacke für große Hunde – Limettengrün" },
- "大汪保暖夾克 芬達桔": { "en": "Big Dog Warm Jacket – Fanta Orange", "ja": "大型犬 防寒ジャケット ファンタオレンジ", "de": "Warme Jacke für große Hunde – Fanta-Orange" },
- "小汪防水斗篷 普魯士藍": { "en": "Small Dog Waterproof Cape – Prussian Blue", "ja": "小型犬 防水ケープ プルシアンブルー", "de": "Wasserdichtes Cape für kleine Hunde – Preußischblau" },
- "小汪防水斗篷 檸檬螢光黃": { "en": "Small Dog Waterproof Cape – Neon Lemon", "ja": "小型犬 防水ケープ ネオンレモン", "de": "Wasserdichtes Cape für kleine Hunde – Neongelb" },
- "小汪保暖防水斗篷 莓果桃": { "en": "Small Dog Warm Waterproof Cape – Berry Peach", "ja": "小型犬 防寒防水ケープ ベリーピーチ", "de": "Warmes wasserdichtes Cape für kleine Hunde – Beerenpfirsich" },
- "小汪保暖防水斗篷 萊姆綠": { "en": "Small Dog Warm Waterproof Cape – Lime Green", "ja": "小型犬 防寒防水ケープ ライムグリーン", "de": "Warmes wasserdichtes Cape für kleine Hunde – Limettengrün" }
+ "散步去 !": {
+  "en": "Let's go for a walk!",
+  "ja": "お散歩に行こう！",
+  "de": "Auf zum Spaziergang!"
+ },
+ "特製領頂開口，讓牽繩扣項圈": {
+  "en": "A special collar opening lets the leash clip to the collar",
+  "ja": "襟元の特製開口部でリードを首輪に装着できます",
+  "de": "Spezielle Kragenöffnung, damit die Leine am Halsband befestigt werden kann"
+ },
+ "跑起來 !": {
+  "en": "Run free!",
+  "ja": "走り出そう！",
+  "de": "Lauf los!"
+ },
+ "兼具固定與靈活，小毛孩子的首選": {
+  "en": "Secure yet flexible, the first choice for small dogs",
+  "ja": "安定感と動きやすさを両立、小型犬の定番",
+  "de": "Sicher und beweglich zugleich, die erste Wahl für kleine Hunde"
+ },
+ "寫上名字": {
+  "en": "Add a name",
+  "ja": "名前を入れる",
+  "de": "Name drauf"
+ },
+ "寫上名字，是毛孩子專屬的衣服": {
+  "en": "With their name on it, it's truly their own",
+  "ja": "名前を入れて、わんちゃんだけの一着に",
+  "de": "Mit Namen wird es ganz sein eigenes Kleidungsstück"
+ },
+ "不要炸毛 !": {
+  "en": "No static frizz!",
+  "ja": "静電気でモフモフにならない！",
+  "de": "Kein Aufplustern!"
+ },
+ "MIT 抗靜電刷毛布料，毛小孩寒流不用怕": {
+  "en": "Anti-static brushed fleece made in Taiwan keeps your dog warm in cold snaps",
+  "ja": "台湾製の帯電防止フリースで、寒波もへっちゃら",
+  "de": "Antistatisches Fleece aus Taiwan, damit Kälteeinbrüche kein Problem sind"
+ },
+ "全系列": {
+  "en": "All Products",
+  "ja": "全シリーズ",
+  "de": "Alle Produkte"
+ },
+ "暢銷商品": {
+  "en": "Bestsellers",
+  "ja": "人気商品",
+  "de": "Bestseller"
+ },
+ "推薦商品": {
+  "en": "Recommended",
+  "ja": "おすすめ商品",
+  "de": "Empfehlungen"
+ },
+ "商店訊息": {
+  "en": "Store Info",
+  "ja": "ショップ情報",
+  "de": "Shop-Info"
+ },
+ "關於我們": {
+  "en": "About Us",
+  "ja": "私たちについて",
+  "de": "Über uns"
+ },
+ "服務條款": {
+  "en": "Terms of Service",
+  "ja": "利用規約",
+  "de": "AGB"
+ },
+ "客戶服務": {
+  "en": "Customer Service",
+  "ja": "カスタマーサービス",
+  "de": "Kundenservice"
+ },
+ "商品退/換貨": {
+  "en": "Returns & Exchanges",
+  "ja": "返品・交換",
+  "de": "Rückgabe & Umtausch"
+ },
+ "快速查訂單": {
+  "en": "Quick Order Lookup",
+  "ja": "注文照会",
+  "de": "Bestellstatus"
+ },
+ "其他服務": {
+  "en": "More",
+  "ja": "その他",
+  "de": "Weitere Services"
+ },
+ "最新消息": {
+  "en": "News",
+  "ja": "新着情報",
+  "de": "Neuigkeiten"
+ },
+ "最新公告": {
+  "en": "Announcements",
+  "ja": "お知らせ",
+  "de": "Mitteilungen"
+ },
+ "訂購紀錄": {
+  "en": "Order History",
+  "ja": "注文履歴",
+  "de": "Bestellverlauf"
+ },
+ "Copyright ©2026 apetto 機能寵物衣": {
+  "en": "Copyright ©2026 apetto Functional Pet Wear",
+  "ja": "Copyright ©2026 apetto 機能ペットウェア",
+  "de": "Copyright ©2026 apetto Funktionale Hundebekleidung"
+ },
+ "網站地圖": {
+  "en": "Sitemap",
+  "ja": "サイトマップ",
+  "de": "Seitenübersicht"
+ },
+ "大汪雨衣 太空灰": {
+  "en": "Big Dog Raincoat – Space Gray",
+  "ja": "大型犬レインコート スペースグレー",
+  "de": "Regenmantel für große Hunde – Space Grau"
+ },
+ "大汪雨衣 檸檬螢光黃": {
+  "en": "Big Dog Raincoat – Neon Lemon",
+  "ja": "大型犬レインコート ネオンレモン",
+  "de": "Regenmantel für große Hunde – Neongelb"
+ },
+ "小汪防水斗篷 太空灰": {
+  "en": "Small Dog Waterproof Cape – Space Gray",
+  "ja": "小型犬 防水ケープ スペースグレー",
+  "de": "Wasserdichtes Cape für kleine Hunde – Space Grau"
+ },
+ "大汪雨衣 普魯士藍": {
+  "en": "Big Dog Raincoat – Prussian Blue",
+  "ja": "大型犬レインコート プルシアンブルー",
+  "de": "Regenmantel für große Hunde – Preußischblau"
+ },
+ "大汪保暖夾克 冰川藍": {
+  "en": "Big Dog Warm Jacket – Glacier Blue",
+  "ja": "大型犬 防寒ジャケット グレイシャーブルー",
+  "de": "Warme Jacke für große Hunde – Gletscherblau"
+ },
+ "大汪保暖夾克 萊姆綠": {
+  "en": "Big Dog Warm Jacket – Lime Green",
+  "ja": "大型犬 防寒ジャケット ライムグリーン",
+  "de": "Warme Jacke für große Hunde – Limettengrün"
+ },
+ "大汪保暖夾克 芬達桔": {
+  "en": "Big Dog Warm Jacket – Fanta Orange",
+  "ja": "大型犬 防寒ジャケット ファンタオレンジ",
+  "de": "Warme Jacke für große Hunde – Fanta-Orange"
+ },
+ "小汪防水斗篷 普魯士藍": {
+  "en": "Small Dog Waterproof Cape – Prussian Blue",
+  "ja": "小型犬 防水ケープ プルシアンブルー",
+  "de": "Wasserdichtes Cape für kleine Hunde – Preußischblau"
+ },
+ "小汪防水斗篷 檸檬螢光黃": {
+  "en": "Small Dog Waterproof Cape – Neon Lemon",
+  "ja": "小型犬 防水ケープ ネオンレモン",
+  "de": "Wasserdichtes Cape für kleine Hunde – Neongelb"
+ },
+ "小汪保暖防水斗篷 莓果桃": {
+  "en": "Small Dog Warm Waterproof Cape – Berry Peach",
+  "ja": "小型犬 防寒防水ケープ ベリーピーチ",
+  "de": "Warmes wasserdichtes Cape für kleine Hunde – Beerenpfirsich"
+ },
+ "小汪保暖防水斗篷 萊姆綠": {
+  "en": "Small Dog Warm Waterproof Cape – Lime Green",
+  "ja": "小型犬 防寒防水ケープ ライムグリーン",
+  "de": "Warmes wasserdichtes Cape für kleine Hunde – Limettengrün"
+ },
+ "首頁": {
+  "en": "Home",
+  "ja": "ホーム",
+  "de": "Startseite"
+ },
+ "快選模式": {
+  "en": "Quick select",
+  "ja": "クイック選択",
+  "de": "Schnellauswahl"
+ },
+ "商品比較清單 ({n})": {
+  "en": "Compare list ({n})",
+  "ja": "比較リスト ({n})",
+  "de": "Vergleichsliste ({n})"
+ },
+ "排序方式": {
+  "en": "Sort by",
+  "ja": "並び替え",
+  "de": "Sortieren nach"
+ },
+ "上架新 > 舊": {
+  "en": "Newest first",
+  "ja": "新着順",
+  "de": "Neueste zuerst"
+ },
+ "名稱 A - Z": {
+  "en": "Name A - Z",
+  "ja": "名前 A - Z",
+  "de": "Name A - Z"
+ },
+ "名稱 Z - A": {
+  "en": "Name Z - A",
+  "ja": "名前 Z - A",
+  "de": "Name Z - A"
+ },
+ "價格低 > 高": {
+  "en": "Price low > high",
+  "ja": "価格が安い順",
+  "de": "Preis aufsteigend"
+ },
+ "價格高 > 低": {
+  "en": "Price high > low",
+  "ja": "価格が高い順",
+  "de": "Preis absteigend"
+ },
+ "型號 A - Z": {
+  "en": "Model A - Z",
+  "ja": "型番 A - Z",
+  "de": "Modell A - Z"
+ },
+ "型號 Z - A": {
+  "en": "Model Z - A",
+  "ja": "型番 Z - A",
+  "de": "Modell Z - A"
+ },
+ "顯示數量": {
+  "en": "Show",
+  "ja": "表示件数",
+  "de": "Anzahl"
+ },
+ "+ 加入願望清單": {
+  "en": "+ Add to wishlist",
+  "ja": "+ ほしい物リストに追加",
+  "de": "+ Zur Wunschliste"
+ },
+ "+ 加入商品比較": {
+  "en": "+ Compare",
+  "ja": "+ 比較に追加",
+  "de": "+ Vergleichen"
+ },
+ "選擇更多數量 ›": {
+  "en": "More quantity ›",
+  "ja": "数量をもっと ›",
+  "de": "Mehr Menge ›"
+ },
+ "顯示第 {a} 至 {b} 個商品，共有 {c} 個商品 (分 {d} 頁顯示)": {
+  "en": "Showing {a} to {b} of {c} products ({d} page)",
+  "ja": "{c} 件中 {a} 〜 {b} 件を表示（{d} ページ）",
+  "de": "Zeige {a} bis {b} von {c} Produkten ({d} Seite)"
+ },
+ "目前沒有商品": {
+  "en": "No products yet",
+  "ja": "商品はまだありません",
+  "de": "Noch keine Produkte"
+ },
+ "{t} - 訂閱商品快訊RSS": {
+  "en": "{t} - Product news RSS",
+  "ja": "{t} - 商品ニュースRSS",
+  "de": "{t} - Produktnews RSS"
+ },
+ "圖片檢視(Grid)": {
+  "en": "Grid view",
+  "ja": "グリッド表示",
+  "de": "Rasteransicht"
+ },
+ "條列檢視(List)": {
+  "en": "List view",
+  "ja": "リスト表示",
+  "de": "Listenansicht"
+ },
+ "加入購物車": {
+  "en": "Add to cart",
+  "ja": "カートに入れる",
+  "de": "In den Warenkorb"
+ },
+ "全館滿額折扣": {
+  "en": "Storewide discount",
+  "ja": "全館割引",
+  "de": "Rabatt im ganzen Shop"
+ },
+ "滿 {n} 件/ {d}折": {
+  "en": "Buy {n}+ items: pay {d}0% of the price",
+  "ja": "{n}点以上で{d}割",
+  "de": "Ab {n} Stück: {d}0 % des Preises"
+ },
+ "庫存狀況": {
+  "en": "Availability",
+  "ja": "在庫状況",
+  "de": "Verfügbarkeit"
+ },
+ "現貨": {
+  "en": "In stock",
+  "ja": "在庫あり",
+  "de": "Auf Lager"
+ },
+ "尺寸": {
+  "en": "Size",
+  "ja": "サイズ",
+  "de": "Größe"
+ },
+ "衣服尺寸": {
+  "en": "Size chart",
+  "ja": "サイズ表",
+  "de": "Größentabelle"
+ },
+ "複選": {
+  "en": "multi-select",
+  "ja": "複数選択",
+  "de": "Mehrfachauswahl"
+ },
+ "{s} 【加價 ${p}】": {
+  "en": "{s} (+${p})",
+  "ja": "{s}（+${p}）",
+  "de": "{s} (+${p})"
+ },
+ "結帳": {
+  "en": "Checkout",
+  "ja": "レジへ",
+  "de": "Zur Kasse"
+ },
+ "加入願望清單": {
+  "en": "Add to wishlist",
+  "ja": "ほしい物リストに追加",
+  "de": "Zur Wunschliste"
+ },
+ "加入商品比較": {
+  "en": "Add to compare",
+  "ja": "比較に追加",
+  "de": "Zum Vergleich"
+ },
+ "商品介紹": {
+  "en": "Description",
+  "ja": "商品説明",
+  "de": "Beschreibung"
+ },
+ "臉書留言板": {
+  "en": "Facebook comments",
+  "ja": "Facebookコメント",
+  "de": "Facebook-Kommentare"
+ },
+ "商品選項": {
+  "en": "Options",
+  "ja": "商品オプション",
+  "de": "Optionen"
+ },
+ "確定": {
+  "en": "OK",
+  "ja": "確定",
+  "de": "OK"
+ },
+ "商品資訊": {
+  "en": "Product info",
+  "ja": "商品情報",
+  "de": "Produktinfo"
+ },
+ "直接購買": {
+  "en": "Buy now",
+  "ja": "今すぐ購入",
+  "de": "Jetzt kaufen"
+ },
+ "產品特性": {
+  "en": "Features",
+  "ja": "製品の特徴",
+  "de": "Eigenschaften"
+ },
+ "【apetto 大汪雨衣】": {
+  "en": "[apetto Big Dog Raincoat]",
+  "ja": "【apetto 大型犬レインコート】",
+  "de": "[apetto Regenmantel für große Hunde]"
+ },
+ "apetto 大汪雨衣】": {
+  "en": "apetto Big Dog Raincoat]",
+  "ja": "apetto 大型犬レインコート】",
+  "de": "apetto Regenmantel für große Hunde]"
+ },
+ "【apetto 小汪防水斗篷】": {
+  "en": "[apetto Small Dog Waterproof Cape]",
+  "ja": "【apetto 小型犬防水ケープ】",
+  "de": "[apetto Wasserdichtes Cape für kleine Hunde]"
+ },
+ "【apetto 小汪保暖防水斗篷】": {
+  "en": "[apetto Small Dog Warm Waterproof Cape]",
+  "ja": "【apetto 小型犬防寒防水ケープ】",
+  "de": "[apetto Warmes wasserdichtes Cape für kleine Hunde]"
+ },
+ "apetto 小汪保暖防水斗篷】": {
+  "en": "apetto Small Dog Warm Waterproof Cape]",
+  "ja": "apetto 小型犬防寒防水ケープ】",
+  "de": "apetto Warmes wasserdichtes Cape für kleine Hunde]"
+ },
+ "專為大狗狗設計，高機能防風、防水，帥氣首選": {
+  "en": "Designed for big dogs: high-performance windproof and waterproof, and it looks sharp",
+  "ja": "大型犬のために設計。高機能な防風・防水で、かっこよさも抜群",
+  "de": "Für große Hunde entworfen: hochfunktional, wind- und wasserdicht, und richtig schick"
+ },
+ "專為中、大型毛孩子設計": {
+  "en": "Designed for medium and large dogs",
+  "ja": "中型・大型犬のために設計",
+  "de": "Entworfen für mittelgroße und große Hunde"
+ },
+ "中大型犬冬天專用": {
+  "en": "Winter wear for medium and large dogs",
+  "ja": "中・大型犬の冬専用",
+  "de": "Winterkleidung für mittelgroße und große Hunde"
+ },
+ "專為小型犬設計，穿脫簡易、外出便利": {
+  "en": "Designed for small dogs: easy on and off, convenient for outings",
+  "ja": "小型犬のために設計。着脱が簡単で、お出かけに便利",
+  "de": "Für kleine Hunde entworfen: leicht an- und auszuziehen, praktisch für unterwegs"
+ },
+ "專為小型犬設計，高機能性，防寒保暖": {
+  "en": "Designed for small dogs: high performance, warm and cold-resistant",
+  "ja": "小型犬のために設計。高機能で防寒・保温",
+  "de": "Für kleine Hunde entworfen: hochfunktional, warm und kälteabweisend"
+ },
+ "【apetto 小汪防水斗篷】 專為小型犬設計，穿脫簡易、外出便利...": {
+  "en": "[apetto Small Dog Waterproof Cape] Designed for small dogs: easy on and off, convenient for outings...",
+  "ja": "【apetto 小型犬防水ケープ】小型犬のために設計。着脱が簡単で、お出かけに便利...",
+  "de": "[apetto Wasserdichtes Cape für kleine Hunde] Für kleine Hunde entworfen: leicht an- und auszuziehen..."
+ },
+ "【apetto 小汪保暖防水斗篷】 專為小型犬設計，高機能性，防寒保暖...": {
+  "en": "[apetto Small Dog Warm Waterproof Cape] Designed for small dogs: high performance, warm and cold-resistant...",
+  "ja": "【apetto 小型犬防寒防水ケープ】小型犬のために設計。高機能で防寒・保温...",
+  "de": "[apetto Warmes wasserdichtes Cape für kleine Hunde] Für kleine Hunde entworfen: hochfunktional und warm..."
+ },
+ "小毛孩子的首選": {
+  "en": "The first choice for small dogs",
+  "ja": "小さなわんちゃんの定番",
+  "de": "Die erste Wahl für kleine Hunde"
+ },
+ "小毛孩子冬天保暖首選": {
+  "en": "The warm winter pick for small dogs",
+  "ja": "小型犬の冬の防寒の定番",
+  "de": "Der warme Winterfavorit für kleine Hunde"
+ },
+ "前套式設計，讓毛小孩只需扣上腹部插扣，就能迅速出門。頂級防風、防水布料，同時具有包覆、防水與穿脫便利的多重優點。": {
+  "en": "The pull-over front design means you only fasten the belly buckle and you're out the door. Premium windproof, waterproof fabric gives full coverage, waterproofing and easy on-off.",
+  "ja": "前からかぶせるデザインで、お腹のバックルを留めるだけですぐにお出かけ。最高級の防風・防水素材が、包み込み・防水・着脱のしやすさを兼ね備えています。",
+  "de": "Dank Überzieh-Design vorn muss nur die Bauchschnalle geschlossen werden, und los geht's. Hochwertiger wind- und wasserdichter Stoff: umhüllend, wasserdicht und leicht an- und auszuziehen."
+ },
+ "前套式設計，讓毛小孩只需扣上腹部插扣，就能迅速出門。頂級防風、防水布料，同時具有包覆、防水與穿脫便利的多重優點": {
+  "en": "The pull-over front design means you only fasten the belly buckle and you're out the door. Premium windproof, waterproof fabric gives full coverage, waterproofing and easy on-off",
+  "ja": "前からかぶせるデザインで、お腹のバックルを留めるだけですぐにお出かけ。最高級の防風・防水素材が、包み込み・防水・着脱のしやすさを兼ね備えています",
+  "de": "Dank Überzieh-Design vorn muss nur die Bauchschnalle geschlossen werden, und los geht's. Hochwertiger wind- und wasserdichter Stoff: umhüllend, wasserdicht und leicht an- und auszuziehen"
+ },
+ "高品質防潑水、防風保護，耐水壓 10000mmH2O，適合台灣多雨濕冷環境": {
+  "en": "High-quality water-repellent, windproof protection rated to 10,000 mmH2O, made for Taiwan's rainy, damp and chilly weather",
+  "ja": "高品質な撥水・防風保護、耐水圧10000mmH2O。雨が多く湿って冷える台湾の気候にぴったり",
+  "de": "Hochwertiger wasserabweisender Windschutz mit 10.000 mmH2O Wassersäule, gemacht für Taiwans regnerisches, feuchtkaltes Wetter"
+ },
+ "尾片採用 3M 反光條，提升夜晚外出安全性": {
+  "en": "3M reflective strip on the tail flap for safer night outings",
+  "ja": "尻尾部分に3M反射テープを採用し、夜のお出かけも安全",
+  "de": "3M-Reflexstreifen an der Schwanzklappe für mehr Sicherheit bei Nacht"
+ },
+ "尾部、側身採用 3M 反光條，提升夜晚外出安全性": {
+  "en": "3M reflective strips on the tail and sides for safer night outings",
+  "ja": "尻尾と側面に3M反射テープを採用し、夜のお出かけも安全",
+  "de": "3M-Reflexstreifen an Schwanz und Seiten für mehr Sicherheit bei Nacht"
+ },
+ "頸部添加可調整鬆緊繩，自由調整頸圍，增加舒適度": {
+  "en": "Adjustable drawcord at the neck lets you set the collar size for extra comfort",
+  "ja": "首元の調整コードで首回りを自由に調整でき、快適さアップ",
+  "de": "Verstellbare Kordel am Hals für die passende Weite und mehr Komfort"
+ },
+ "頸部可調式鬆緊繩，依照寵物身形自由調整頸圍，大幅提升舒適度": {
+  "en": "Adjustable neck drawcord fits the collar to your dog's build for much better comfort",
+  "ja": "首元の調整コードで愛犬の体型に合わせて首回りを調整、快適さが大幅アップ",
+  "de": "Verstellbare Halskordel passt die Weite an die Statur Ihres Hundes an, für deutlich mehr Komfort"
+ },
+ "獨家增加後腳彈性帶，奔跑時仍可完整覆蓋": {
+  "en": "Exclusive elastic rear-leg straps keep full coverage even while running",
+  "ja": "独自の後ろ足ゴムバンドで、走っても全身をしっかりカバー",
+  "de": "Exklusive elastische Hinterbeinbänder halten alles bedeckt, auch beim Rennen"
+ },
+ "背部拉鍊式口袋，隨手可放寵物的用品": {
+  "en": "Zippered back pocket for your dog's small essentials",
+  "ja": "背中のファスナーポケットに愛犬の小物を収納",
+  "de": "Reißverschlusstasche am Rücken für die kleinen Dinge Ihres Hundes"
+ },
+ "背部拉鍊式口袋，隨手可放寵物的散步用品": {
+  "en": "Zippered back pocket for walk essentials",
+  "ja": "背中のファスナーポケットにお散歩グッズを収納",
+  "de": "Reißverschlusstasche am Rücken für das Gassi-Zubehör"
+ },
+ "背部設計拉鍊式口袋，隨手可放寵物的用品": {
+  "en": "Zippered back pocket for your dog's small essentials",
+  "ja": "背中にファスナーポケットを設け、愛犬の小物を収納",
+  "de": "Reißverschlusstasche am Rücken für die kleinen Dinge Ihres Hundes"
+ },
+ "耐水壓 10000mmH2O，持久防水，水滴在衣服上會輕易滑落，提供舒適的防水防護": {
+  "en": "Rated to 10,000 mmH2O for lasting waterproofing: drops simply roll off for comfortable protection",
+  "ja": "耐水圧10000mmH2Oの持続する防水性。水滴は生地の上を滑り落ち、快適な防水保護を実現",
+  "de": "10.000 mmH2O Wassersäule für dauerhaften Nässeschutz: Tropfen perlen einfach ab"
+ },
+ "耐水壓 10000mmH2O 持久防水，水滴在衣服上會輕易滑落，提供舒適的防水防護": {
+  "en": "Rated to 10,000 mmH2O for lasting waterproofing: drops simply roll off for comfortable protection",
+  "ja": "耐水圧10000mmH2Oの持続する防水性。水滴は生地の上を滑り落ち、快適な防水保護を実現",
+  "de": "10.000 mmH2O Wassersäule für dauerhaften Nässeschutz: Tropfen perlen einfach ab"
+ },
+ "可調整扣環，依照毛孩子的身形調整長度": {
+  "en": "Adjustable buckle to fit the length to your dog's build",
+  "ja": "調整バックルで愛犬の体型に合わせて長さを調整",
+  "de": "Verstellbare Schnalle, um die Länge an Ihren Hund anzupassen"
+ },
+ "領圍開口 5 公分，搭配可調式彈簧扣，穿上 apetto 仍然可以上牽繩": {
+  "en": "A 5 cm collar opening with an adjustable spring clip, so the leash still attaches with apetto on",
+  "ja": "襟元に5cmの開口部と調整式スプリングフックを備え、apettoを着たままリードを装着可能",
+  "de": "5 cm Kragenöffnung mit verstellbarem Federhaken, damit die Leine auch mit apetto angelegt werden kann"
+ },
+ "領圍開口 5 公分，穿上 apetto 仍然可以上牽繩": {
+  "en": "A 5 cm collar opening, so the leash still attaches with apetto on",
+  "ja": "襟元に5cmの開口部があり、apettoを着たままリードを装着可能",
+  "de": "5 cm Kragenöffnung, damit die Leine auch mit apetto angelegt werden kann"
+ },
+ "MIT 抗靜電刷毛布料，帶給寵物最舒服的親膚感受": {
+  "en": "Anti-static brushed fleece made in Taiwan feels wonderfully soft on the skin",
+  "ja": "台湾製の帯電防止フリースが、肌にやさしい最高の着心地を",
+  "de": "Antistatisches Fleece aus Taiwan, herrlich weich auf der Haut"
+ },
+ "內層 MIT 抗靜電刷毛布料，帶給寵物最舒服的親膚感受": {
+  "en": "Lined with anti-static brushed fleece made in Taiwan for the softest feel",
+  "ja": "内側は台湾製の帯電防止フリースで、肌にやさしい最高の着心地",
+  "de": "Innen antistatisches Fleece aus Taiwan für das weichste Tragegefühl"
+ },
+ "MIT 抗靜電刷毛布料，保暖舒適。搭配前項三點鈕扣設計，穿脫方便兼顧防水保護。領頂採用 3M 反光條，增加夜間行走的安全性。": {
+  "en": "Anti-static brushed fleece made in Taiwan keeps things warm and cozy. The three-snap front makes dressing easy without giving up waterproofing, and a 3M reflective strip at the collar adds safety on night walks.",
+  "ja": "台湾製の帯電防止フリースで暖かく快適。前面3点スナップで着脱が簡単、防水性もしっかり。襟元の3M反射テープで夜のお散歩も安心です。",
+  "de": "Antistatisches Fleece aus Taiwan hält warm und gemütlich. Der Dreifach-Druckknopfverschluss vorn erleichtert das Anziehen, ohne den Nässeschutz zu opfern, und der 3M-Reflexstreifen am Kragen sorgt nachts für Sicherheit."
+ },
+ "採用專業人用滑雪衣布料，搭配 MIT 抗靜電刷毛布料，陪伴毛孩度過濕冷冬天。": {
+  "en": "Made from professional-grade ski-jacket fabric with anti-static fleece from Taiwan to get your dog through damp, cold winters.",
+  "ja": "人間用のプロ仕様スキーウェア生地に台湾製の帯電防止フリースを組み合わせ、湿って冷える冬を乗り切ります。",
+  "de": "Aus professionellem Skijacken-Stoff mit antistatischem Fleece aus Taiwan, damit Ihr Hund gut durch den nasskalten Winter kommt."
+ },
+ "頂級滑雪衣布料，高品質防潑水、防風保護，能阻隔冷風，抵抗寒冷天氣": {
+  "en": "Premium ski-jacket fabric with high-quality water-repellent, windproof protection blocks cold wind and stands up to freezing weather",
+  "ja": "最高級スキーウェア生地の高品質な撥水・防風保護が冷たい風を遮り、寒さに負けません",
+  "de": "Hochwertiger Skijacken-Stoff mit wasserabweisendem Windschutz hält kalten Wind ab und trotzt frostigem Wetter"
+ },
+ "頂級滑雪衣，高品質防潑水、防風保護，能阻隔冷風，抵抗寒冷天氣": {
+  "en": "Premium ski-jacket fabric with high-quality water-repellent, windproof protection blocks cold wind and stands up to freezing weather",
+  "ja": "最高級スキーウェア生地の高品質な撥水・防風保護が冷たい風を遮り、寒さに負けません",
+  "de": "Hochwertiger Skijacken-Stoff mit wasserabweisendem Windschutz hält kalten Wind ab und trotzt frostigem Wetter"
+ },
+ "專業滑雪衣布料，高品質防潑水、防風，耐水壓 10000mmH2O": {
+  "en": "Professional ski-jacket fabric, water-repellent and windproof, rated to 10,000 mmH2O",
+  "ja": "プロ仕様のスキーウェア生地。高品質な撥水・防風、耐水圧10000mmH2O",
+  "de": "Professioneller Skijacken-Stoff, wasserabweisend und winddicht, 10.000 mmH2O Wassersäule"
+ },
+ "前腳包覆設計搭配前扣式鈕扣，快速穿脫": {
+  "en": "Front-leg coverage with front snaps for quick on and off",
+  "ja": "前足を包むデザインと前面スナップで、素早く着脱",
+  "de": "Vorderbein-Abdeckung mit Druckknöpfen vorn für schnelles An- und Ausziehen"
+ },
+ "前腳包覆設計搭配前扣式鈕扣，穿脫方便": {
+  "en": "Front-leg coverage with front snaps for easy on and off",
+  "ja": "前足を包むデザインと前面スナップで、着脱が簡単",
+  "de": "Vorderbein-Abdeckung mit Druckknöpfen vorn für einfaches An- und Ausziehen"
+ },
+ "前項三點鈕扣設計，前腳雙袖設計，提供小毛孩子更全面的防水保護。領頂採 用 3M 反光條，增加夜間行走的安全性。": {
+  "en": "A three-snap front and double front sleeves give small dogs more complete waterproof protection. A 3M reflective strip at the collar adds safety on night walks.",
+  "ja": "前面3点スナップと前足の両袖デザインで、小型犬をより全面的に防水保護。襟元の3M反射テープで夜のお散歩も安心です。",
+  "de": "Dreifach-Druckknopfverschluss vorn und zwei Vorderärmel geben kleinen Hunden umfassenderen Nässeschutz. Der 3M-Reflexstreifen am Kragen sorgt nachts für Sicherheit."
+ },
+ "前項三點鈕扣設計，穿脫安全又方便": {
+  "en": "Three-snap front closure: secure and easy to put on",
+  "ja": "前面3点スナップで、安全で着脱も簡単",
+  "de": "Dreifach-Druckknopfverschluss vorn: sicher und einfach anzuziehen"
+ },
+ "三點式前鈕扣，穿脫方便": {
+  "en": "Three front snaps for easy on and off",
+  "ja": "前面3点スナップで着脱が簡単",
+  "de": "Drei Druckknöpfe vorn für einfaches An- und Ausziehen"
+ },
+ "3M Scotchlite™ 反光條。在昏暗環境下，毛孩子需要被看見，增加駕駛對毛孩子的能見度": {
+  "en": "3M Scotchlite™ reflective strip. In low light your dog needs to be seen, and this makes them far more visible to drivers",
+  "ja": "3M Scotchlite™ 反射テープ。暗い場所でも愛犬の存在をドライバーにしっかり知らせます",
+  "de": "3M Scotchlite™-Reflexstreifen. Bei wenig Licht muss Ihr Hund gesehen werden, so wird er für Autofahrer deutlich sichtbarer"
+ },
+ "3M Scotchlite™ 反光條，在昏暗環境下，毛孩子需要被看見，增加駕駛對毛孩子的能見度": {
+  "en": "3M Scotchlite™ reflective strip. In low light your dog needs to be seen, and this makes them far more visible to drivers",
+  "ja": "3M Scotchlite™ 反射テープ。暗い場所でも愛犬の存在をドライバーにしっかり知らせます",
+  "de": "3M Scotchlite™-Reflexstreifen. Bei wenig Licht muss Ihr Hund gesehen werden, so wird er für Autofahrer deutlich sichtbarer"
+ },
+ "領頂採用 3M 反光條，提升狗狗夜晚行走安全": {
+  "en": "3M reflective strip at the collar for safer night walks",
+  "ja": "襟元の3M反射テープで夜のお散歩も安全",
+  "de": "3M-Reflexstreifen am Kragen für sicherere Spaziergänge bei Nacht"
+ },
+ "寫上名字，送給專屬於寶貝毛孩子的衣服": {
+  "en": "Write their name on it: a garment made just for your dog",
+  "ja": "名前を書いて、愛犬だけの一着に",
+  "de": "Mit Namen beschriften: ein Kleidungsstück nur für Ihren Hund"
+ },
+ "寫上毛孩專屬的名字，準備出門盡情奔跑": {
+  "en": "Write your dog's name on it and head out to run",
+  "ja": "愛犬の名前を書いて、思いきり走りに出かけよう",
+  "de": "Den Namen Ihres Hundes drauf, und raus zum Toben"
+ },
+ "衣服是誰的? 寫上名字，是毛孩子專屬的衣服": {
+  "en": "Whose coat is this? Write the name on it and it's truly theirs",
+  "ja": "この服はだれの？名前を書けば、わんちゃんだけの一着",
+  "de": "Wem gehört die Jacke? Mit Namen drauf ist sie ganz seine"
+ },
+ "小口袋，自己的小物自己背": {
+  "en": "A little pocket so they can carry their own small things",
+  "ja": "小さなポケットで、自分の小物は自分で持ち運び",
+  "de": "Eine kleine Tasche, damit der Hund seine Sachen selbst trägt"
+ },
+ "跑起來! 兼具固定與靈活，小毛孩子的首選": {
+  "en": "Run free! Secure yet flexible, the first choice for small dogs",
+  "ja": "走り出そう！安定感と動きやすさを両立、小型犬の定番",
+  "de": "Lauf los! Sicher und beweglich zugleich, die erste Wahl für kleine Hunde"
+ },
+ "pantone 色號 17-1460 TSX": {
+  "en": "Pantone 17-1460 TSX",
+  "ja": "Pantone カラー 17-1460 TSX",
+  "de": "Pantone-Farbe 17-1460 TSX"
+ },
+ "實品顏色螢光色調會再強烈一點": {
+  "en": "The actual neon color is a little more intense than pictured",
+  "ja": "実物の蛍光色は写真より少し強めです",
+  "de": "Die tatsächliche Neonfarbe ist etwas kräftiger als abgebildet"
+ },
+ "衣長": {
+  "en": "Back length",
+  "ja": "着丈",
+  "de": "Rückenlänge"
+ },
+ "領圍": {
+  "en": "Neck",
+  "ja": "首回り",
+  "de": "Hals"
+ },
+ "腹圍": {
+  "en": "Chest",
+  "ja": "胴回り",
+  "de": "Bauch"
+ },
+ "領圍的位置 (圈量)": {
+  "en": "Neck position\n(girth)",
+  "ja": "首回りの位置\n（周囲）",
+  "de": "Halsumfang\n(Umfang messen)"
+ },
+ "腹圍的位置 (圈量)": {
+  "en": "Chest position\n(girth)",
+  "ja": "胴回りの位置\n（周囲）",
+  "de": "Bauchumfang\n(Umfang messen)"
+ },
+ "單位為 cm，皆為圈量": {
+  "en": "Unit: cm. All measurements are girths.",
+  "ja": "単位：cm、すべて周囲の寸法",
+  "de": "Einheit: cm, alle Maße sind Umfänge"
+ },
+ "大汪保暖夾克（加毛）": {
+  "en": "Big Dog Warm Jacket (fleece-lined)",
+  "ja": "大型犬 防寒ジャケット（裏起毛）",
+  "de": "Warme Jacke für große Hunde (mit Fleece)"
+ },
+ "小汪保暖防水斗篷(加毛)": {
+  "en": "Small Dog Warm Waterproof Cape (fleece-lined)",
+  "ja": "小型犬 防寒防水ケープ（裏起毛）",
+  "de": "Warmes wasserdichtes Cape für kleine Hunde (mit Fleece)"
+ },
+ "大汪雨衣": {
+  "en": "Big Dog Raincoat",
+  "ja": "大型犬レインコート",
+  "de": "Regenmantel für große Hunde"
+ },
+ "小汪防水斗篷": {
+  "en": "Small Dog Waterproof Cape",
+  "ja": "小型犬 防水ケープ",
+  "de": "Wasserdichtes Cape für kleine Hunde"
+ },
+ "※ 尺寸測量會因商品素材不同，可能會有 1~3 公分的誤差。": {
+  "en": "※ Measurements may vary by 1 to 3 cm depending on the material.",
+  "ja": "※ 素材によって、寸法に1〜3cmの誤差が出る場合があります。",
+  "de": "※ Je nach Material können die Maße um 1 bis 3 cm abweichen."
+ },
+ "※ 請先測量毛小孩的背長，從脖子最底部(建議再往後一點，約莫是前腳的位置)，一直量到尾巴。": {
+  "en": "※ First measure your dog's back length, from the base of the neck (ideally a little further back, about where the front legs are) to the tail.",
+  "ja": "※ まず愛犬の背丈を測ってください。首の付け根（少し後ろ、前足のあたりがおすすめ）から尻尾まで。",
+  "de": "※ Messen Sie zuerst die Rückenlänge Ihres Hundes, vom Halsansatz (am besten etwas weiter hinten, etwa auf Höhe der Vorderbeine) bis zum Schwanz."
+ },
+ "※ 建議選擇比背長短 10 公分的尺寸。例如背長 52 公分，M 號合身、L 號寬鬆。": {
+  "en": "※ We suggest a size about 10 cm shorter than the back length. For a 52 cm back, M is a snug fit and L is roomy.",
+  "ja": "※ 背丈より約10cm短いサイズをおすすめします。例：背丈52cmならMがジャスト、Lがゆったり。",
+  "de": "※ Wir empfehlen eine Größe, die etwa 10 cm kürzer ist als die Rückenlänge. Bei 52 cm Rückenlänge sitzt M eng, L locker."
+ },
+ "※ 建議選擇比背長短 5-7 公分的尺寸。例如背長 32 公分，S 號合身、M 號寬鬆。": {
+  "en": "※ We suggest a size 5 to 7 cm shorter than the back length. For a 32 cm back, S is a snug fit and M is roomy.",
+  "ja": "※ 背丈より5〜7cm短いサイズをおすすめします。例：背丈32cmならSがジャスト、Mがゆったり。",
+  "de": "※ Wir empfehlen eine Größe, die 5 bis 7 cm kürzer ist als die Rückenlänge. Bei 32 cm Rückenlänge sitzt S eng, M locker."
+ },
+ "阻擋風雨，": {
+  "en": "Keep out wind and rain,",
+  "ja": "風雨を防ぎ、",
+  "de": "Wind und Regen abhalten,"
+ },
+ "擁抱無憂的舒適時光": {
+  "en": "embrace carefree comfort",
+  "ja": "心配のない快適なひとときを",
+  "de": "sorglosen Komfort genießen"
+ },
+ "apetto 寵物機能衣": {
+  "en": "apetto Functional Pet Wear",
+  "ja": "apetto 機能ペットウェア",
+  "de": "apetto Funktionskleidung für Hunde"
+ },
+ "極致防水，奔跑不受限。": {
+  "en": "Ultimate waterproofing. Run without limits.",
+  "ja": "究極の防水、思いきり走れる。",
+  "de": "Absolut wasserdicht, grenzenlos toben."
+ },
+ "apetto 全天候機能衣": {
+  "en": "apetto All-Weather Functional Wear",
+  "ja": "apetto 全天候機能ウェア",
+  "de": "apetto Allwetter-Funktionskleidung"
+ },
+ "亮眼防護，大狗自在奔馳": {
+  "en": "Bright protection, big dogs run free",
+  "ja": "目を引く防護で、大型犬ものびのび",
+  "de": "Auffälliger Schutz, große Hunde laufen frei"
+ },
+ "apetto 小汪系列": {
+  "en": "apetto Small Dog Series",
+  "ja": "apetto 小型犬シリーズ",
+  "de": "apetto Kleine-Hunde-Serie"
+ },
+ "不只可愛，更有帥氣": {
+  "en": "Not just cute, but sharp too",
+  "ja": "かわいいだけじゃない、かっこよさも",
+  "de": "Nicht nur süß, sondern auch schick"
+ }
 }
