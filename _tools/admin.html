@@ -133,6 +133,13 @@
       <div class="grid">
         <div><label class="f">商品名稱 *</label><input type="text" name="name" required></div>
         <div><label class="f">價格（元） *</label><input type="number" name="price" min="0" step="1" required></div>
+        <div class="full"><label class="f">商品名稱翻譯（選填，用於首頁英文 / 日文 / 德文版）</label>
+          <div class="grid" style="gap:8px">
+            <input type="text" name="name_en" placeholder="English">
+            <input type="text" name="name_ja" placeholder="日本語">
+            <input type="text" name="name_de" placeholder="Deutsch">
+          </div>
+        </div>
         <div class="full"><label class="f">所屬分類</label><div class="checks" id="cat-checks"></div></div>
         <div class="full"><label class="f">首頁顯示區塊</label><div class="checks" id="sec-checks"></div></div>
         <div class="full"><label class="f">商品列表簡介（分類頁卡片上的一句話）</label><input type="text" name="summary"></div>
@@ -397,6 +404,7 @@ function openForm(p) {
   $('#cur-gallery').innerHTML = p ? (p.gallery || []).map(g => `<img src="${rawUrl(g.small || g.full)}">`).join('') : '';
   if (p) {
     f.name.value = p.name; f.price.value = p.price; f.summary.value = p.summary || '';
+    const ni = p.name_i18n || {}; f.name_en.value = ni.en || ''; f.name_ja.value = ni.ja || ''; f.name_de.value = ni.de || '';
     f.feature.value = p.feature_html || ''; f.description.value = p.description_html || ''; f.options.value = optionsToText(p.options);
     f.visible.checked = p.visible !== false;
     f.querySelectorAll('input[name=categories]').forEach(c => c.checked = (p.categories || []).includes(Number(c.value)));
@@ -419,6 +427,7 @@ $('#form').onsubmit = async (ev) => {
     Object.assign(p, {
       name, price,
       summary: (fd.get('summary') || '').trim(),
+      name_i18n: Object.fromEntries(['en', 'ja', 'de'].map(k => [k, (fd.get('name_' + k) || '').trim()]).filter(([, v]) => v)),
       feature_html: textToHtml(fd.get('feature')),
       description_html: textToHtml(fd.get('description')),
       options: parseOptions(fd.get('options')),

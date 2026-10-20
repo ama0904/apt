@@ -17,7 +17,7 @@ import shutil
 import sys
 from pathlib import Path
 
-from bs4 import BeautifulSoup, NavigableString
+from bs4 import BeautifulSoup, Comment, NavigableString
 
 HERE = Path(__file__).resolve().parent
 SITE = Path(sys.argv[sys.argv.index("--site") + 1]) if "--site" in sys.argv else HERE.parent / "www.apetto.com.tw"
@@ -25,6 +25,11 @@ DATA_DIR = SITE / "_data"
 DATA_FILE = DATA_DIR / "products.json"
 TPL = SITE / "_templates"
 UPLOADS = DATA_DIR / "uploads"
+
+I18N_FILE = DATA_DIR / "i18n.json"
+# (code, label shown in the switcher, output file, html lang attribute)
+LANGS = [("zh", "中文", "index.html", "zh-Hant"), ("en", "English", "index.en.html", "en"),
+         ("ja", "日本語", "index.ja.html", "ja"), ("de", "Deutsch", "index.de.html", "de")]
 
 TITLE_SUFFIX = " | apetto | 高機能寵物時裝：專業防水防風、專為毛孩設計的機能衣服"
 SECTIONS = [("all", "全系列"), ("bestseller", "暢銷商品"), ("latest", "推薦商品")]
@@ -356,6 +361,79 @@ def fix_legacy_links(html_str):
     return re.sub(r"product&(amp;)?path=\d+&(amp;)?product_id=", lambda m: f"product&{m.group(1) or ''}product_id=", html_str)
 
 
+# ----------------------------------------------------------------- i18n (homepage only)
+def load_i18n(data):
+    table = json.loads(I18N_FILE.read_text(encoding="utf-8")) if I18N_FILE.exists() else {}
+    for p in data["products"]:
+        names = {k: v for k, v in (p.get("name_i18n") or {}).items() if v}
+        if names:
+            table[p["name"]] = {**table.get(p["name"], {}), **names}
+    return table
+
+
+def translate_soup(soup, lang, table):
+    def tr(s):
+        key = re.sub(r"\s+", " ", s).strip()
+        entry = table.get(key)
+        if not entry or not entry.get(lang):
+            return None
+        m = re.match(r"^(\s*)(.*?)(\s*)$", s, re.S)
+        return m.group(1) + entry[lang] + m.group(3)
+
+    for t in list(soup.find_all(string=True)):
+        if isinstance(t, Comment) or t.parent is None or t.parent.name in ("script", "style"):
+            continue
+        new = tr(str(t))
+        if new is not None:
+            t.replace_with(NavigableString(new))
+    for tag in soup.find_all(True):
+        for a in ("title", "alt", "placeholder", "aria-label"):
+            v = tag.get(a)
+            if isinstance(v, str):
+                new = tr(v)
+                if new is not None:
+                    tag[a] = new
+        if tag.name == "meta" and isinstance(tag.get("content"), str):
+            new = tr(tag["content"])
+            if new is not None:
+                tag["content"] = new
+
+
+def add_lang_switch(soup, current):
+    style = soup.new_tag("style")
+    style.string = (".apt-lang{position:fixed;right:12px;bottom:12px;z-index:2147483000;background:rgba(255,255,255,.96);"
+                    "border:1px solid #d9d9d9;border-radius:22px;padding:6px 12px;font:13px/1.6 -apple-system,'Segoe UI',"
+                    "'Noto Sans TC',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.18);white-space:nowrap}"
+                    ".apt-lang a{color:#444;text-decoration:none;margin:0 5px}.apt-lang a:hover{color:#000}"
+                    ".apt-lang a.cur{font-weight:700;color:#000;text-decoration:underline}")
+    div = soup.new_tag("div", attrs={"class": "apt-lang", "aria-label": "Language"})
+    for code, label, fname, _ in LANGS:
+        a = soup.new_tag("a", href=fname, hreflang=code)
+        a.string = label
+        if code == current:
+            a["class"] = "cur"
+        div.append(a)
+    soup.head.append(style)
+    soup.body.insert(0, div)
+
+
+def write_index_languages(data, zh_html):
+    """Write index.html (zh) plus translated copies, each with a language switcher."""
+    table = load_i18n(data)
+    for code, _, fname, html_lang in LANGS:
+        soup = BeautifulSoup(zh_html, "lxml")
+        if code != "zh":
+            translate_soup(soup, code, table)
+        soup.html["lang"] = html_lang
+        for alt in soup.select('link[rel="alternate"][hreflang]'):
+            alt.decompose()
+        for c, _, f, hl in LANGS:
+            link = soup.new_tag("link", rel="alternate", hreflang=hl, href=f)
+            soup.head.append(link)
+        add_lang_switch(soup, code)
+        write_text(SITE / fname, fix_legacy_links(str(soup)))
+
+
 # ----------------------------------------------------------------- page builders
 def build_index(data, visible):
     soup = soup_of(TPL / "index.html")
@@ -376,7 +454,7 @@ def build_index(data, visible):
                     sec["style"] = re.sub(r"display\s*:\s*none;?", "", sec["style"])
             else:
                 sec["style"] = (sec.get("style") or "") + ";display:none;"
-    write_text(SITE / "index.html", fix_legacy_links(str(soup)))
+    write_index_languages(data, str(soup))
 
 
 def build_category(cat, items):
