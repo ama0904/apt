@@ -62,10 +62,10 @@ UI = {
     "普魯士藍": {"en": "Prussian blue", "ja": "プルシアンブルー", "de": "Preußischblau"},
     "查看商品": {"en": "View product", "ja": "商品を見る", "de": "Produkt ansehen"},
     "開始試穿": {"en": "Try it on", "ja": "試着する", "de": "Anprobieren"},
-    "AI 生成約需 30 到 60 秒，尖峰時段可能更久。": {
-        "en": "Generation takes about 30 to 60 seconds, longer at busy times.",
-        "ja": "生成には30〜60秒ほど、混雑時はさらにかかります。",
-        "de": "Die Generierung dauert etwa 30 bis 60 Sekunden, bei Andrang länger."},
+    "AI 生成約需 20 到 40 秒，尖峰時段可能更久。": {
+        "en": "Generation takes about 20 to 40 seconds, longer at busy times.",
+        "ja": "生成には20〜40秒ほど、混雑時はさらにかかります。",
+        "de": "Die Generierung dauert etwa 20 bis 40 Sekunden, bei Andrang länger."},
     "選好照片和衣服後，試穿結果會出現在這裡。": {
         "en": "Pick a photo and a coat, and the result appears here.",
         "ja": "写真と服を選ぶと、ここに結果が表示されます。",
@@ -400,7 +400,7 @@ def render(data, lang):
   <section class="fit-card"><h2><b>2</b>選一件 apetto</h2>
    <div class="fit-coats">{coats}</div>
    <div class="fit-coat-links">{links}</div>
-   <div class="fit-go"><button type="button" class="btn brand big" disabled>開始試穿</button><p>AI 生成約需 30 到 60 秒，尖峰時段可能更久。</p></div>
+   <div class="fit-go"><button type="button" class="btn brand big" disabled>開始試穿</button><p>AI 生成約需 20 到 40 秒，尖峰時段可能更久。</p></div>
    <div class="fit-err" role="alert"></div>
   </section>
  </div>
