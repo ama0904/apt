@@ -16,6 +16,13 @@
      "label": "Labrador"
     }
    }
+  },
+  {
+   "key": "dmvi24azc",
+   "label": "黃金獵犬",
+   "visible": true,
+   "i18n": {},
+   "image": "assets/fitstudio/dog_dmvi24azc_mvi24azd.jpg"
   }
  ],
  "coats": [
