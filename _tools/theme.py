@@ -987,7 +987,11 @@ def render_news_article(data, n, lang, rel=None):
               f'<li><span>{esc(title)}</span></li>')
     extra = ""
     if n.get("link"):
-        extra = f'<p><a href="{esc(n["link"])}" target="_blank" rel="noopener">{esc(n.get("link_text") or "查看連結")}</a></p>'
+        label = esc(news_text(n, lang, "link_text") or "查看連結")
+        if re.match(r"^[a-z][a-z0-9+.-]*:", n["link"], re.I):      # external URL: new tab
+            extra = f'<p><a href="{esc(n["link"])}" target="_blank" rel="noopener">{label}</a></p>'
+        else:                                                      # a page of this site: same tab, same language
+            extra = f'<p><a class="btn" href="{link(d, n["link"].lstrip("/"), lang)}">{label}</a></p>'
     body = (f'<div class="wrap"><ol class="breadcrumb">{crumbs}</ol><article class="article"><div class="ph"><h1>{esc(title)}</h1></div>'
             f'<p class="date">{esc(n.get("date", ""))}</p>{news_body_html(news_text(n, lang, "body"))}{extra}</article></div>')
     return page(data, rel, lang, f"{title} | {BRAND}", body, title, current="information/news.html")

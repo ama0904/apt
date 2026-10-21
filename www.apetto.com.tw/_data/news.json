@@ -1,6 +1,32 @@
 {
  "items": [
   {
+   "id": 3,
+   "date": "2026/10/21",
+   "title": "AI 試衣間上線了！",
+   "body": "想知道毛孩穿上 apetto 是什麼樣子？現在不用猜了。\n到「試衣間」上傳一張毛孩的照片，挑一件 apetto，AI 大約 30 秒就會畫出牠穿上的樣子，還附上造型師的推薦。\n試穿完輸入背長、領圍、腹圍，就能知道該選哪一號，直接前往商品頁下單。\n沒有照片也沒關係，先用示範狗狗試試看。",
+   "link": "fitstudio.html",
+   "link_text": "去試衣間",
+   "visible": true,
+   "i18n": {
+    "en": {
+     "title": "The AI fitting room is live!",
+     "body": "Wondering how your dog would look in apetto? No more guessing.\nOpen the fitting room, upload a photo of your dog, pick an apetto piece, and in about 30 seconds the AI draws your dog wearing it, with a stylist's note.\nAfter the try-on, enter the back length, neck and chest girth to see which size to pick, then go straight to the product page.\nNo photo handy? Try it with one of the sample dogs.",
+     "link_text": "Go to the fitting room"
+    },
+    "ja": {
+     "title": "AI 試着室がオープンしました！",
+     "body": "うちの子が apetto を着たらどんな感じ？ もう想像しなくて大丈夫です。\n「試着室」で愛犬の写真をアップロードして apetto を 1 着選ぶと、約 30 秒で AI が着せた姿を描き、スタイリストのコメントも添えます。\n試着後に背丈・首回り・胴回りを入力すればおすすめサイズがわかり、そのまま商品ページへ進めます。\n写真がなくても、サンプルの犬で試せます。",
+     "link_text": "試着室へ"
+    },
+    "de": {
+     "title": "Die KI-Anprobe ist da!",
+     "body": "Wie würde Ihr Hund in apetto aussehen? Jetzt müssen Sie nicht mehr raten.\nÖffnen Sie die Anprobe, laden Sie ein Foto Ihres Hundes hoch und wählen Sie ein apetto-Teil: In etwa 30 Sekunden malt die KI Ihren Hund damit, inklusive Notiz der Stylistin.\nNach der Anprobe geben Sie Rückenlänge, Hals- und Bauchumfang ein, sehen die passende Größe und gehen direkt zur Produktseite.\nKein Foto zur Hand? Probieren Sie es mit einem der Beispielhunde.",
+     "link_text": "Zur Anprobe"
+    }
+   }
+  },
+  {
    "id": 1,
    "date": "2022/02/10",
    "title": "<我的寵物情人展售會> SOGO 復興館 快閃活動",
