@@ -30,8 +30,11 @@ SERVER_LANG = {"zh": "zh", "de": "de", "en": "en", "ja": "ja"}
 SHOW_NOTE = {"zh": True, "de": True, "en": True, "ja": True}
 
 DOGS = [("golden", "dog_golden.jpg", "黃金獵犬"), ("labrador", "dog_labrador.webp", "拉布拉多")]
-# key, prepared garment image, colour label, linked product id
-COATS = [("pink", "pink_coat.jpg", "莓果桃", 15), ("yellow", "yellow_coat.jpg", "檸檬螢光黃", 16), ("blue", "blue_coat.jpg", "普魯士藍", 8)]
+# key, prepared garment image, colour label, linked product id, size chart key in _data/image_text.json
+COATS = [("pink", "pink_coat.jpg", "莓果桃", 15, "small_warm_cape"), ("yellow", "yellow_coat.jpg", "檸檬螢光黃", 16, "small_cape"),
+         ("blue", "blue_coat.jpg", "普魯士藍", 8, "big_raincoat")]
+# the size charts say "pick a garment about this much shorter than the dog's back length"
+CHART_OFFSET = {"big_raincoat": 10, "big_jacket": 10, "small_cape": 6, "small_warm_cape": 6}
 
 # Markup strings (zh key -> translations); merged into theme.UI so translate_soup handles the page.
 UI = {
@@ -80,6 +83,14 @@ UI = {
                                      "ja": "ただいま試着室は停止中です。しばらくしてからお試しください。",
                                      "de": "Die Anprobe ist gerade offline. Bitte später wiederkommen."},
     "取消": {"en": "Cancel", "ja": "キャンセル", "de": "Abbrechen"},
+    "等待的同時，量一下毛孩的尺寸": {"en": "While you wait, measure your dog", "ja": "待っている間に、愛犬のサイズを測ろう", "de": "Miss deinen Hund, während du wartest"},
+    "背長：從脖子根部（約前腳的位置）量到尾巴根。領圍與腹圍為圈量，可以不填。": {
+        "en": "Back length: from the base of the neck (about the front legs) to the base of the tail. Neck and girth are measured around; both optional.",
+        "ja": "背丈：首の付け根（前足あたり）からしっぽの付け根まで。首回り・胴回りは一周を測ります（任意）。",
+        "de": "Rückenlänge: vom Halsansatz (etwa Vorderbeine) bis zum Schwanzansatz. Hals- und Bauchumfang rundherum messen; beide optional."},
+    "背長": {"en": "Back length", "ja": "背丈", "de": "Rückenlänge"},
+    "領圍": {"en": "Neck", "ja": "首回り", "de": "Halsumfang"},
+    "腹圍": {"en": "Girth", "ja": "胴回り", "de": "Bauchumfang"},
     # home promo
     "新功能": {"en": "New", "ja": "新機能", "de": "Neu"},
     "AI 試衣間：先看牠穿上的樣子": {"en": "AI fitting room: see it on your dog first", "ja": "AI 試着室：着た姿を先に見る", "de": "KI-Anprobe: erst sehen, wie es deinem Hund steht"},
@@ -124,6 +135,15 @@ STR = {
     "err.noImage": {"zh": "伺服器沒有回傳圖片，請再試一次。", "en": "The server returned no picture. Please try again.", "ja": "サーバーから画像が返りませんでした。もう一度お試しください。", "de": "Der Server hat kein Bild geliefert. Bitte erneut versuchen."},
     "err.generic": {"zh": "試穿失敗：", "en": "Something went wrong: ", "ja": "試着に失敗しました：", "de": "Fehler: "},
     "err.cancelled": {"zh": "已取消。", "en": "Cancelled.", "ja": "キャンセルしました。", "de": "Abgebrochen."},
+    "size.rec": {"zh": "建議尺寸", "en": "Recommended size", "ja": "おすすめサイズ", "de": "Empfohlene Größe"},
+    "size.detail": {"zh": "{size} 號衣長 {len} cm，比背長短 {d} cm。", "en": "Size {size} is {len} cm long, {d} cm shorter than the back.", "ja": "{size} の着丈は {len} cm、背丈より {d} cm 短めです。", "de": "Größe {size} ist {len} cm lang, {d} cm kürzer als der Rücken."},
+    "size.bumped": {"zh": "依領圍或腹圍往上調了一號。", "en": "Moved up a size for the neck or girth.", "ja": "首回り・胴回りに合わせて 1 サイズ上げました。", "de": "Wegen Hals- oder Bauchumfang eine Größe größer gewählt."},
+    "size.loose": {"zh": "想寬鬆一點可選 {size}。", "en": "For a looser fit choose {size}.", "ja": "ゆったりめなら {size} も。", "de": "Für lockeren Sitz {size} wählen."},
+    "size.small": {"zh": "背長比最小尺寸還短，S 可能偏大。", "en": "The back is shorter than the smallest size; S may be large.", "ja": "背丈が最小サイズより短く、S でも大きめかもしれません。", "de": "Der Rücken ist kürzer als die kleinste Größe; S könnte groß ausfallen."},
+    "size.big": {"zh": "背長超過最大尺寸，{size} 可能偏短。", "en": "The back is longer than the largest size; {size} may be short.", "ja": "背丈が最大サイズを超えています。{size} でも短めかもしれません。", "de": "Der Rücken ist länger als die größte Größe; {size} könnte kurz sein."},
+    "size.need": {"zh": "填入背長就能算出建議尺寸。", "en": "Enter the back length to get a size.", "ja": "背丈を入力するとサイズが出ます。", "de": "Rückenlänge eingeben, um eine Größe zu erhalten."},
+    "go.product": {"zh": "前往商品頁，選 {size}", "en": "Go to the product, size {size}", "ja": "商品ページへ（{size}）", "de": "Zum Produkt, Größe {size}"},
+    "go.plain": {"zh": "前往商品頁", "en": "Go to the product", "ja": "商品ページへ", "de": "Zum Produkt"},
     "file.name": {"zh": "apetto-試衣間.jpg", "en": "apetto-fitting-room.jpg", "ja": "apetto-試着室.jpg", "de": "apetto-anprobe.jpg"},
     "share.text": {"zh": "看看牠穿 apetto 的樣子！", "en": "Look at them in apetto!", "ja": "apetto を着た姿を見て！", "de": "Schau, wie apetto steht!"},
 }
@@ -186,6 +206,18 @@ CSS = r"""
 .fit-err{display:none;margin-top:14px;background:#fff4f2;border:1px solid #ffd1c9;color:var(--brand-ink);border-radius:14px;padding:12px 16px;font-size:14.5px}.fit-err.show{display:block}
 .fit-cancel{display:none;margin-top:10px;text-align:center}.fit-stage[data-state=busy] .fit-cancel{display:block}
 .fit-cancel button{background:none;border:0;font:inherit;font-size:14px;color:var(--mute);text-decoration:underline;cursor:pointer}
+.fit-size{display:none;margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px 18px}
+.fit-stage[data-state=busy] .fit-size,.fit-stage[data-state=done] .fit-size{display:block}
+.fit-size h3{font-size:16px;margin:0 0 6px}.fit-size .hint{margin:0 0 12px;font-size:13.5px;color:var(--mute);line-height:1.55}
+.fit-size .fields{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.fit-size label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--ink2);font-weight:600}
+.fit-size label>div{display:flex;align-items:center;border:1.5px solid var(--line2);border-radius:10px;background:#fff;padding:0 10px}
+.fit-size label>div:focus-within{border-color:var(--ink)}.fit-size input{width:100%;min-width:0;border:0;outline:0;background:none;font:inherit;font-size:16px;font-weight:600;padding:9px 0;color:var(--ink)}
+.fit-size em{font-style:normal;font-size:13px;color:var(--mute)}
+.fit-size-out{margin-top:12px;font-size:14.5px;color:var(--ink2)}.fit-size-out .big{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+.fit-size-out .big b{font-size:28px;color:var(--ink);line-height:1}.fit-size-out .big span{font-size:13px;color:var(--brand-ink);font-weight:700;letter-spacing:.06em}
+.fit-size-out p{margin:0 0 4px}.fit-size-out .btn{margin-top:10px;width:100%}
+@media (max-width:480px){.fit-size .fields{grid-template-columns:1fr 1fr 1fr;gap:6px}.fit-size label{font-size:12px}.fit-size label>div{padding:0 8px}}
 .fit-promo{background:#fff;border:1px solid var(--line);border-radius:28px;padding:40px 44px;display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center}
 .fit-promo h2{font-size:clamp(22px,2.6vw,30px);margin:0 0 8px}.fit-promo p{margin:0;color:var(--ink2);font-size:16.5px;max-width:52ch}
 .fit-promo .coats{display:flex;gap:-6px}.fit-promo .coats img{width:84px;height:84px;border-radius:50%;object-fit:cover;object-position:60% 50%;border:3px solid #fff;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.08);margin-left:-14px}
@@ -226,8 +258,24 @@ file.addEventListener('change',function(){pick(file.files[0]);file.value='';});
 drop.addEventListener('drop',function(e){pick(e.dataTransfer.files&&e.dataTransfer.files[0]);});
 document.querySelectorAll('.fit-demo button').forEach(function(b){b.addEventListener('click',function(){setDog(b.dataset.src,b.dataset.dog);});});
 /* coat */
-document.querySelectorAll('.fit-coat').forEach(function(b){b.addEventListener('click',function(){coat=b.dataset.src;
- document.querySelectorAll('.fit-coat').forEach(function(x){x.classList.toggle('cur',x===b);});update();});});
+var coatKey=null;
+document.querySelectorAll('.fit-coat').forEach(function(b){b.addEventListener('click',function(){coat=b.dataset.src;coatKey=b.dataset.coat;
+ document.querySelectorAll('.fit-coat').forEach(function(x){x.classList.toggle('cur',x===b);});update();sizeOut();});});
+/* size advice from the chosen coat's size chart: garment length ~ back length - offset, bumped up if neck/girth exceed the row */
+var sizeBox=$('.fit-size-out');
+function mval(k){var i=$('.fit-size input[data-m='+k+']');return i?parseFloat(i.value)||0:0;}
+function recommend(c){var back=mval('back'),neck=mval('neck'),belly=mval('belly');if(!back||!c||!c.chart)return null;
+ var rows=c.chart.rows.map(function(r){return {size:r[0],len:+r[1],neck:+r[2],belly:+String(r[3]).split(/[~\-–]/).pop()};});
+ var target=back-c.chart.offset,best=0,bd=1e9;rows.forEach(function(r,i){var d=Math.abs(r.len-target);if(d<bd){bd=d;best=i;}});
+ var i=best;while(i<rows.length-1&&((neck&&neck>rows[i].neck)||(belly&&belly>rows[i].belly)))i++;
+ var r=rows[i],note='';if(target<rows[0].len-3)note=t('size.small');else if(target>rows[rows.length-1].len+3)note=t('size.big',{size:r.size});
+ return {size:r.size,len:r.len,diff:Math.round((back-r.len)*10)/10,bumped:i>best,loose:rows[i+1]?rows[i+1].size:null,note:note};}
+function sizeOut(){var c=coatKey&&cfg.coats[coatKey];if(!sizeBox||!c)return;var rec=recommend(c),h='';
+ if(rec){h='<div class="big"><span>'+t('size.rec')+'</span><b>'+rec.size+'</b></div><p>'+t('size.detail',{size:rec.size,len:rec.len,d:rec.diff})+(rec.bumped?' '+t('size.bumped'):'')+(rec.loose?' '+t('size.loose',{size:rec.loose}):'')+'</p>'+(rec.note?'<p>'+rec.note+'</p>':'');}
+ else h='<p>'+t('size.need')+'</p>';
+ if(stage.dataset.state==='done'&&c.url)h+='<a class="btn" href="'+c.url+(rec?'#size='+encodeURIComponent(rec.size):'')+'">'+(rec?t('go.product',{size:rec.size}):t('go.plain'))+'</a>';
+ sizeBox.innerHTML=h;}
+document.querySelectorAll('.fit-size input').forEach(function(i){i.addEventListener('input',sizeOut);});
 /* progress */
 function step(n,txt){steps.forEach(function(s,i){s.className=i<n?'done':i===n?'on':'';});if(txt)progT.textContent=txt;bar.style.width=Math.min(96,8+n*28)+'%';}
 function showNote(text,pending){clearTimeout(captionTimer);if(!cfg.showNote){note.classList.remove('show');return;}
@@ -242,7 +290,7 @@ go.addEventListener('click',function(){
  if(!dog||!coat){setErr(t('err.pickFirst'));return;}if(online===false){setErr(t('err.offline'));return;}
  setErr('');showNote('');resultUrl='';var jobId=(crypto.randomUUID&&crypto.randomUUID())||(Date.now()+'-'+Math.random().toString(36).slice(2));
  var ctl=new AbortController(),t0=Date.now(),run={ctl:ctl};running=run;update();
- busyImg.src=dog;stage.dataset.state='busy';step(0,t('step.prepare'));progS.textContent=t('elapsed',{sec:0});
+ busyImg.src=dog;stage.dataset.state='busy';step(0,t('step.prepare'));progS.textContent=t('elapsed',{sec:0});sizeOut();
  if(window.innerWidth<981)setTimeout(function(){stage.scrollIntoView({behavior:'smooth',block:'start'});},50);
  run.tick=setInterval(function(){progS.textContent=t('elapsed',{sec:Math.round((Date.now()-t0)/1000)});},1000);
  run.tm=setTimeout(function(){ctl.abort('timeout');},300000);
@@ -261,13 +309,13 @@ go.addEventListener('click',function(){
   return r.json();
  }).then(function(d){
   if(running!==run)return;var src=d&&d.image;if(!src||!(/^data:image|^https?:/.test(src)))throw new Error(t('err.noImage'));
-  step(3,t('step.done'));return loadImg(src).then(function(){resultUrl=src;shot.src=src;stage.dataset.state='done';finish();
+  step(3,t('step.done'));return loadImg(src).then(function(){resultUrl=src;shot.src=src;stage.dataset.state='done';finish();sizeOut();
    if(d.caption&&String(d.caption).trim())showNote(d.caption);else pollCaption(d.captionId);});
  }).catch(function(e){
   if(running!==run&&!(e&&e.name==='AbortError'))return;var msg;
   if(e&&e.name==='AbortError')msg=ctl.signal.reason==='timeout'?t('err.timeout'):t('err.cancelled');else if(e instanceof TypeError)msg=t(online===false?'err.offline':'err.network');
   else msg=t('err.generic')+((e&&e.message)||e);
-  stage.dataset.state=resultUrl?'done':'empty';finish();setErr(msg);if(e instanceof TypeError)health();
+  stage.dataset.state=resultUrl?'done':'empty';finish();sizeOut();setErr(msg);if(e instanceof TypeError)health();
  }).then(function(){clearTimeout(soft);});
 });
 cancelBtn.addEventListener('click',function(){if(running)running.ctl.abort('cancel');});
@@ -276,7 +324,7 @@ dl.addEventListener('click',function(){if(!resultUrl)return;var a=document.creat
 function toFile(){return fetch(resultUrl).then(function(r){return r.blob();}).then(function(b){return new File([b],t('file.name'),{type:b.type||'image/jpeg'});});}
 if(navigator.share){share.addEventListener('click',function(){toFile().then(function(f){var d={files:[f],text:t('share.text')};
  if(navigator.canShare&&!navigator.canShare(d))d={text:t('share.text'),url:location.href};return navigator.share(d);}).catch(function(){});});}else{share.style.display='none';}
-again.addEventListener('click',function(){stage.dataset.state='empty';resultUrl='';showNote('');setErr('');coat=null;
+again.addEventListener('click',function(){stage.dataset.state='empty';resultUrl='';showNote('');setErr('');coat=null;coatKey=null;
  document.querySelectorAll('.fit-coat').forEach(function(x){x.classList.remove('cur');});update();$('.fit-coats').scrollIntoView({behavior:'smooth',block:'center'});});
 })();"""
 
@@ -289,12 +337,21 @@ ICON_DL = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wi
 ICON_CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>'
 
 
-def config_json(lang):
+def config_json(data, lang):
+    import theme as th
     strings = {k: v.get(lang) or v["zh"] for k, v in STR.items()}
     ui = {"connecting": "連線中…", "online": "試衣間運作中", "offline": "試衣間暫停服務中，請稍後再來。"}
     ui = {k: (UI[v].get(lang) if lang != "zh" else v) or v for k, v in ui.items()}
+    charts = th.sb.load_image_text().get("charts", {})
+    by_id = {p["id"]: p for p in data["products"]}
+    coats = {}
+    for k, f, colour, pid, chart_key in COATS:
+        p = by_id.get(pid)
+        c = charts.get(chart_key)
+        coats[k] = {"url": th.link(th.rel_dir(PAGE), th.sb.product_page(p), lang) if p and p.get("visible", True) else "",
+                    "chart": {"rows": c["rows"], "offset": CHART_OFFSET.get(chart_key, 8)} if c else None}
     return json.dumps({"api": API_BASE, "key": API_KEY, "serverLang": SERVER_LANG.get(lang, "zh"),
-                       "showNote": SHOW_NOTE.get(lang, False), "strings": strings, "ui": ui}, ensure_ascii=False)
+                       "showNote": SHOW_NOTE.get(lang, False), "strings": strings, "ui": ui, "coats": coats}, ensure_ascii=False)
 
 
 def render(data, lang):
@@ -304,7 +361,7 @@ def render(data, lang):
     demo = "".join(f'<button type="button" data-dog="{k}" data-src="{th.asset(d, ASSET_DIR + f)}"><img src="{th.asset(d, ASSET_DIR + f)}" alt="">{th.esc(name)}</button>'
                    for k, f, name in DOGS)
     coats, links = "", ""
-    for k, f, colour, pid in COATS:
+    for k, f, colour, pid, _chart in COATS:
         p = by_id.get(pid)
         sub = f'<span class="sub">{th.esc(p["name"])}</span>' if p else ""
         coats += (f'<button type="button" class="fit-coat" data-coat="{k}" data-src="{th.asset(d, ASSET_DIR + f)}">'
@@ -341,12 +398,17 @@ def render(data, lang):
   </div>
   <div class="fit-steps" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
   <div class="fit-cancel"><button type="button">取消</button></div>
+  <div class="fit-size"><h3>等待的同時，量一下毛孩的尺寸</h3><p class="hint">背長：從脖子根部（約前腳的位置）量到尾巴根。領圍與腹圍為圈量，可以不填。</p>
+   <div class="fields"><label><span>背長</span><div><input type="number" inputmode="decimal" min="10" max="120" step="0.5" data-m="back"><em>cm</em></div></label>
+    <label><span>領圍</span><div><input type="number" inputmode="decimal" min="10" max="120" step="0.5" data-m="neck"><em>cm</em></div></label>
+    <label><span>腹圍</span><div><input type="number" inputmode="decimal" min="10" max="150" step="0.5" data-m="belly"><em>cm</em></div></label></div>
+   <div class="fit-size-out"></div></div>
   <div class="fit-note"><b>AI 造型師的話</b><p></p></div>
   <div class="fit-actions"><button type="button" class="btn fit-dl">{ICON_DL}下載照片</button><button type="button" class="btn ghost fit-share">分享</button><button type="button" class="btn ghost fit-again">再試一件</button></div>
   <p class="fit-fine">試穿圖由 AI 生成，顏色與版型以實際商品為準。</p>
  </section>
 </div></div>
-<script id="apt-fit" type="application/json">{config_json(lang)}</script>
+<script id="apt-fit" type="application/json">{config_json(data, lang)}</script>
 <script src="{th.asset(d, 'assets/fitstudio.js')}?v={th.ASSET_VER['fit']}" defer></script>"""
     title = {"zh": "AI 試衣間", "en": "AI fitting room", "ja": "AI 試着室", "de": "KI-Anprobe"}[lang]
     return th.page(data, PAGE, lang, f"{title} | {th.BRAND}", body, "上傳一張毛孩的照片，挑一件 apetto，AI 會畫出牠穿上的樣子。",
@@ -355,7 +417,7 @@ def render(data, lang):
 
 def home_promo(d, lang):
     import theme as th
-    pics = "".join(f'<img src="{th.asset(d, ASSET_DIR + f)}" alt="" loading="lazy">' for _, f, _, _ in COATS)
+    pics = "".join(f'<img src="{th.asset(d, ASSET_DIR + f)}" alt="" loading="lazy">' for _, f, _, _, _ in COATS)
     return (f'<section class="sec tight"><div class="wrap"><div class="fit-promo rv"><div><span class="eyebrow">新功能</span><h2>AI 試衣間：先看牠穿上的樣子</h2>'
             f'<p>上傳一張照片，挑一件 apetto，約 30 秒就能看到試穿效果。</p></div>'
             f'<div class="side"><div class="coats">{pics}</div><a class="btn" href="{th.link(d, PAGE, lang)}">去試衣間</a></div></div></div></section>')

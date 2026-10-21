@@ -367,7 +367,7 @@ body.menu-open .bars i:nth-child(1){transform:translateY(6.75px) rotate(45deg)}b
 #options{margin-top:8px}#options .control-group{margin:18px 0}
 #options .control-label{display:block;font-size:15px;color:var(--mute);margin-bottom:10px}#options .control-label b{color:var(--ink);font-weight:700}
 #options label.checkbox,#options label.radio{display:inline-flex;align-items:center;justify-content:center;min-width:52px;height:44px;padding:0 16px;margin:0 8px 8px 0;border-radius:12px;border:1.5px solid var(--line2);background:#fff;font-weight:600;font-size:15px;cursor:pointer;user-select:none}
-#options label.checkbox:has(input:checked){background:var(--ink);border-color:var(--ink);color:#fff}
+#options label.checkbox:has(input:checked),#options label.checkbox.pick{background:var(--ink);border-color:var(--ink);color:#fff}
 #options label.checkbox:hover{border-color:var(--ink)}#options input{position:absolute;opacity:0;width:0;height:0}
 .showcase #options label.checkbox{cursor:default;pointer-events:none}
 .buy{margin-top:24px;display:flex;flex-direction:column;gap:10px}.buy .btn{width:100%}.buy-note{margin:0;font-size:14px;color:var(--mute);text-align:center}
@@ -459,6 +459,9 @@ document.addEventListener('touchend',function(e){if(!swiping||!b||getComputedSty
  if(dx>0&&!document.body.classList.contains('menu-open'))openMenu();else if(dx<0)closeMenu();},{passive:true});
 var hd=document.querySelector('.hd');function sh(){if(hd)hd.classList.toggle('scrolled',window.scrollY>8);}
 window.addEventListener('scroll',sh,{passive:true});sh();
+/* #size=M (from the fitting room) preselects that size chip */
+var sm=location.hash.match(/size=([^&]+)/);if(sm){var want=decodeURIComponent(sm[1]).toLowerCase();document.querySelectorAll('#options label.checkbox').forEach(function(l){
+ if(l.textContent.trim().toLowerCase().split(/[\s【(]/)[0]===want){var i=l.querySelector('input');if(i)i.checked=true;l.classList.add('pick');setTimeout(function(){l.scrollIntoView({block:'center',behavior:'smooth'});},300);}});}
 var main=document.getElementById('main-defer-image');
 document.querySelectorAll('#image-additional a').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();var img=a.querySelector('img');
  if(main&&img)main.src=a.getAttribute('href')||img.src;document.querySelectorAll('#image-additional li').forEach(function(l){l.classList.remove('cur');});a.parentNode.classList.add('cur');});});
