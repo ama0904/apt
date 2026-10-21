@@ -109,6 +109,9 @@
   .fit-pics { display:grid; grid-template-columns:1fr 18px 1fr; gap:6px; align-items:center; }
   .fit-pics img, .fit-none { width:100%; aspect-ratio:1; height:auto; object-fit:cover; border-radius:8px; border:1px solid var(--line); background:#f3f4f6; }
   .fit-pics span { text-align:center; color:var(--muted); }
+  .fit-res { position:relative; min-width:0; }
+  .fit-res > img, .fit-res > .fit-none { display:block; }
+  .fit-coat-thumb { position:absolute; right:6px; bottom:6px; width:34%; max-width:64px; aspect-ratio:1; object-fit:cover; border-radius:8px; border:2px solid #fff; box-shadow:0 1px 6px rgba(0,0,0,.25); background:#fff; }
   .fit-none { display:flex; align-items:center; justify-content:center; color:#d1d5db; font-size:28px; }
   .fit-info { font-size:14px; }
   .fit-cap { margin:4px 0 0; font-size:13px; color:var(--muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
@@ -1100,6 +1103,8 @@ $('#btn-advanced').onclick = () => showLogin('');
 /* ---------------------------------------------------------------- fitting-room history (FitStudio bridge admin API) */
 const FIT_API = 'https://tablet-uaj7iieq.tail188668.ts.net';
 const FIT_COATS = { pink: '莓果桃', yellow: '檸檬螢光黃', blue: '普魯士藍' };
+const FIT_COAT_IMG = { pink: 'assets/fitstudio/pink_coat.jpg', yellow: 'assets/fitstudio/yellow_coat.jpg', blue: 'assets/fitstudio/blue_coat.jpg' };
+const coatThumb = e => e.coat && FIT_COAT_IMG[e.coat] ? `<img class="fit-coat-thumb" src="${siteUrl()}${FIT_COAT_IMG[e.coat]}" alt="" title="${escHtml(fitCoat(e))}">` : '';
 const LANG_NAME = { zh: '中文', en: 'English', ja: '日本語', de: 'Deutsch' };
 const FIT_STATUS = { ok: ['成功', 'on'], failed: ['失敗', 'off'], quota: ['額度用完', 'off'], cancelled: ['中途取消', 'off'] };
 const fitTok = () => localStorage.getItem(LS.fit) || '';
@@ -1134,7 +1139,7 @@ function renderFit(j) {
   $('#fit-grid').innerHTML = es.map((e, i) => {
     const st = fitStatus(e), [label, cls] = FIT_STATUS[st] || FIT_STATUS.failed, coat = fitCoat(e);
     const line = [coat && tName(coat), LANG_NAME[e.lang] || e.lang, e.country, e.durationMs > 0 && fmtDur(e.durationMs)].filter(Boolean).map(escHtml).join(' · ');
-    return `<div class="fit-card${st === 'ok' ? '' : ' failed'}" data-i="${i}"><div class="fit-pics"><img src="${escHtml(fitImg(e.dogUrl))}" loading="lazy" alt=""><span>→</span>${e.resultUrl ? `<img src="${escHtml(fitImg(e.resultUrl))}" loading="lazy" alt="">` : '<div class="fit-none">✕</div>'}</div>`
+    return `<div class="fit-card${st === 'ok' ? '' : ' failed'}" data-i="${i}"><div class="fit-pics"><img src="${escHtml(fitImg(e.dogUrl))}" loading="lazy" alt=""><span>→</span><div class="fit-res">${e.resultUrl ? `<img src="${escHtml(fitImg(e.resultUrl))}" loading="lazy" alt="">` : '<div class="fit-none">✕</div>'}${coatThumb(e)}</div></div>`
       + `<div class="fit-info"><div><b>${escHtml(fmtTime(e.time))}</b> <span class="badge ${cls}">${escHtml(t(label))}</span></div><div class="muted">${line}</div>${e.caption ? `<p class="fit-cap">${escHtml(e.caption)}</p>` : ''}</div></div>`;
   }).join('');
 }
@@ -1152,7 +1157,7 @@ function openFit(i) {
     ['來源', escHtml(e.origin || '—')],
     ['ID', `<code>${escHtml(e.stamp || '')}</code>${e.jobId ? ' <code>' + escHtml(e.jobId) + '</code>' : ''}`],
   ];
-  $('#fdlg-body').innerHTML = `<div class="fit-big"><figure><img src="${escHtml(fitImg(e.dogUrl))}" alt=""><figcaption>${escHtml(t('毛孩照片'))}</figcaption></figure><figure>${e.resultUrl ? `<img src="${escHtml(fitImg(e.resultUrl))}" alt="">` : '<div class="fit-none big">✕</div>'}<figcaption>${escHtml(t('試穿結果'))}</figcaption></figure></div>`
+  $('#fdlg-body').innerHTML = `<div class="fit-big"><figure><img src="${escHtml(fitImg(e.dogUrl))}" alt=""><figcaption>${escHtml(t('毛孩照片'))}</figcaption></figure><figure><div class="fit-res">${e.resultUrl ? `<img src="${escHtml(fitImg(e.resultUrl))}" alt="">` : '<div class="fit-none big">✕</div>'}${coatThumb(e)}</div><figcaption>${escHtml(t('試穿結果'))}</figcaption></figure></div>`
     + (e.caption ? `<p class="fit-cap full">${escHtml(e.caption)}</p>` : '') + `<div class="fit-kv">${kv.map(([k, v]) => `<b>${escHtml(t(k))}</b><div>${v}</div>`).join('')}</div>`;
   $('#fdlg').showModal();
 }
