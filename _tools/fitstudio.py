@@ -83,6 +83,7 @@ UI = {
                                      "ja": "ただいま試着室は停止中です。しばらくしてからお試しください。",
                                      "de": "Die Anprobe ist gerade offline. Bitte später wiederkommen."},
     "取消": {"en": "Cancel", "ja": "キャンセル", "de": "Abbrechen"},
+    "試穿完成": {"en": "Done!", "ja": "試着できました", "de": "Fertig!"},
     "等待的同時，量一下毛孩的尺寸": {"en": "While you wait, measure your dog", "ja": "待っている間に、愛犬のサイズを測ろう", "de": "Miss deinen Hund, während du wartest"},
     "背長：從脖子根部（約前腳的位置）量到尾巴根。領圍與腹圍為圈量，可以不填。": {
         "en": "Back length: from the base of the neck (about the front legs) to the base of the tail. Neck and girth are measured around; both optional.",
@@ -195,7 +196,14 @@ CSS = r"""
 .fit-stage .prog b{display:block;font-size:16px;margin-bottom:4px}.fit-stage .prog span{font-size:13px;color:#d6d8de}
 .fit-stage .prog .bar{height:4px;border-radius:2px;background:rgba(255,255,255,.25);margin-top:12px;overflow:hidden}.fit-stage .prog .bar i{display:block;height:100%;width:5%;background:#fff;border-radius:2px;transition:width .8s ease}
 .fit-stage[data-state=busy] .busy,.fit-stage[data-state=busy] .prog{display:block}.fit-stage[data-state=busy] .empty,.fit-stage[data-state=done] .empty{display:none}
-.fit-stage[data-state=done] .shot{display:block}
+.fit-stage[data-state=done] .shot{display:block;animation:fit-pop .7s cubic-bezier(.2,.8,.2,1) both}
+@keyframes fit-pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+.fit-stage.flash .box{animation:fit-ring 1.8s ease-out both}
+@keyframes fit-ring{0%{box-shadow:0 0 0 0 rgba(255,36,20,.55)}60%{box-shadow:0 0 0 14px rgba(255,36,20,0)}100%{box-shadow:0 0 0 0 rgba(255,36,20,0)}}
+.fit-stage .done-badge{position:absolute;top:14px;left:14px;display:none;align-items:center;gap:8px;background:var(--brand);color:#fff;font-weight:800;font-size:15px;padding:9px 16px;border-radius:999px;box-shadow:0 8px 24px rgba(255,36,20,.35);z-index:2}
+.fit-stage.flash .done-badge{display:inline-flex;animation:fit-badge 3.2s ease both}
+@keyframes fit-badge{0%{opacity:0;transform:translateY(-10px) scale(.9)}12%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0;transform:translateY(-6px)}}
+@media (prefers-reduced-motion:reduce){.fit-stage[data-state=done] .shot,.fit-stage.flash .box,.fit-stage.flash .done-badge{animation:none}.fit-stage.flash .done-badge{display:inline-flex}}
 .fit-steps{display:flex;gap:6px;margin:14px 0 0}.fit-steps span{flex:1;height:4px;border-radius:2px;background:var(--line)}.fit-steps span.on{background:var(--ink)}.fit-steps span.done{background:#1fa463}
 .fit-note{display:none;margin-top:14px;background:var(--sand);border-radius:14px;padding:14px 16px;font-size:15px;color:var(--ink2)}
 .fit-note b{display:block;font-size:13px;color:var(--brand-ink);letter-spacing:.06em;margin-bottom:4px}.fit-note p{margin:0}.fit-note.wait p{color:var(--mute);font-style:italic}
@@ -286,6 +294,12 @@ function pollCaption(id){if(!id||!cfg.showNote)return;var end=Date.now()+120000;
   fetch(cfg.api+'/api/caption/'+encodeURIComponent(id),{headers:auth()}).then(function(r){return r.ok?r.json():null;}).then(function(d){
    if(d&&d.status==='ready'){showNote(d.caption);return;}if(d&&d.status==='none'){showNote('');return;}captionTimer=setTimeout(tick,2000);}).catch(function(){captionTimer=setTimeout(tick,2500);});};
  captionTimer=setTimeout(tick,1500);}
+/* make the finished picture impossible to miss: scroll to it, pulse the frame, badge, a short buzz on phones */
+var flashTimer=null;
+function celebrate(){stage.classList.remove('flash');void stage.offsetWidth;stage.classList.add('flash');clearTimeout(flashTimer);flashTimer=setTimeout(function(){stage.classList.remove('flash');},3400);
+ var box=$('.fit-stage .box');setTimeout(function(){box.scrollIntoView({behavior:'smooth',block:'center'});},80);
+ try{if(navigator.vibrate)navigator.vibrate([40,60,40]);}catch(e){}
+ if(document.hidden){var old=document.title,n=0,tt=setInterval(function(){document.title=(n++%2?'✓ ':'')+old;if(!document.hidden||n>20){clearInterval(tt);document.title=old;}},900);}}
 function finish(){if(running){clearInterval(running.poll);clearInterval(running.tick);clearTimeout(running.tm);running=null;}update();}
 go.addEventListener('click',function(){
  if(!dog||!coat){setErr(t('err.pickFirst'));return;}if(online===false){setErr(t('err.offline'));return;}
@@ -310,7 +324,7 @@ go.addEventListener('click',function(){
   return r.json();
  }).then(function(d){
   if(running!==run)return;var src=d&&d.image;if(!src||!(/^data:image|^https?:/.test(src)))throw new Error(t('err.noImage'));
-  step(3,t('step.done'));return loadImg(src).then(function(){resultUrl=src;shot.src=src;stage.dataset.state='done';finish();sizeOut();
+  step(3,t('step.done'));return loadImg(src).then(function(){resultUrl=src;shot.src=src;stage.dataset.state='done';finish();sizeOut();celebrate();
    if(d.caption&&String(d.caption).trim())showNote(d.caption);else pollCaption(d.captionId);});
  }).catch(function(e){
   if(running!==run&&!(e&&e.name==='AbortError'))return;var msg;
@@ -396,6 +410,7 @@ def render(data, lang):
    <div class="busy"><img alt=""></div>
    <img class="shot" alt="試穿結果">
    <div class="prog"><b></b><span></span><div class="bar"><i></i></div></div>
+   <div class="done-badge"><span aria-hidden="true">✓</span><span>試穿完成</span></div>
   </div>
   <div class="fit-steps" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
   <div class="fit-cancel"><button type="button">取消</button></div>
