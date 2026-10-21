@@ -15,6 +15,7 @@ import re
 from bs4 import BeautifulSoup, Comment, NavigableString
 
 import site_builder as sb
+import fitstudio as fit
 
 CDN = "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/"
 LOGO = "assets/logo.png"  # transparent version of the shop logo (made from the original PNG; works on dark backgrounds too)
@@ -128,6 +129,8 @@ UI = {
     "最新": {"en": "New", "ja": "新着", "de": "Neu"},
     "熱賣": {"en": "Bestseller", "ja": "人気", "de": "Bestseller"},
 }
+
+UI.update(fit.UI)
 
 LANG_CODES = [c for c, _, _, _ in sb.LANGS]
 HTML_LANG = {c: hl for c, _, _, hl in sb.LANGS}
@@ -474,7 +477,7 @@ ICON_ARROW = ('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
 # ----------------------------------------------------------------- shell
 def nav_links(data, page_dir, lang, current=""):
     items = [(sb.category_page(c["id"]), c["name"]) for c in data["categories"]]
-    items += [("search.html", "全系列"), ("bestsellers.html", "暢銷商品"), ("pages/5.html", "購物流程"), ("information/news.html", "最新消息"), ("pages/4.html", "關於我們")]
+    items += [("search.html", "全系列"), ("bestsellers.html", "暢銷商品"), (fit.PAGE, "試衣間"), ("pages/5.html", "購物流程"), ("information/news.html", "最新消息"), ("pages/4.html", "關於我們")]
     out = []
     for site_path, label in items:
         cls = ' class="cur"' if site_path == current else ""
@@ -513,7 +516,7 @@ def header(data, site_rel, lang, current=""):
 
 def footer(data, site_rel, lang):
     d = rel_dir(site_rel)
-    links = [("pages/4.html", "關於我們"), ("pages/5.html", "購物流程"), ("information/news.html", "最新消息")]
+    links = [("pages/4.html", "關於我們"), ("pages/5.html", "購物流程"), (fit.PAGE, "AI 試衣間"), ("information/news.html", "最新消息")]
     small = "".join(f'<a href="{link(d, sp, lang)}">{esc(t)}</a>' for sp, t in links)
     return f"""<footer class="ft">
  <div class="wrap">
@@ -561,7 +564,8 @@ def page(data, site_rel, lang, title, body, desc="", og_image=None, current="", 
 </html>"""
 
 
-ASSET_VER = {"css": digest(CSS), "js": digest(JS)}
+CSS = CSS + fit.CSS
+ASSET_VER = {"css": digest(CSS), "js": digest(JS), "fit": digest(fit.JS)}
 
 
 # ----------------------------------------------------------------- components
@@ -623,6 +627,7 @@ def render_home(data, visible, lang):
 </div></section>
 {section('三大系列', f'<div class="tiles">{tiles}</div>', sub='依毛孩體型與季節挑選', cls='tight', page_dir=d, lang=lang)}
 {section('為什麼選擇 apetto', f'<div class="feats">{feats_html}</div>', sub='機能細節', cls='tight', page_dir=d, lang=lang)}
+{fit.home_promo(d, lang)}
 {section('推薦商品', product_grid(latest, d, lang, tag='new'), more=('search.html', '查看全部'), sid='latest-products', cls='tight', page_dir=d, lang=lang) if latest else ''}
 {section('最新消息', news_html, more=('information/news.html', '查看全部'), sid='home-news', cls='tight', page_dir=d, lang=lang) if news_html else ''}
 <section class="sec tight"><div class="wrap"><div class="band rv"><div><h2>極致防水，奔跑不受限。</h2><p><span>有專業的製衣團隊，為毛小孩設計出高機能且時尚的衣服，具有防水、防風功能，</span><span>讓毛小孩們在下雨天也可以盡情奔跑</span></p></div><a class="btn" href="{link(d, 'search.html', lang)}">瀏覽全系列</a></div></div></section>"""
@@ -1034,6 +1039,7 @@ def build_all(data, visible):
     assets.mkdir(exist_ok=True)
     (assets / "theme.css").write_text(CSS.strip() + "\n", encoding="utf-8")
     (assets / "theme.js").write_text(JS + "\n", encoding="utf-8")
+    (assets / "fitstudio.js").write_text(fit.JS + "\n", encoding="utf-8")
     for lang in LANG_CODES:
         write_page(render_home(data, visible, lang), "index.html", lang, table)
         for c in data["categories"]:
@@ -1043,6 +1049,7 @@ def build_all(data, visible):
         write_page(render_listing(data, "search.html", lang, "全系列", visible, current="all", search=True), "search.html", lang, table)
         best = [p for p in visible if "bestseller" in p.get("sections", [])]
         write_page(render_listing(data, "bestsellers.html", lang, "暢銷商品", best, current="best"), "bestsellers.html", lang, table)
+        write_page(fit.render(data, lang), fit.PAGE, lang, table)
         for p in visible:
             write_page(render_product(data, visible, p, lang, sb.product_i18n(p)), sb.product_page(p), lang, table)
         for rel in ("pages/4.html", "pages/5.html"):

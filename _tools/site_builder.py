@@ -1202,6 +1202,7 @@ def build_product(p, data):
 def build_sitemap(visible, data):
     urls = [ONLINE] + [f"{ONLINE}product/product&product_id={p['id']}" for p in visible]
     urls += [f"{ONLINE}product/category&path={c['id']}" for c in data["categories"]]
+    urls.append(f"{ONLINE}fitstudio.html")
     body = "\n".join(f"<url><loc>{u.replace('&', '&amp;')}</loc></url>" for u in urls)
     write_text(SITE / "sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n'
                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + body + "\n</urlset>\n")

@@ -26,6 +26,14 @@
 - 中文商品頁有「立即購買」：連到後台填的「購買連結」（例如蝦皮），沒填就連到原官網商品頁；也可在 `products.json` 的 `settings.shop_url` 設整站預設。外語版只有商品介紹，沒有購買按鈕。
 - 首頁橫幅的字不在圖片裡，是 HTML 文字，所以會跟著語言切換；兩張去字的底圖（`*.clean.jpg`）用相鄰的樹林區塊修補。
 
+## AI 試衣間（fitstudio.html）
+
+- 使用者上傳毛孩照片、選一件 apetto（三款處理好的「衣服套在黑色剪影上」的圖，在 `assets/fitstudio/`），按「開始試穿」後由瀏覽器直接呼叫另一台電腦上的 FitStudio 伺服器（呼叫 Gemini 產圖），本站只放前端。
+- 伺服器網址與語言對應在 `_tools/fitstudio.py` 開頭（`API_BASE`）。網址換了只要改這裡再 push。伺服器的存取金鑰不放在 repo 裡：建置時從環境變數 `FITSTUDIO_API_KEY` 讀（GitHub repo 的 Settings → Secrets → Actions 新增同名 secret），寫進頁面；沒設的話請求不帶金鑰，伺服器端要改成允許本站網域。
+- API：`GET /api/health`（離線時頁面顯示「暫停服務」並停用按鈕）、`POST /api/stylist`（同步，15 秒到 4 分鐘；body 是 JSON，照片為 base64 data URL，上傳前先縮到 800px）、`GET /api/status/:jobId`（進度文字）、`GET /api/caption/:id`（造型師推薦，圖片出來後再輪詢）。錯誤的 `errorKey` 對應 `fitstudio.py` 的 `STR` 字串。
+- 衣服圖不能用一般商品照（AI 會畫錯），要先做「去背 + 套黑色動物剪影 + 白底」的合成圖。
+- 那台伺服器是家用電腦，不保證 24 小時在線；同時最多 3 個請求，第 4 個會收到 429（頁面顯示「請稍候一分鐘」）。
+
 ## 多語版本
 
 每個頁面有中文、英文、日文、德文四個版本：`index.html` / `index.en.html` / `index.ja.html` / `index.de.html`，其他頁面同樣以 `.en` / `.ja` / `.de` 結尾。頁首有語言切換（手機版在標題列下方一整排），同語言內的連結互相串接，並帶 hreflang 標記。
@@ -66,6 +74,7 @@ www.apetto.com.tw/          靜態網站（Pages 的發布根目錄）
   _raw_html/                原站未改寫的 HTML 備份（不會部署）
   assets/                   版型 CSS / JS（建置時產生）
 _tools/theme.py             版型：所有頁面的 HTML 與樣式
+_tools/fitstudio.py         AI 試衣間：頁面、樣式、前端腳本、四語字串、伺服器網址與金鑰
 _tools/site_builder.py      資料、翻譯、圖片文字、搜尋等共用邏輯；`build` 會呼叫 theme.py
 _tools/admin.html           後台頁面（部署時複製到網站根目錄）
 _tools/mirror.py            當初爬取整站用的爬蟲

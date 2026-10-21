@@ -34,6 +34,8 @@ jobs:
         run: python _tools/crop_images.py
 
       - name: Regenerate product pages from _data/products.json
+        env:
+          FITSTUDIO_API_KEY: ${{ secrets.FITSTUDIO_API_KEY }}
         run: python _tools/site_builder.py build
 
       - name: Assemble Pages artifact

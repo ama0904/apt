@@ -71,6 +71,10 @@ try:
     checks["en ui translated"] = "You may also like" in str(en)
     checks["404 pages"] = all((S / f).exists() for f in ("404.html", "404.en.html"))
     checks["theme assets"] = (S / "assets/theme.css").exists() and 'href="../assets/theme.css' in str(en)
+    fit_en = (S / "fitstudio.en.html").read_text(encoding="utf-8")
+    checks["fitting room pages"] = all((S / f"fitstudio{x}.html").exists() for x in ("", ".en", ".ja", ".de")) and (S / "assets/fitstudio.js").exists()
+    checks["fitting room translated + configured"] = "Try it on" in fit_en and '"serverLang": "en"' in fit_en and "assets/fitstudio/yellow_coat.jpg" in fit_en
+    checks["fitting room in nav + home"] = 'href="fitstudio.en.html"' in str(en.select_one(".nav")).replace("../", "") and hp.select_one(".fit-promo a.btn") is not None
     for k, v in checks.items():
         print(("OK  " if v else "FAIL"), k)
     print("ALL PASS" if all(checks.values()) else "SOME FAILED")
