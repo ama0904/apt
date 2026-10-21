@@ -261,7 +261,8 @@ go.addEventListener('click',function(){
   return r.json();
  }).then(function(d){
   if(running!==run)return;var src=d&&d.image;if(!src||!(/^data:image|^https?:/.test(src)))throw new Error(t('err.noImage'));
-  step(3,t('step.done'));return loadImg(src).then(function(){resultUrl=src;shot.src=src;stage.dataset.state='done';finish();pollCaption(d.captionId);});
+  step(3,t('step.done'));return loadImg(src).then(function(){resultUrl=src;shot.src=src;stage.dataset.state='done';finish();
+   if(d.caption&&String(d.caption).trim())showNote(d.caption);else pollCaption(d.captionId);});
  }).catch(function(e){
   if(running!==run&&!(e&&e.name==='AbortError'))return;var msg;
   if(e&&e.name==='AbortError')msg=ctl.signal.reason==='timeout'?t('err.timeout'):t('err.cancelled');else if(e instanceof TypeError)msg=t(online===false?'err.offline':'err.network');
