@@ -151,6 +151,7 @@ STR = {
     "srv.queuedNext": {"zh": "排隊中，下一個就輪到你…", "en": "In the queue, you're next…", "ja": "順番待ち：次はあなたです…", "de": "In der Warteschlange, du bist als Nächstes dran…"},
     "srv.done": {"zh": "圖片完成！", "en": "Picture ready!", "ja": "画像が完成！", "de": "Bild fertig!"},
     "note.writing": {"zh": "造型師正在寫推薦…", "en": "The stylist is writing a note…", "ja": "スタイリストがコメントを作成中…", "de": "Die Stylistin schreibt gerade…"},
+    "note.missed": {"zh": "造型師這次沒留話，再試一次會有。", "en": "The stylist skipped the note this time. Try again and there will be one.", "ja": "今回はスタイリストのコメントがありませんでした。もう一度試すと届きます。", "de": "Diesmal gab es keine Notiz der Stylistin. Beim nächsten Versuch kommt eine."},
     "err.pickFirst": {"zh": "請先選擇毛孩照片和一件衣服。", "en": "Please choose a photo and a coat first.", "ja": "先に写真と服を選んでください。", "de": "Bitte zuerst ein Foto und eine Jacke wählen."},
     "err.offline": {"zh": "試衣間目前離線，請稍後再試。", "en": "The fitting room is offline right now. Please try again later.", "ja": "試着室は現在オフラインです。しばらくしてからお試しください。", "de": "Die Anprobe ist gerade offline. Bitte später erneut versuchen."},
     "err.network": {"zh": "和試衣間的連線中斷了，請稍後再試一次。", "en": "The connection to the fitting room dropped. Please try again in a moment.", "ja": "試着室との接続が切れました。しばらくしてからもう一度お試しください。", "de": "Die Verbindung zur Anprobe ist abgebrochen. Bitte gleich noch einmal versuchen."},
@@ -239,6 +240,7 @@ CSS = r"""
 .fit-note{display:none;margin-top:14px;background:var(--sand);border-radius:14px;padding:14px 16px;font-size:15px;color:var(--ink2)}
 .fit-note b{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--brand-ink);letter-spacing:.06em;margin-bottom:6px}.fit-note p{margin:0}.fit-note.wait p{color:var(--mute);font-style:italic}
 .fit-note.show{display:block}
+.fit-note.miss p{color:var(--mute)}.fit-note.miss .led{background:#c9c2b8;box-shadow:0 0 0 3px rgba(0,0,0,.05)}
 /* LED in the title: spinning + glowing while the stylist is still writing, steady green once the note is in */
 .fit-note .led{position:relative;flex:0 0 auto;width:14px;height:14px;border-radius:50%;background:#1fa463;box-shadow:0 0 0 3px rgba(31,164,99,.18),0 0 10px rgba(31,164,99,.55)}
 .fit-note.wait .led{background:rgba(255,36,20,.12);animation:fit-led-glow 1.1s ease-in-out infinite alternate}
@@ -334,20 +336,23 @@ document.querySelectorAll('.fit-size input').forEach(function(i){i.addEventListe
 var curStep=0;
 function step(n,txt){curStep=n;steps.forEach(function(s,i){s.className=i<n?'done':i===n?'on':'';});if(txt)progT.textContent=txt;bar.style.width=Math.min(96,8+n*28)+'%';}
 var noteTimer=null;
-function showNote(text,pending){clearTimeout(captionTimer);if(!cfg.showNote){note.classList.remove('show');return;}
- var arrived=!pending&&(text||'').trim()&&note.classList.contains('wait');
- note.classList.toggle('wait',!!pending);noteP.textContent=pending?t('note.writing'):(text||'');note.classList.toggle('show',!!(pending||(text||'').trim()));
+/* missed: the server finished the picture but never produced a note; say so instead of hiding the panel */
+function showNote(text,pending,missed){clearTimeout(captionTimer);if(!cfg.showNote){note.classList.remove('show');return;}
+ var arrived=!pending&&!missed&&(text||'').trim()&&note.classList.contains('wait');
+ note.classList.toggle('wait',!!pending);note.classList.toggle('miss',!!missed);
+ noteP.textContent=pending?t('note.writing'):missed?t('note.missed'):(text||'');note.classList.toggle('show',!!(pending||missed||(text||'').trim()));
  if(!pending)note.classList.remove('pop');if(arrived)noteReady();}
+function noteMissed(){showNote('',false,true);}
 /* the stylist's note landed after a wait: make it as hard to miss as the picture */
 function noteReady(){void note.offsetWidth;note.classList.add('pop');clearTimeout(noteTimer);noteTimer=setTimeout(function(){note.classList.remove('pop');},4600);
  setTimeout(function(){var r=note.getBoundingClientRect();if(r.top<0||r.bottom>window.innerHeight)note.scrollIntoView({behavior:'smooth',block:'center'});},80);
  try{if(navigator.vibrate)navigator.vibrate([30,50,30]);}catch(e){}
  blinkTitle('💬 ');}
 function blinkTitle(mark){if(!document.hidden)return;var old=document.title,n=0,tt=setInterval(function(){document.title=(n++%2?mark:'')+old;if(!document.hidden||n>20){clearInterval(tt);document.title=old;}},900);}
-function pollCaption(id){if(!id||!cfg.showNote)return;var end=Date.now()+120000;showNote('',true);
- var tick=function(){if(Date.now()>end){showNote('');return;}
+function pollCaption(id){if(!cfg.showNote)return;if(!id){noteMissed();return;}var end=Date.now()+120000;showNote('',true);
+ var tick=function(){if(Date.now()>end){noteMissed();return;}
   fetch(cfg.api+'/api/caption/'+encodeURIComponent(id),{headers:auth()}).then(function(r){return r.ok?r.json():null;}).then(function(d){
-   if(d&&d.status==='ready'){showNote(d.caption);return;}if(d&&d.status==='none'){showNote('');return;}captionTimer=setTimeout(tick,2000);}).catch(function(){captionTimer=setTimeout(tick,2500);});};
+   if(d&&d.status==='ready'){showNote(d.caption);return;}if(d&&d.status==='none'){noteMissed();return;}captionTimer=setTimeout(tick,2000);}).catch(function(){captionTimer=setTimeout(tick,2500);});};
  captionTimer=setTimeout(tick,1500);}
 /* make the finished picture impossible to miss: scroll to it, pulse the frame, badge, a short buzz on phones */
 var flashTimer=null;
