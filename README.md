@@ -29,7 +29,8 @@
 
 ## AI 試衣間（fitstudio.html）
 
-- 使用者上傳毛孩照片、選一件 apetto（三款處理好的「衣服套在黑色剪影上」的圖，在 `assets/fitstudio/`），按「開始試穿」後由瀏覽器直接呼叫另一台電腦上的 FitStudio 伺服器（呼叫 Gemini 產圖），本站只放前端。
+- 使用者上傳毛孩照片、選一件 apetto（處理好的「衣服套在黑色剪影上」的圖，在 `assets/fitstudio/`），按「開始試穿」後由瀏覽器直接呼叫另一台電腦上的 FitStudio 伺服器（呼叫 Gemini 產圖），本站只放前端。
+- **衣服與示範狗狗由後台管理**：資料在 `_data/fitstudio.json`（`coats`：key、label、image、product、chart、visible、i18n；`dogs`：key、label、image、visible、i18n）。後台「試衣間衣服」「試衣間示範狗狗」可新增、編輯、排序、隱藏、刪除，圖片上傳到 `assets/fitstudio/coat_*` / `dog_*`。衣服的「尺寸表」決定試穿後的尺寸建議，「連結商品」決定前往商品頁的連結。檔案不存在時 `fitstudio.py` 退回內建的三件。
 - 伺服器網址與語言對應在 `_tools/fitstudio.py` 開頭（`API_BASE`）。網址換了只要改這裡再 push。伺服器的存取金鑰不放在 repo 裡：建置時從環境變數 `FITSTUDIO_API_KEY` 讀（GitHub repo 的 Settings → Secrets → Actions 新增同名 secret），寫進頁面；沒設的話請求不帶金鑰，伺服器端要改成允許本站網域。
 - API：`GET /api/health`（離線時頁面顯示「暫停服務」並停用按鈕）、`POST /api/stylist`（同步，15 秒到 4 分鐘；body 是 JSON，照片為 base64 data URL，上傳前先縮到 800px）、`GET /api/status/:jobId`（進度文字）、`GET /api/caption/:id`（造型師推薦，圖片出來後再輪詢）。錯誤的 `errorKey` 對應 `fitstudio.py` 的 `STR` 字串。
 - 衣服圖不能用一般商品照（AI 會畫錯），要先做「去背 + 套黑色動物剪影 + 白底」的合成圖。

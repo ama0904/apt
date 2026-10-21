@@ -36,6 +36,34 @@ COATS = [("pink", "pink_coat.jpg", "莓果桃", 15, "small_warm_cape"), ("yellow
 # the size charts say "pick a garment about this much shorter than the dog's back length"
 CHART_OFFSET = {"big_raincoat": 10, "big_jacket": 10, "small_cape": 6, "small_warm_cape": 6}
 
+
+def _load_items(kind, fallback):
+    """Admin-managed lists from _data/fitstudio.json ("coats": [{key, label, image, product, chart, visible, i18n}],
+    "dogs": [{key, label, image, visible, i18n}]). Falls back to the built-in tuples when the file lacks the list."""
+    import theme as th
+    f = th.sb.DATA_DIR / "fitstudio.json"
+    items = []
+    if f.exists():
+        try:
+            items = json.loads(f.read_text(encoding="utf-8")).get(kind, [])
+        except (ValueError, OSError):
+            items = []
+    if not items:
+        items = fallback
+    return [c for c in items if c.get("key") and c.get("image") and c.get("visible", True)]
+
+
+def load_coats():
+    return _load_items("coats", [{"key": k, "image": ASSET_DIR + fn, "label": c, "product": pid, "chart": ch} for k, fn, c, pid, ch in COATS])
+
+
+def load_dogs():
+    return _load_items("dogs", [{"key": k, "image": ASSET_DIR + fn, "label": n} for k, fn, n in DOGS])
+
+
+def coat_label(c, lang):
+    return (((c.get("i18n") or {}).get(lang) or {}).get("label") or c.get("label") or c["key"]).strip()
+
 # Markup strings (zh key -> translations); merged into theme.UI so translate_soup handles the page.
 UI = {
     "試衣間": {"en": "Fitting room", "ja": "試着室", "de": "Anprobe"},
@@ -388,12 +416,13 @@ def config_json(data, lang):
     charts = th.sb.load_image_text().get("charts", {})
     by_id = {p["id"]: p for p in data["products"]}
     coats = {}
-    for k, f, colour, pid, chart_key in COATS:
-        p = by_id.get(pid)
+    for coat in load_coats():
+        p = by_id.get(coat.get("product"))
+        chart_key = coat.get("chart") or ""
         c = charts.get(chart_key)
-        coats[k] = {"url": th.link(th.rel_dir(PAGE), th.sb.product_page(p), lang) if p and p.get("visible", True) else "",
-                    "name": p["name"] if p else colour, "product": pid,
-                    "chart": {"rows": c["rows"], "offset": CHART_OFFSET.get(chart_key, 8)} if c else None}
+        coats[coat["key"]] = {"url": th.link(th.rel_dir(PAGE), th.sb.product_page(p), lang) if p and p.get("visible", True) else "",
+                              "name": p["name"] if p else coat_label(coat, "zh"), "product": coat.get("product"),
+                              "chart": {"rows": c["rows"], "offset": CHART_OFFSET.get(chart_key, 8)} if c else None}
     return json.dumps({"api": API_BASE, "key": API_KEY, "serverLang": SERVER_LANG.get(lang, "zh"),
                        "showNote": SHOW_NOTE.get(lang, False), "strings": strings, "ui": ui, "coats": coats}, ensure_ascii=False)
 
@@ -402,14 +431,15 @@ def render(data, lang):
     import theme as th
     d = th.rel_dir(PAGE)
     by_id = {p["id"]: p for p in data["products"]}
-    demo = "".join(f'<button type="button" data-dog="{k}" data-src="{th.asset(d, ASSET_DIR + f)}"><img src="{th.asset(d, ASSET_DIR + f)}" alt="">{th.esc(name)}</button>'
-                   for k, f, name in DOGS)
+    demo = "".join(f'<button type="button" data-dog="{th.esc(g["key"])}" data-src="{th.asset(d, g["image"])}"><img src="{th.asset(d, g["image"])}" alt="">{th.esc(coat_label(g, lang))}</button>'
+                   for g in load_dogs())
     coats, links = "", ""
-    for k, f, colour, pid, _chart in COATS:
-        p = by_id.get(pid)
+    for coat in load_coats():
+        p = by_id.get(coat.get("product"))
+        k, src, colour = coat["key"], th.asset(d, coat["image"]), coat_label(coat, lang)
         sub = f'<span class="sub">{th.esc(p["name"])}</span>' if p else ""
-        coats += (f'<button type="button" class="fit-coat" data-coat="{k}" data-src="{th.asset(d, ASSET_DIR + f)}">'
-                  f'<span class="chk">{ICON_CHECK}</span><span class="img"><img src="{th.asset(d, ASSET_DIR + f)}" alt="{th.esc(colour)}" loading="lazy"></span>'
+        coats += (f'<button type="button" class="fit-coat" data-coat="{th.esc(k)}" data-src="{src}">'
+                  f'<span class="chk">{ICON_CHECK}</span><span class="img"><img src="{src}" alt="{th.esc(colour)}" loading="lazy"></span>'
                   f'<span class="nm">{th.esc(colour)}</span>{sub}</button>')
         if p and p.get("visible", True):
             links += f'<a href="{th.link(d, th.sb.product_page(p), lang)}">{th.esc(colour)}<span aria-hidden="true"> · </span>查看商品</a>'
@@ -424,7 +454,7 @@ def render(data, lang):
    <label class="fit-drop"><input type="file" accept="image/*" aria-label="毛孩照片">
     <div class="ph">{ICON_UP}<b>點這裡選照片，或把照片拖進來</b><span>全身、側面、光線清楚的照片效果最好。支援 JPG、PNG、WEBP。</span></div>
     <div class="pv"><img alt="毛孩照片"><span>更換照片</span></div></label>
-   <div class="fit-demo"><p>沒有照片？先用示範狗狗試試</p><div class="row">{demo}</div></div>
+   {f'<div class="fit-demo"><p>沒有照片？先用示範狗狗試試</p><div class="row">{demo}</div></div>' if demo else ''}
   </section>
   <section class="fit-card"><h2><b>2</b>選一件 apetto</h2>
    <div class="fit-coats">{coats}</div>
@@ -457,12 +487,13 @@ def render(data, lang):
 <script src="{th.asset(d, 'assets/fitstudio.js')}?v={th.ASSET_VER['fit']}" defer></script>"""
     title = {"zh": "AI 試衣間", "en": "AI fitting room", "ja": "AI 試着室", "de": "KI-Anprobe"}[lang]
     return th.page(data, PAGE, lang, f"{title} | {th.BRAND}", body, "上傳一張毛孩的照片，挑一件 apetto，AI 會畫出牠穿上的樣子。",
-                   og_image=ASSET_DIR + COATS[1][1], current=PAGE, extra_head=f'<link rel="preconnect" href="{API_BASE}">')
+                   og_image=(load_coats() or [{"image": ASSET_DIR + COATS[1][1]}])[0]["image"], current=PAGE,
+                   extra_head=f'<link rel="preconnect" href="{API_BASE}">')
 
 
 def home_promo(d, lang):
     import theme as th
-    pics = "".join(f'<img src="{th.asset(d, ASSET_DIR + f)}" alt="" loading="lazy">' for _, f, _, _, _ in COATS)
+    pics = "".join(f'<img src="{th.asset(d, c["image"])}" alt="" loading="lazy">' for c in load_coats()[:3])
     return (f'<section class="sec tight"><div class="wrap"><div class="fit-promo rv"><div><span class="eyebrow">新功能</span><h2>AI 試衣間：先看牠穿上的樣子</h2>'
             f'<p>上傳一張照片，挑一件 apetto，約 30 秒就能看到試穿效果。</p></div>'
             f'<div class="side"><div class="coats">{pics}</div><a class="btn" href="{th.link(d, PAGE, lang)}">去試衣間</a></div></div></div></section>')

@@ -150,6 +150,9 @@
     #news-table tbody tr { display:block; }
     #news-table tbody td { display:block; padding:2px 0; }
     #news-table .actions { grid-template-columns:1fr 1fr 1fr; }
+    .fit-table tbody tr { grid-template-columns:72px 1fr auto; grid-template-areas:"img name status" "act act act"; }
+    .fit-table tbody td:nth-child(4) { grid-area:status; justify-self:end; }
+    .fit-table tbody td:nth-child(5) { grid-area:act; margin-top:8px; }
     tbody tr { display:grid; grid-template-columns:72px 1fr auto; grid-template-areas:"img name name" "img price status" "act act act";
                gap:4px 12px; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:12px;
                padding:12px; margin-bottom:10px; }
@@ -244,6 +247,26 @@
       <tbody id="news-rows"></tbody>
     </table>
 
+    <h2 class="sec-title">試衣間衣服</h2>
+    <div class="toolbar">
+      <button class="primary" id="btn-coat-add">＋ 新增衣服</button>
+      <span class="count" id="coat-count"></span>
+    </div>
+    <table id="coat-table" class="fit-table">
+      <thead><tr><th style="width:64px">圖片</th><th>名稱 / 商品</th><th class="hide-sm">尺寸表</th><th>狀態</th><th style="width:300px">操作</th></tr></thead>
+      <tbody id="coat-rows"></tbody>
+    </table>
+
+    <h2 class="sec-title">試衣間示範狗狗</h2>
+    <div class="toolbar">
+      <button class="primary" id="btn-dog-add">＋ 新增示範狗狗</button>
+      <span class="count" id="dog-count"></span>
+    </div>
+    <table id="dog-table" class="fit-table">
+      <thead><tr><th style="width:64px">圖片</th><th>名稱</th><th class="hide-sm">檔案</th><th>狀態</th><th style="width:300px">操作</th></tr></thead>
+      <tbody id="dog-rows"></tbody>
+    </table>
+
     <h2 class="sec-title">試衣間紀錄</h2>
     <div class="toolbar">
       <select id="fit-range" style="width:auto"><option value="24">最近 24 小時</option><option value="168" selected>最近 7 天</option><option value="720">最近 30 天</option><option value="0">全部</option></select>
@@ -279,6 +302,34 @@
       <span class="progress" id="nform-progress"></span>
       <button type="button" id="ndlg-cancel">取消</button>
       <button type="submit" class="primary" id="ndlg-save">儲存並發布</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="cdlg">
+  <form id="cform" method="dialog">
+    <div class="dlg-head"><h2 id="cdlg-title">新增衣服</h2><button type="button" id="cdlg-close" class="small">✕</button></div>
+    <div class="dlg-body">
+      <div class="grid">
+        <div class="full"><label class="f" data-coat>名稱（顏色或款式）*</label><label class="f" data-dog>狗狗名稱（例如品種）*</label><input type="text" name="label" required placeholder="例如：莓果桃"></div>
+        <div data-coat><label class="f">連結商品</label><select name="product"></select></div>
+        <div data-coat><label class="f">尺寸表（算建議尺寸用）</label><select name="chart"></select></div>
+        <div class="full"><label class="f" data-coat>衣服圖 *</label><label class="f" data-dog>狗狗照片 *</label><input type="file" name="image" accept="image/jpeg,image/png,image/webp">
+          <div class="hint" data-coat>請用「衣服套在黑色狗狗剪影上、白底」的合成圖（跟現有幾件一樣），AI 才畫得對；一般商品照會畫錯。</div>
+          <div class="hint" data-dog>全身、側面、光線好的照片效果最好；會縮到 800px 送給 AI。</div>
+          <img id="cform-pv" class="blk-pic" alt="" style="display:none;margin-top:8px"></div>
+        <div class="full"><label class="f">外語名稱（選填）</label><div class="grid">
+          <div><label class="f">English</label><input type="text" name="clabel_en"></div>
+          <div><label class="f">日本語</label><input type="text" name="clabel_ja"></div>
+          <div><label class="f">Deutsch</label><input type="text" name="clabel_de"></div></div></div>
+        <div class="full"><label class="checks"><input type="checkbox" name="cvisible" value="1" checked> 顯示在試衣間</label></div>
+      </div>
+    </div>
+    <div class="dlg-foot">
+      <span class="err" id="cform-err"></span>
+      <span class="progress" id="cform-progress"></span>
+      <button type="button" id="cdlg-cancel">取消</button>
+      <button type="submit" class="primary" id="cdlg-save">儲存並發布</button>
     </div>
   </form>
 </dialog>
@@ -365,6 +416,14 @@ const DE = {
   'apetto 商品後台': 'apetto Produktverwaltung', '開啟前台 ↗': 'Shop öffnen ↗', '設定': 'Einstellungen', '登出': 'Abmelden', '介面語言': 'Sprache der Oberfläche',
   '登入後台': 'Anmelden', '請輸入後台密碼。': 'Bitte das Admin-Passwort eingeben.', '密碼': 'Passwort', '改用 token 登入': 'Stattdessen mit Token anmelden', '登入': 'Anmelden',
   '連接 GitHub': 'Mit GitHub verbinden',
+  '試衣間衣服': 'Anprobe: Kleidung', '＋ 新增衣服': '＋ Kleidungsstück', '試衣間示範狗狗': 'Anprobe: Beispielhunde', '＋ 新增示範狗狗': '＋ Beispielhund', '名稱 / 商品': 'Name / Produkt', '尺寸表': 'Größentabelle', '檔案': 'Datei',
+  '共 {n} 件，顯示中 {m} 件': '{n} Stück, {m} sichtbar', '共 {n} 隻，顯示中 {m} 隻': '{n} Hunde, {m} sichtbar', '商品已隱藏': 'Produkt ausgeblendet', '（未連結商品）': '(kein Produkt verknüpft)', '往前': 'nach vorn', '往後': 'nach hinten',
+  '新增衣服': 'Kleidungsstück hinzufügen', '編輯衣服': 'Kleidungsstück bearbeiten', '新增示範狗狗': 'Beispielhund hinzufügen', '編輯示範狗狗': 'Beispielhund bearbeiten',
+  '名稱（顏色或款式）*': 'Name (Farbe oder Modell) *', '狗狗名稱（例如品種）*': 'Name des Hundes (z. B. Rasse) *', '例如：莓果桃': 'z. B. Beerenrosa', '例如：黃金獵犬': 'z. B. Golden Retriever', '連結商品': 'Verknüpftes Produkt', '尺寸表（算建議尺寸用）': 'Größentabelle (für die Größenempfehlung)',
+  '衣服圖 *': 'Bild des Kleidungsstücks *', '狗狗照片 *': 'Hundefoto *', '請用「衣服套在黑色狗狗剪影上、白底」的合成圖（跟現有幾件一樣），AI 才畫得對；一般商品照會畫錯。': 'Bitte eine Montage „Kleidungsstück auf schwarzer Hundesilhouette, weißer Hintergrund“ wie bei den vorhandenen Stücken; normale Produktfotos malt die KI falsch.',
+  '全身、側面、光線好的照片效果最好；會縮到 800px 送給 AI。': 'Ganzkörper, seitlich, gut beleuchtet klappt am besten; wird auf 800 px verkleinert.', '外語名稱（選填）': 'Name in anderen Sprachen (optional)', '顯示在試衣間': 'In der Anprobe anzeigen',
+  '（不連結商品）': '(kein Produkt)', '（不提供尺寸建議）': '(keine Größenempfehlung)', '名稱不能空白': 'Der Name darf nicht leer sein', '請選一張衣服圖': 'Bitte ein Bild des Kleidungsstücks wählen', '請選一張狗狗照片': 'Bitte ein Hundefoto wählen',
+  '圖片請用 JPG、PNG 或 WEBP': 'Bitte JPG, PNG oder WEBP verwenden', '圖片請小於 4 MB': 'Bild bitte unter 4 MB', '上傳圖片…': 'Bild wird hochgeladen…',
   '試衣間紀錄': 'Anprobe-Verlauf', '最近 24 小時': 'Letzte 24 Stunden', '最近 7 天': 'Letzte 7 Tage', '最近 30 天': 'Letzte 30 Tage', '全部': 'Alle',
   '試穿次數': 'Anproben', '成功': 'Erfolgreich', '失敗': 'Fehlgeschlagen', '額度用完': 'Kontingent erschöpft', '中途取消': 'Abgebrochen', '平均耗時': 'Ø Dauer',
   '款式': 'Modell', '語言': 'Sprache', '地區': 'Region', '{n} 筆': '{n} Einträge', '伺服器已存 {mb} MB': '{mb} MB auf dem Server',
@@ -629,10 +688,12 @@ function render() {
 async function load() {
   S = await readProducts();
   await readNews();
+  await readFit();
   $('#repo-label').textContent = `${cfg.repo} @ ${cfg.branch}`;
   $('#site-link').href = siteUrl();
   render();
   renderNews();
+  renderCoats();
   watchDeploy();
 }
 
@@ -1100,17 +1161,118 @@ $('#btn-pw').onclick = pwConnect;
 $('#in-pw').addEventListener('keydown', e => { if (e.key === 'Enter') pwConnect(); });
 $('#btn-advanced').onclick = () => showLogin('');
 
+/* ---------------------------------------------------------------- fitting-room garments + sample dogs (_data/fitstudio.json) */
+const fitPath = () => `${SITE_DIR}/_data/fitstudio.json`;
+let F = { coats: [], dogs: [] }, editingItem = null, editingKind = 'coats';
+const KIND = {
+  coats: { rows: '#coat-rows', count: '#coat-count', label: '衣服', prefix: 'coat', addTitle: '新增衣服', editTitle: '編輯衣服', pick: '請選一張衣服圖' },
+  dogs:  { rows: '#dog-rows',  count: '#dog-count',  label: '示範狗狗', prefix: 'dog', addTitle: '新增示範狗狗', editTitle: '編輯示範狗狗', pick: '請選一張狗狗照片' },
+};
+async function readFit() {
+  try { const j = await gh(`/repos/${cfg.repo}/contents/${encPath(fitPath())}?ref=${encodeURIComponent(cfg.branch)}&t=${Date.now()}`); F = JSON.parse(b64decodeUtf8(j.content)); }
+  catch (e) { F = {}; }
+  if (!Array.isArray(F.coats)) F.coats = []; if (!Array.isArray(F.dogs)) F.dogs = [];
+}
+const itemLabel = c => (UI_LANG !== 'zh' && c.i18n && c.i18n[UI_LANG] && c.i18n[UI_LANG].label) || c.label || c.key;
+const productOf = id => ((S.data && S.data.products) || []).find(p => p.id === id);
+const ownUpload = img => /^assets\/fitstudio\/(coat|dog)_/.test(img || '');   // files the admin uploaded (safe to delete); the original samples stay
+function renderCoats() {
+  for (const kind of ['coats', 'dogs']) {
+    const K = KIND[kind], list = F[kind], rows = $(K.rows); rows.innerHTML = '';
+    $(K.count).textContent = t(kind === 'coats' ? '共 {n} 件，顯示中 {m} 件' : '共 {n} 隻，顯示中 {m} 隻', { n: list.length, m: list.filter(c => c.visible !== false).length });
+    list.forEach((c, i) => {
+      const p = kind === 'coats' ? productOf(c.product) : null, tr = document.createElement('tr'); if (c.visible === false) tr.className = 'hidden-row';
+      const sub = kind === 'coats' ? (p ? escHtml(tName(p.name)) + (p.visible === false ? ' · ' + t('商品已隱藏') : '') : t('（未連結商品）')) : '';
+      const col3 = kind === 'coats' ? escHtml(CHARTS[c.chart] ? tName(CHARTS[c.chart].title) : (c.chart || '—')) : `<span class="muted">${escHtml((c.image || '').split('/').pop())}</span>`;
+      tr.innerHTML = `<td><img src="${escHtml(siteUrl() + c.image)}" alt=""></td>
+        <td class="name"><b>${escHtml(itemLabel(c))}</b>${sub ? `<div class="muted">${sub}</div>` : ''}</td>
+        <td class="hide-sm">${col3}</td>
+        <td>${c.visible === false ? `<span class="badge off">${t('已隱藏')}</span>` : `<span class="badge on">${t('顯示中')}</span>`}</td>
+        <td><div class="actions"><button class="small" data-act="edit">${t('編輯')}</button><button class="small" data-act="up" ${i === 0 ? 'disabled' : ''} title="${t('往前')}">↑</button><button class="small" data-act="down" ${i === list.length - 1 ? 'disabled' : ''} title="${t('往後')}">↓</button><button class="small" data-act="toggle">${t(c.visible === false ? '顯示' : '隱藏')}</button><button class="small danger" data-act="del">${t('刪除')}</button></div></td>`;
+      tr.querySelectorAll('button[data-act]').forEach(b => b.onclick = () => itemAction(kind, b.dataset.act, c));
+      rows.appendChild(tr);
+    });
+  }
+}
+async function saveFit(extraFiles, message) {
+  const sha = await commitFiles([...(extraFiles || []), { path: fitPath(), base64: b64encodeUtf8(JSON.stringify(F, null, 1)) }], message, m => { $('#cform-progress').textContent = m; });
+  await load(); watchDeploy(sha);
+}
+async function itemAction(kind, act, c) {
+  if (act === 'edit') return openItemForm(kind, c);
+  const K = KIND[kind], list = F[kind];
+  try {
+    busy(true);
+    const i = list.findIndex(x => x.key === c.key);
+    if (act === 'up' || act === 'down') { const j = act === 'up' ? i - 1 : i + 1; if (j < 0 || j >= list.length) return; [list[i], list[j]] = [list[j], list[i]]; await saveFit([], `調整試衣間${K.label}順序`); toast(t('已儲存，網站重新部署中')); }
+    if (act === 'toggle') { list[i].visible = c.visible === false; await saveFit([], `${list[i].visible ? '顯示' : '隱藏'}試衣間${K.label} ${c.label}`); toast(t('已儲存，網站重新部署中')); }
+    if (act === 'del') {
+      if (!confirm(t('確定要刪除「{title}」嗎？', { title: c.label }))) return;
+      F[kind] = list.filter(x => x.key !== c.key);
+      await saveFit(ownUpload(c.image) ? [{ path: `${SITE_DIR}/${c.image}`, delete: true }] : [], `刪除試衣間${K.label} ${c.label}`); toast(t('已刪除，網站重新部署中'));
+    }
+  } catch (e) { alert(t('操作失敗：') + e.message); await load().catch(() => {}); }
+  finally { busy(false); }
+}
+function openItemForm(kind, c) {
+  editingKind = kind; editingItem = c || null;
+  const K = KIND[kind], f = $('#cform'), pv = $('#cform-pv'); f.reset(); $('#cform-err').textContent = ''; $('#cform-progress').textContent = '';
+  $('#cdlg').querySelectorAll('[data-coat]').forEach(el => el.style.display = kind === 'coats' ? '' : 'none');
+  $('#cdlg').querySelectorAll('[data-dog]').forEach(el => el.style.display = kind === 'dogs' ? '' : 'none');
+  pv.src = c ? siteUrl() + c.image : ''; pv.style.display = c ? '' : 'none';
+  $('#cdlg-title').textContent = t(c ? K.editTitle : K.addTitle);
+  f.label.placeholder = t(kind === 'coats' ? '例如：莓果桃' : '例如：黃金獵犬');
+  f.product.innerHTML = `<option value="">${t('（不連結商品）')}</option>` + ((S.data && S.data.products) || []).map(p => `<option value="${p.id}">#${p.id} ${escHtml(tName(p.name))}${p.visible === false ? ' · ' + t('已隱藏') : ''}</option>`).join('');
+  f.chart.innerHTML = `<option value="">${t('（不提供尺寸建議）')}</option>` + Object.entries(CHARTS).map(([k, ch]) => `<option value="${k}">${escHtml(tName(ch.title))}</option>`).join('');
+  if (c) {
+    f.label.value = c.label || ''; f.product.value = c.product || ''; f.chart.value = c.chart || ''; f.cvisible.checked = c.visible !== false;
+    TR_LANGS.forEach(([k]) => f[`clabel_${k}`].value = ((c.i18n || {})[k] || {}).label || '');
+  } else f.cvisible.checked = true;
+  $('#cdlg').showModal();
+}
+$('#cform').image.addEventListener('change', () => { const file = $('#cform').image.files[0], pv = $('#cform-pv'); if (file) { pv.src = URL.createObjectURL(file); pv.style.display = ''; } });
+$('#cform').onsubmit = async ev => {
+  ev.preventDefault();
+  const kind = editingKind, K = KIND[kind], f = $('#cform'), fd = new FormData(f), btn = $('#cdlg-save'); btn.disabled = true; $('#cform-err').textContent = '';
+  try {
+    const label = (fd.get('label') || '').trim(); if (!label) throw new Error(t('名稱不能空白'));
+    const file = f.image.files[0];
+    if (!editingItem && !file) throw new Error(t(K.pick));
+    if (file && !/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error(t('圖片請用 JPG、PNG 或 WEBP'));
+    if (file && file.size > 4 * 1024 * 1024) throw new Error(t('圖片請小於 4 MB'));
+    const c = editingItem ? F[kind].find(x => x.key === editingItem.key) : { key: K.prefix[0] + Date.now().toString(36) };
+    const i18n = {}; TR_LANGS.forEach(([k]) => { const v = (fd.get(`clabel_${k}`) || '').trim(); if (v) i18n[k] = { label: v }; });
+    Object.assign(c, { label, visible: !!fd.get('cvisible'), i18n });
+    if (kind === 'coats') Object.assign(c, { product: fd.get('product') ? Number(fd.get('product')) : null, chart: fd.get('chart') || null });
+    const files = [];
+    if (file) {
+      const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+      if (ownUpload(c.image)) files.push({ path: `${SITE_DIR}/${c.image}`, delete: true });
+      c.image = `assets/fitstudio/${K.prefix}_${c.key}_${Date.now().toString(36)}.${ext}`;
+      $('#cform-progress').textContent = t('上傳圖片…');
+      files.push({ path: `${SITE_DIR}/${c.image}`, base64: await blobToB64(file) });
+    }
+    if (!editingItem) F[kind].push(c);
+    await saveFit(files, `${editingItem ? '更新' : '新增'}試衣間${K.label} ${label}`);
+    $('#cdlg').close(); toast(t('已儲存，網站重新部署中'));
+  } catch (e) { $('#cform-err').textContent = e.message; await load().catch(() => {}); }
+  finally { btn.disabled = false; $('#cform-progress').textContent = ''; }
+};
+$('#btn-coat-add').onclick = () => openItemForm('coats', null);
+$('#btn-dog-add').onclick = () => openItemForm('dogs', null);
+$('#cdlg-close').onclick = $('#cdlg-cancel').onclick = () => $('#cdlg').close();
+
 /* ---------------------------------------------------------------- fitting-room history (FitStudio bridge admin API) */
 const FIT_API = 'https://tablet-uaj7iieq.tail188668.ts.net';
-const FIT_COATS = { pink: '莓果桃', yellow: '檸檬螢光黃', blue: '普魯士藍' };
-const FIT_COAT_IMG = { pink: 'assets/fitstudio/pink_coat.jpg', yellow: 'assets/fitstudio/yellow_coat.jpg', blue: 'assets/fitstudio/blue_coat.jpg' };
-const coatThumb = e => e.coat && FIT_COAT_IMG[e.coat] ? `<img class="fit-coat-thumb" src="${siteUrl()}${FIT_COAT_IMG[e.coat]}" alt="" title="${escHtml(fitCoat(e))}">` : '';
+const FIT_COATS = { pink: '莓果桃', yellow: '檸檬螢光黃', blue: '普魯士藍' };   // labels for records older than the admin-managed list
+const coatRec = k => F.coats.find(c => c.key === k);
+const coatThumb = e => { const r = coatRec(e.coat); return r ? `<img class="fit-coat-thumb" src="${escHtml(siteUrl() + r.image)}" alt="" title="${escHtml(fitCoat(e))}">` : ''; };
 const LANG_NAME = { zh: '中文', en: 'English', ja: '日本語', de: 'Deutsch' };
 const FIT_STATUS = { ok: ['成功', 'on'], failed: ['失敗', 'off'], quota: ['額度用完', 'off'], cancelled: ['中途取消', 'off'] };
 const fitTok = () => localStorage.getItem(LS.fit) || '';
 const fitImg = u => { if (!u) return ''; let url = /^[a-z]+:/i.test(u) ? u : FIT_API + u; if (fitTok() && !/[?&]token=/.test(url)) url += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(fitTok()); return url; };
 const fitStatus = e => e.status || (e.resultUrl ? 'ok' : 'failed');
-const fitCoat = e => e.coatName || (e.coat && FIT_COATS[e.coat]) || e.coat || '';
+const fitCoat = e => e.coatName || (coatRec(e.coat) ? itemLabel(coatRec(e.coat)) : '') || (e.coat && FIT_COATS[e.coat]) || e.coat || '';
 const fmtDur = ms => ms == null ? '' : (ms / 1000).toFixed(ms < 10000 ? 1 : 0) + ' s';
 const fmtTime = (iso, long) => { const d = new Date(iso); if (isNaN(d)) return iso || ''; return d.toLocaleString(UI_LANG === 'de' ? 'de-DE' : 'zh-TW', long ? {} : { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }); };
 let FIT_ENTRIES = [];

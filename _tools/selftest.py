@@ -74,6 +74,12 @@ try:
     fit_en = (S / "fitstudio.en.html").read_text(encoding="utf-8")
     checks["fitting room pages"] = all((S / f"fitstudio{x}.html").exists() for x in ("", ".en", ".ja", ".de")) and (S / "assets/fitstudio.js").exists()
     checks["fitting room translated + configured"] = "Try it on" in fit_en and '"serverLang": "en"' in fit_en and "assets/fitstudio/yellow_coat.jpg" in fit_en
+    fit_cfg = json.loads((S / "_data/fitstudio.json").read_text(encoding="utf-8"))
+    fit_zh = BeautifulSoup((S / "fitstudio.html").read_text(encoding="utf-8"), "lxml")
+    checks["fitting room lists come from _data/fitstudio.json"] = (
+        [b["data-coat"] for b in fit_zh.select(".fit-coat")] == [c["key"] for c in fit_cfg["coats"] if c.get("visible", True)]
+        and [b["data-dog"] for b in fit_zh.select(".fit-demo button")] == [g["key"] for g in fit_cfg["dogs"] if g.get("visible", True)]
+        and "Berry pink" in fit_en)
     checks["fitting room in nav + home"] = 'href="fitstudio.en.html"' in str(en.select_one(".nav")).replace("../", "") and hp.select_one(".fit-promo a.btn") is not None
     for k, v in checks.items():
         print(("OK  " if v else "FAIL"), k)
