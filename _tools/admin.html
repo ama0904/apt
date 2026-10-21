@@ -1207,7 +1207,9 @@ async function readFit() {
 }
 const itemLabel = c => (UI_LANG !== 'zh' && c.i18n && c.i18n[UI_LANG] && c.i18n[UI_LANG].label) || c.label || c.key;
 const productOf = id => ((S.data && S.data.products) || []).find(p => p.id === id);
-const ownUpload = img => /^assets\/fitstudio\/(coat|dog)_/.test(img || '');   // files the admin uploaded (safe to delete); the original samples stay
+const ownUpload = img => /^assets\/fitstudio\/(coat|dog)_[a-z0-9]+_[a-z0-9]+\.(jpg|png|webp)$/.test(img || '');   // files the admin uploaded (safe to delete); the original samples (dog_golden.jpg …) stay
+/* freshly committed images are not on the live site until the deploy finishes, so the admin shows them straight from the repo */
+const fitImgUrl = img => rawUrl(img);
 function renderCoats() {
   for (const kind of ['coats', 'dogs']) {
     const K = KIND[kind], list = F[kind], rows = $(K.rows); rows.innerHTML = '';
@@ -1216,7 +1218,7 @@ function renderCoats() {
       const p = kind === 'coats' ? productOf(c.product) : null, tr = document.createElement('tr'); if (c.visible === false) tr.className = 'hidden-row';
       const sub = kind === 'coats' ? (p ? escHtml(tName(p.name)) + (p.visible === false ? ' · ' + t('商品已隱藏') : '') : t('（未連結商品）')) : '';
       const col3 = kind === 'coats' ? escHtml(CHARTS[c.chart] ? tName(CHARTS[c.chart].title) : (c.chart || '—')) : `<span class="muted">${escHtml((c.image || '').split('/').pop())}</span>`;
-      tr.innerHTML = `<td><img src="${escHtml(siteUrl() + c.image)}" alt=""></td>
+      tr.innerHTML = `<td><img src="${escHtml(fitImgUrl(c.image))}" alt=""></td>
         <td class="name"><b>${escHtml(itemLabel(c))}</b>${sub ? `<div class="muted">${sub}</div>` : ''}</td>
         <td class="hide-sm">${col3}</td>
         <td>${c.visible === false ? `<span class="badge off">${t('已隱藏')}</span>` : `<span class="badge on">${t('顯示中')}</span>`}</td>
@@ -1251,7 +1253,7 @@ function openItemForm(kind, c) {
   const K = KIND[kind], f = $('#cform'), pv = $('#cform-pv'); f.reset(); $('#cform-err').textContent = ''; $('#cform-progress').textContent = '';
   $('#cdlg').querySelectorAll('[data-coat]').forEach(el => el.style.display = kind === 'coats' ? '' : 'none');
   $('#cdlg').querySelectorAll('[data-dog]').forEach(el => el.style.display = kind === 'dogs' ? '' : 'none');
-  pv.src = c ? siteUrl() + c.image : ''; pv.style.display = c ? '' : 'none';
+  pv.src = c ? fitImgUrl(c.image) : ''; pv.style.display = c ? '' : 'none';
   $('#cdlg-title').textContent = t(c ? K.editTitle : K.addTitle);
   f.label.placeholder = t(kind === 'coats' ? '例如：莓果桃' : '例如：黃金獵犬');
   f.product.innerHTML = `<option value="">${t('（不連結商品）')}</option>` + ((S.data && S.data.products) || []).map(p => `<option value="${p.id}">#${p.id} ${escHtml(tName(p.name))}${p.visible === false ? ' · ' + t('已隱藏') : ''}</option>`).join('');
@@ -1298,7 +1300,7 @@ $('#cdlg-close').onclick = $('#cdlg-cancel').onclick = () => $('#cdlg').close();
 const FIT_API = 'https://tablet-uaj7iieq.tail188668.ts.net';
 const FIT_COATS = { pink: '莓果桃', yellow: '檸檬螢光黃', blue: '普魯士藍' };   // labels for records older than the admin-managed list
 const coatRec = k => F.coats.find(c => c.key === k);
-const coatThumb = e => { const r = coatRec(e.coat); return r ? `<img class="fit-coat-thumb" src="${escHtml(siteUrl() + r.image)}" alt="" title="${escHtml(fitCoat(e))}">` : ''; };
+const coatThumb = e => { const r = coatRec(e.coat); return r ? `<img class="fit-coat-thumb" src="${escHtml(fitImgUrl(r.image))}" alt="" title="${escHtml(fitCoat(e))}">` : ''; };
 const LANG_NAME = { zh: '中文', en: 'English', ja: '日本語', de: 'Deutsch' };
 const FIT_STATUS = { ok: ['成功', 'on'], failed: ['失敗', 'off'], quota: ['額度用完', 'off'], cancelled: ['中途取消', 'off'] };
 const fitTok = () => localStorage.getItem(LS.fit) || '';
