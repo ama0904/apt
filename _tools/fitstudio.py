@@ -84,7 +84,7 @@ UI = {
                                      "de": "Die Anprobe ist gerade offline. Bitte später wiederkommen."},
     "取消": {"en": "Cancel", "ja": "キャンセル", "de": "Abbrechen"},
     "試穿完成": {"en": "Done!", "ja": "試着できました", "de": "Fertig!"},
-    "等待的同時，量一下毛孩的尺寸": {"en": "While you wait, measure your dog", "ja": "待っている間に、愛犬のサイズを測ろう", "de": "Miss deinen Hund, während du wartest"},
+    "喜歡嗎？量一下毛孩，看該選哪一號": {"en": "Like it? Measure your dog to find the size", "ja": "気に入った？愛犬を測ってサイズを確認", "de": "Gefällt's? Miss deinen Hund für die richtige Größe"},
     "背長：從脖子根部（約前腳的位置）量到尾巴根。領圍與腹圍為圈量，可以不填。": {
         "en": "Back length: from the base of the neck (about the front legs) to the base of the tail. Neck and girth are measured around; both optional.",
         "ja": "背丈：首の付け根（前足あたり）からしっぽの付け根まで。首回り・胴回りは一周を測ります（任意）。",
@@ -215,7 +215,7 @@ CSS = r"""
 .fit-cancel{display:none;margin-top:10px;text-align:center}.fit-stage[data-state=busy] .fit-cancel{display:block}
 .fit-cancel button{background:none;border:0;font:inherit;font-size:14px;color:var(--mute);text-decoration:underline;cursor:pointer}
 .fit-size{display:none;margin-top:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px 18px}
-.fit-stage[data-state=busy] .fit-size,.fit-stage[data-state=done] .fit-size{display:block}
+.fit-stage[data-state=done] .fit-size{display:block;animation:fit-pop .6s .35s cubic-bezier(.2,.8,.2,1) both}
 .fit-size h3{font-size:16px;margin:0 0 6px}.fit-size .hint{margin:0 0 12px;font-size:13.5px;color:var(--mute);line-height:1.55}
 .fit-size .fields{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .fit-size label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--ink2);font-weight:600}
@@ -414,7 +414,7 @@ def render(data, lang):
   </div>
   <div class="fit-steps" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
   <div class="fit-cancel"><button type="button">取消</button></div>
-  <div class="fit-size"><h3>等待的同時，量一下毛孩的尺寸</h3><p class="hint">背長：從脖子根部（約前腳的位置）量到尾巴根。領圍與腹圍為圈量，可以不填。</p>
+  <div class="fit-size"><h3>喜歡嗎？量一下毛孩，看該選哪一號</h3><p class="hint">背長：從脖子根部（約前腳的位置）量到尾巴根。領圍與腹圍為圈量，可以不填。</p>
    <div class="fields"><label><span>背長</span><div><input type="number" inputmode="decimal" min="10" max="120" step="0.5" data-m="back"><em>cm</em></div></label>
     <label><span>領圍</span><div><input type="number" inputmode="decimal" min="10" max="120" step="0.5" data-m="neck"><em>cm</em></div></label>
     <label><span>腹圍</span><div><input type="number" inputmode="decimal" min="10" max="150" step="0.5" data-m="belly"><em>cm</em></div></label></div>
