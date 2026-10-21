@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>apetto FitStudio - 寵物虛擬試衣間</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-glow bg-glow-1"></div>
+    <div class="background-glow bg-glow-2"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area-wrapper">
+                <div class="logo-area">
+                    <span class="brand-text">apetto <span class="accent-text">FitStudio</span></span>
+                </div>
+                <div class="api-status-container">
+                    <div class="lang-switch" id="lang-switch" role="group" aria-label="Language / 語言">
+                        <button type="button" class="lang-opt" data-lang="zh">中文</button>
+                        <button type="button" class="lang-opt" data-lang="de">DE</button>
+                    </div>
+                    <div class="api-indicator connected" id="api-indicator">
+                        <span class="indicator-dot"></span>
+                        <span class="indicator-text" data-i18n="status.connected">AI 引擎已連線 ✅</span>
+                    </div>
+                </div>
+            </div>
+            <div class="tagline" data-i18n="header.tagline">小汪虛擬試衣間 • 不只可愛，更有帥氣</div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="workspace">
+            <!-- Left Panel: Controls & Options -->
+            <section class="panel left-panel glass-panel" id="controls-panel">
+                <div class="panel-section">
+                    <h2 class="section-title"><span class="step-num">1</span> <span data-i18n="section1.title">選擇或上傳狗狗照片</span></h2>
+                    
+                    <!-- Upload Box -->
+                    <div class="upload-box" id="drop-zone">
+                        <input type="file" id="file-upload" accept="image/*" class="file-input">
+                        <div class="upload-prompt" id="upload-prompt">
+                            <svg class="upload-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                            <span class="upload-headline" data-i18n="upload.headline">上傳你家狗狗的照片</span>
+                            <span class="upload-sell" data-i18n="upload.sell">看看牠穿上新衣服有多帥 ✨</span>
+                            <span class="main-prompt"><span data-i18n="upload.main">拖曳照片至此，或</span> <span class="browse-link" data-i18n="upload.browse">瀏覽檔案</span></span>
+                            <span class="sub-prompt" data-i18n="upload.formats">支援 JPG, PNG, WEBP</span>
+                        </div>
+                        <!-- Preview after upload -->
+                        <div class="upload-preview" id="upload-preview" style="display:none">
+                            <img id="dog-preview-img" src="" data-i18n-alt="upload.alt" alt="狗狗預覽">
+                            <span class="preview-change" data-i18n="upload.change">🔄 點擊或拖曳以更換圖片</span>
+                        </div>
+                    </div>
+
+                    <!-- Demo Dogs Presets -->
+                    <div class="preset-container">
+                        <span class="preset-label" data-i18n="preset.label">還沒有照片？先用示範狗狗試試：</span>
+                        <div class="preset-buttons">
+                            <button class="btn btn-preset" data-dog="assets/dog_golden.jpg" id="btn-dog-golden">
+                                <span class="dog-thumb thumb-golden"></span> <span data-i18n="preset.golden">黃金獵犬幼犬</span>
+                            </button>
+                            <button class="btn btn-preset" data-dog="assets/dog_labrador.webp" id="btn-dog-labrador">
+                                <span class="dog-thumb thumb-labrador"></span> <span data-i18n="preset.labrador">棕色拉布拉多</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h2 class="section-title"><span class="step-num">2</span> <span data-i18n="section2.title">選擇 apetto 經典服飾</span></h2>
+                    <div class="clothes-carousel">
+                        <!-- Pink Coat -->
+                        <div class="clothes-card" id="card-pink">
+                            <div class="clothes-preview-container">
+                                <img src="" data-i18n-alt="clothes.pink.alt" alt="桃粉刷毛外套" class="clothes-img-thumb">
+                            </div>
+                            <div class="clothes-info">
+                                <span class="clothes-name">Blossom Pink</span>
+                                <span class="clothes-color-tag color-orange" data-i18n="clothes.pink.tag">桃粉</span>
+                            </div>
+                        </div>
+
+                        <!-- Yellow Raincoat -->
+                        <div class="clothes-card" id="card-yellow">
+                            <div class="clothes-preview-container">
+                                <img src="" data-i18n-alt="clothes.yellow.alt" alt="螢光黃雨衣" class="clothes-img-thumb">
+                            </div>
+                            <div class="clothes-info">
+                                <span class="clothes-name">Neon Lime</span>
+                                <span class="clothes-color-tag color-lime" data-i18n="clothes.yellow.tag">螢光黃</span>
+                            </div>
+                        </div>
+
+                        <!-- Blue Raincoat -->
+                        <div class="clothes-card" id="card-blue">
+                            <div class="clothes-preview-container">
+                                <img src="" data-i18n-alt="clothes.blue.alt" alt="寶藍雨衣" class="clothes-img-thumb">
+                            </div>
+                            <div class="clothes-info">
+                                <span class="clothes-name">Deep Ocean</span>
+                                <span class="clothes-color-tag color-blue" data-i18n="clothes.blue.tag">寶藍</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Big Real AI Button -->
+                <div class="panel-section" id="adjustment-section">
+                    <button class="btn btn-real-ai-big" id="btn-real-ai" disabled>
+                        <span class="ai-icon-big">🔥</span>
+                        <span class="ai-btn-text">
+                            <span class="ai-btn-main" data-i18n="btn.ai.main">Real AI 生成</span>
+                            <span class="ai-btn-sub" data-i18n="btn.ai.sub">AI 自動穿衣</span>
+                        </span>
+                    </button>
+                </div>
+            </section>
+
+
+            <!-- Right Panel: Canvas Preview -->
+            <section class="panel right-panel">
+                <div class="canvas-outer-container glass-panel">
+                    <div class="canvas-wrapper" id="canvas-wrapper">
+                        <!-- Canvas -->
+                        <canvas id="fitting-canvas"></canvas>
+                        
+                        <!-- AI Scanning Laser Effect -->
+                        <div class="scanner-laser" id="scanner-laser"></div>
+                        
+                        <!-- AI Scanning Mesh Overlay -->
+                        <div class="scanner-grid" id="scanner-grid"></div>
+
+                        <!-- Canvas Placeholder Overlay -->
+                        <div class="canvas-placeholder" id="canvas-placeholder">
+                            <svg class="placeholder-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <h3 data-i18n="canvas.title">準備試衣</h3>
+                            <p data-i18n="canvas.desc">請選擇一隻狗狗照片，並為牠挑一件帥氣的衣服吧！</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI stylist's recommendation, filled in with the result -->
+                <div class="stylist-note glass-panel" id="stylist-note" hidden>
+                    <div class="stylist-note-head">
+                        <span class="stylist-avatar">🐾</span>
+                        <span class="stylist-title" data-i18n="note.title">AI 造型師的話</span>
+                    </div>
+                    <p class="stylist-note-body" id="stylist-note-text"></p>
+                </div>
+
+                <!-- Export Bar -->
+                <div class="export-bar glass-panel disabled" id="export-bar">
+                    <div class="tips-text">
+                        <span class="info-bulb">💡</span> <span data-i18n="export.tip">這是 AI 生成的試穿結果，可以</span><strong data-i18n="export.tip.strong">直接下載</strong><span data-i18n="export.tip.end">保存。</span>
+                    </div>
+                    <button class="btn btn-primary" id="btn-export">
+                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        <span data-i18n="export.button">儲存並下載照片</span>
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+
+
+    <!-- AI Generating Loading Modal -->
+    <div class="modal-overlay" id="ai-loading-modal">
+        <div class="modal-content loading-content">
+            <div class="ai-loading-portal">
+                <div class="portal-ring ring-1"></div>
+                <div class="portal-ring ring-2"></div>
+                <div class="portal-ring ring-3"></div>
+                <div class="portal-orbit"><span class="orbit-item">🧥</span></div>
+                <div class="portal-core">
+                    <span class="portal-core-emoji" id="portal-core-emoji">🐕</span>
+                    <div class="portal-dog" id="portal-dog" style="display:none">
+                        <img class="portal-dog-img" id="portal-dog-img" data-i18n-alt="loading.dogAlt" alt="您的狗狗">
+                        <span class="portal-dog-scan"></span>
+                    </div>
+                </div>
+            </div>
+            <h3 class="loading-title" data-i18n="loading.title">Real AI 智慧生成中</h3>
+
+            <div class="step-progress-bar-wrap">
+                <div class="step-progress-bar-fill" id="step-progress-fill"></div>
+            </div>
+            <div class="step-tracker" id="step-tracker">
+                <div class="step-item pending" id="step-compress">
+                    <div class="step-circle"><span class="step-num">1</span></div>
+                    <div class="step-connector"></div>
+                    <div class="step-text">
+                        <span class="step-name" data-i18n="step1.name">準備圖片</span>
+                        <span class="step-sub" data-i18n="step1.sub">最佳化處理中...</span>
+                    </div>
+                </div>
+                <div class="step-item pending" id="step-launch">
+                    <div class="step-circle"><span class="step-num">2</span></div>
+                    <div class="step-connector"></div>
+                    <div class="step-text">
+                        <span class="step-name" data-i18n="step2.name">連線本機 AI 引擎</span>
+                        <span class="step-sub" data-i18n="step2.sub">啟動 AI 引擎...</span>
+                    </div>
+                </div>
+                <div class="step-item pending" id="step-paste">
+                    <div class="step-circle"><span class="step-num">3</span></div>
+                    <div class="step-connector"></div>
+                    <div class="step-text">
+                        <span class="step-name" data-i18n="step3.name">傳送狗狗與衣服</span>
+                        <span class="step-sub" data-i18n="step3.sub">載入圖片中...</span>
+                    </div>
+                </div>
+                <div class="step-item pending" id="step-gemini">
+                    <div class="step-circle"><span class="step-num">4</span></div>
+                    <div class="step-connector"></div>
+                    <div class="step-text">
+                        <span class="step-name" data-i18n="step4.name">AI 原生融圖生成</span>
+                        <span class="step-sub" data-i18n="step4.sub">約 30–60 秒...</span>
+                    </div>
+                </div>
+                <div class="step-item pending" id="step-done">
+                    <div class="step-circle"><span class="step-num">5</span></div>
+                    <div class="step-text">
+                        <span class="step-name" data-i18n="step5.name">完成！</span>
+                        <span class="step-sub" data-i18n="step5.sub">顯示試穿照片</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+
+    <script src="i18n.js"></script>
+    <script src="assets_data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
