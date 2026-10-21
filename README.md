@@ -12,6 +12,7 @@
 
 1. 打開後台網址，輸入後台密碼。密碼用來解開 `admin_secret.json` 裡加密的 GitHub token（PBKDF2 60 萬次 + AES-256-GCM），解開後 token 存在你瀏覽器的 localStorage。右上角「改用 token 登入」可以直接貼 token。
    - 更換密碼或 token：`python _tools/set_admin_password.py <token> <密碼>`，然後 commit 推送。
+   - 要連同試衣間後台金鑰一起加密：把 `{"token": "<GitHub token>", "fit": "<FitStudio ADMIN_TOKEN>"}` 存成一個暫存檔，執行 `python _tools/set_admin_password.py --from <檔案> <密碼>`，推送後刪掉暫存檔。沒加密進去的話，可以在後台「設定」裡手動貼金鑰（只存在該瀏覽器）。
    - 密碼越長越安全；這個檔案是公開的，三個字元的密碼只能擋住隨手亂試的人。token 建議用只有這個 repo Contents 讀寫（加 Actions 讀取）權限的 fine-grained token。
 2. 「新增商品」：填名稱、價格、分類、首頁區塊、介紹文字，上傳主圖（可再加多張圖）。瀏覽器會自動裁出列表方塊圖與縮圖，然後連同 `products.json` 一次 commit 進 repo。
 3. 「下架」會把商品從前台所有頁面拿掉但保留資料，「刪除」則連資料與上傳圖片一起移除。
@@ -32,7 +33,9 @@
 - 伺服器網址與語言對應在 `_tools/fitstudio.py` 開頭（`API_BASE`）。網址換了只要改這裡再 push。伺服器的存取金鑰不放在 repo 裡：建置時從環境變數 `FITSTUDIO_API_KEY` 讀（GitHub repo 的 Settings → Secrets → Actions 新增同名 secret），寫進頁面；沒設的話請求不帶金鑰，伺服器端要改成允許本站網域。
 - API：`GET /api/health`（離線時頁面顯示「暫停服務」並停用按鈕）、`POST /api/stylist`（同步，15 秒到 4 分鐘；body 是 JSON，照片為 base64 data URL，上傳前先縮到 800px）、`GET /api/status/:jobId`（進度文字）、`GET /api/caption/:id`（造型師推薦，圖片出來後再輪詢）。錯誤的 `errorKey` 對應 `fitstudio.py` 的 `STR` 字串。
 - 衣服圖不能用一般商品照（AI 會畫錯），要先做「去背 + 套黑色動物剪影 + 白底」的合成圖。
-- 那台伺服器是家用電腦，不保證 24 小時在線；同時最多 3 個請求，第 4 個會收到 429（頁面顯示「請稍候一分鐘」）。
+- 那台伺服器是家用電腦，不保證 24 小時在線；同時最多 2 個生成，之後最多排隊 5 個（頁面顯示排隊位置），再多才回 429（「請稍候一分鐘」）。
+- 請求 body 另帶 `coat`（款式 key）、`coatName`、`product`（商品編號），伺服器會存進紀錄。
+- **試穿紀錄（後台）**：`admin.html` 最下方「試衣間紀錄」區塊讀取伺服器的 `GET /api/admin/list?hours=&limit=`（header `x-admin-token`）與 `GET /api/admin/image/:file?token=`，顯示統計（次數、成功/失敗、平均耗時、款式/語言/地區分布）和每筆的毛孩照、結果圖、造型師文案、耗時、來源；點卡片看明細。金鑰（伺服器 `.env` 的 `ADMIN_TOKEN`，與公開的 FITSTUDIO_API_KEY 是不同的一組）由後台密碼解開或在「設定」手動貼上，不會出現在 repo 明文裡。伺服器端只保留 60 天。
 
 ## 多語版本
 

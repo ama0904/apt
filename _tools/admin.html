@@ -95,7 +95,36 @@
   .pv-head { display:flex; gap:10px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
   .pv-head select { width:auto; }
   #pv-frame { flex:1; width:100%; border:0; background:#fff; }
+  /* fitting-room history */
+  .fit-stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(120px,1fr)); gap:10px; margin-bottom:14px; }
+  .fit-stats .stat { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .fit-stats .stat b { font-size:22px; }
+  .fit-stats .stat span { font-size:12px; color:var(--muted); }
+  .fit-stats .stat.wide { grid-column:span 2; flex-direction:row; flex-wrap:wrap; align-items:center; gap:4px; }
+  .fit-stats .stat.wide > span:first-child { width:100%; }
+  .fit-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:12px; }
+  .fit-card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px; cursor:pointer; display:flex; flex-direction:column; gap:8px; min-width:0; }
+  .fit-card:hover { border-color:#c7d2fe; box-shadow:0 2px 10px rgba(0,0,0,.05); }
+  .fit-card.failed { background:#fffafa; }
+  .fit-pics { display:grid; grid-template-columns:1fr 18px 1fr; gap:6px; align-items:center; }
+  .fit-pics img, .fit-none { width:100%; aspect-ratio:1; height:auto; object-fit:cover; border-radius:8px; border:1px solid var(--line); background:#f3f4f6; }
+  .fit-pics span { text-align:center; color:var(--muted); }
+  .fit-none { display:flex; align-items:center; justify-content:center; color:#d1d5db; font-size:28px; }
+  .fit-info { font-size:14px; }
+  .fit-cap { margin:4px 0 0; font-size:13px; color:var(--muted); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .fit-cap.full { display:block; color:var(--text); font-size:14px; line-height:1.6; background:#f9fafb; border-radius:8px; padding:10px 12px; margin:12px 0; }
+  .fit-big { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .fit-big figure { margin:0; min-width:0; }
+  .fit-big img, .fit-none.big { width:100%; aspect-ratio:auto; max-height:60vh; object-fit:contain; border-radius:10px; border:1px solid var(--line); background:#f3f4f6; }
+  .fit-none.big { aspect-ratio:1; }
+  .fit-big figcaption { font-size:12px; color:var(--muted); text-align:center; margin-top:4px; }
+  .fit-kv { display:grid; grid-template-columns:90px 1fr; gap:6px 10px; font-size:14px; }
+  .fit-kv b { color:var(--muted); font-weight:600; }
+  .fit-kv a { color:var(--accent); }
   @media (max-width:720px) {
+    .fit-stats { grid-template-columns:1fr 1fr; }
+    .fit-stats .stat.wide { grid-column:1 / -1; }
+    .fit-grid { grid-template-columns:1fr; }
     #pv { width:100vw; max-width:100vw; height:100dvh; max-height:100dvh; border-radius:0; margin:0; }
     .grid { grid-template-columns:1fr; }
     .hide-sm { display:none; }
@@ -179,6 +208,9 @@
     <input type="text" id="in-branch" placeholder="main">
     <label class="f" style="margin-top:10px">GitHub token</label>
     <input type="password" id="in-token" placeholder="github_pat_… 或 ghp_…" autocomplete="off">
+    <label class="f" style="margin-top:10px">試衣間後台金鑰（選填）</label>
+    <input type="password" id="in-fit" placeholder="FitStudio ADMIN_TOKEN" autocomplete="off">
+    <div class="hint">用來讀取試衣間的試穿紀錄；留空則後台不顯示紀錄。</div>
     <div class="dlg-foot" style="padding:14px 0 0; border:none">
       <span class="err" id="login-err"></span>
       <button class="primary" id="btn-login">連接</button>
@@ -208,6 +240,16 @@
       <thead><tr><th style="width:120px">日期</th><th>標題</th><th>狀態</th><th style="width:300px">操作</th></tr></thead>
       <tbody id="news-rows"></tbody>
     </table>
+
+    <h2 class="sec-title">試衣間紀錄</h2>
+    <div class="toolbar">
+      <select id="fit-range" style="width:auto"><option value="24">最近 24 小時</option><option value="168" selected>最近 7 天</option><option value="720">最近 30 天</option><option value="0">全部</option></select>
+      <button id="btn-fit-reload">重新載入</button>
+      <span class="count" id="fit-count"></span>
+    </div>
+    <div class="fit-stats" id="fit-stats"></div>
+    <div class="fit-grid" id="fit-grid"></div>
+    <p class="muted" id="fit-msg" style="font-size:14px"></p>
   </section>
 </main>
 
@@ -236,6 +278,11 @@
       <button type="submit" class="primary" id="ndlg-save">儲存並發布</button>
     </div>
   </form>
+</dialog>
+
+<dialog id="fdlg">
+  <div class="dlg-head"><h2>試穿紀錄</h2><button type="button" id="fdlg-close" class="small">✕</button></div>
+  <div class="dlg-body" id="fdlg-body"></div>
 </dialog>
 
 <dialog id="dlg">
@@ -315,6 +362,15 @@ const DE = {
   'apetto 商品後台': 'apetto Produktverwaltung', '開啟前台 ↗': 'Shop öffnen ↗', '設定': 'Einstellungen', '登出': 'Abmelden', '介面語言': 'Sprache der Oberfläche',
   '登入後台': 'Anmelden', '請輸入後台密碼。': 'Bitte das Admin-Passwort eingeben.', '密碼': 'Passwort', '改用 token 登入': 'Stattdessen mit Token anmelden', '登入': 'Anmelden',
   '連接 GitHub': 'Mit GitHub verbinden',
+  '試衣間紀錄': 'Anprobe-Verlauf', '最近 24 小時': 'Letzte 24 Stunden', '最近 7 天': 'Letzte 7 Tage', '最近 30 天': 'Letzte 30 Tage', '全部': 'Alle',
+  '試穿次數': 'Anproben', '成功': 'Erfolgreich', '失敗': 'Fehlgeschlagen', '額度用完': 'Kontingent erschöpft', '中途取消': 'Abgebrochen', '平均耗時': 'Ø Dauer',
+  '款式': 'Modell', '語言': 'Sprache', '地區': 'Region', '{n} 筆': '{n} Einträge', '伺服器已存 {mb} MB': '{mb} MB auf dem Server',
+  '尚未設定試衣間後台金鑰。': 'Kein Admin-Schlüssel für die Anprobe hinterlegt.', '去設定': 'Einstellungen', '載入中…': 'Lädt…',
+  '試衣間後台金鑰不正確（{code}）': 'Admin-Schlüssel der Anprobe ungültig ({code})', '連不上試衣間伺服器（可能離線中）。': 'Anprobe-Server nicht erreichbar (vielleicht offline).',
+  '這段期間沒有試穿紀錄。': 'Keine Anproben in diesem Zeitraum.', '試穿紀錄': 'Anprobe', '時間': 'Zeit', '狀態': 'Status', '耗時': 'Dauer', '（排隊 {s}）': '(Warteschlange {s})',
+  '帳號': 'Konto', '來源': 'Herkunft', '毛孩照片': 'Hundefoto', '試穿結果': 'Ergebnis', '查看商品 ↗': 'Produkt ansehen ↗',
+  '試衣間後台金鑰（選填）': 'Admin-Schlüssel der Anprobe (optional)', 'FitStudio ADMIN_TOKEN': 'FitStudio ADMIN_TOKEN',
+  '用來讀取試衣間的試穿紀錄；留空則後台不顯示紀錄。': 'Zum Lesen des Anprobe-Verlaufs; leer lassen, wenn nicht gewünscht.',
   '後台直接把商品資料寫進 GitHub repo，再由 GitHub Actions 重新產生網站。請貼上一組 GitHub token：需要這個 repo 的 Contents 讀寫權限（看部署進度另需 Actions 讀取）。token 只會存在這個瀏覽器的 localStorage。':
     'Die Verwaltung schreibt die Produktdaten direkt ins GitHub-Repo; GitHub Actions baut die Website danach neu. Bitte ein GitHub-Token einfügen: Es braucht Lese- und Schreibrechte auf „Contents“ dieses Repos (für den Deploy-Status zusätzlich Leserechte auf „Actions“). Das Token bleibt nur im localStorage dieses Browsers.',
   'Repo（owner/name）': 'Repo (owner/name)', '分支': 'Branch', '連接': 'Verbinden', 'github_pat_… 或 ghp_…': 'github_pat_… oder ghp_…',
@@ -384,7 +440,7 @@ function applyLang() {
 $('#ui-lang').onchange = e => { localStorage.setItem('apetto_admin_lang', e.target.value); location.reload(); };
 
 /* ---------------------------------------------------------------- config / auth */
-const LS = { token: 'apetto_admin_token', repo: 'apetto_admin_repo', branch: 'apetto_admin_branch' };
+const LS = { token: 'apetto_admin_token', repo: 'apetto_admin_repo', branch: 'apetto_admin_branch', fit: 'apetto_fit_admin_token' };
 const SITE_DIR = 'www.apetto.com.tw';
 const SECTIONS_FALLBACK = [{ key: 'bestseller', name: '暢銷商品' }, { key: 'latest', name: '推薦商品' }];
 
@@ -1030,9 +1086,10 @@ async function pwConnect() {
   const pw = $('#in-pw').value; if (!pw) return $('#pw-err').textContent = t('請輸入密碼');
   $('#pw-err').textContent = t('驗證中…'); $('#btn-pw').disabled = true;
   try {
-    const token = await decryptToken(pw);
-    localStorage.setItem(LS.token, token);
-    await load(); $('#pwlogin').style.display = 'none'; $('#app').style.display = '';
+    const plain = await decryptToken(pw); let token = plain, fit = '';
+    if (plain.trim().startsWith('{')) { try { const o = JSON.parse(plain); token = o.token || ''; fit = o.fit || ''; } catch (e) {} }
+    localStorage.setItem(LS.token, token); if (fit) localStorage.setItem(LS.fit, fit);
+    await load(); $('#pwlogin').style.display = 'none'; $('#app').style.display = ''; loadFit();
   } catch (e) { $('#pw-err').textContent = e.name === 'OperationError' ? t('密碼錯誤') : t('連接失敗：') + e.message; }
   finally { $('#btn-pw').disabled = false; }
 }
@@ -1040,19 +1097,85 @@ $('#btn-pw').onclick = pwConnect;
 $('#in-pw').addEventListener('keydown', e => { if (e.key === 'Enter') pwConnect(); });
 $('#btn-advanced').onclick = () => showLogin('');
 
+/* ---------------------------------------------------------------- fitting-room history (FitStudio bridge admin API) */
+const FIT_API = 'https://tablet-uaj7iieq.tail188668.ts.net';
+const FIT_COATS = { pink: '莓果桃', yellow: '檸檬螢光黃', blue: '普魯士藍' };
+const LANG_NAME = { zh: '中文', en: 'English', ja: '日本語', de: 'Deutsch' };
+const FIT_STATUS = { ok: ['成功', 'on'], failed: ['失敗', 'off'], quota: ['額度用完', 'off'], cancelled: ['中途取消', 'off'] };
+const fitTok = () => localStorage.getItem(LS.fit) || '';
+const fitImg = u => { if (!u) return ''; let url = /^[a-z]+:/i.test(u) ? u : FIT_API + u; if (!/[?&]token=/.test(url)) url += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(fitTok()); return url; };
+const fitStatus = e => e.status || (e.resultUrl ? 'ok' : 'failed');
+const fitCoat = e => e.coatName || (e.coat && FIT_COATS[e.coat]) || e.coat || '';
+const fmtDur = ms => ms == null ? '' : (ms / 1000).toFixed(ms < 10000 ? 1 : 0) + ' s';
+const fmtTime = (iso, long) => { const d = new Date(iso); if (isNaN(d)) return iso || ''; return d.toLocaleString(UI_LANG === 'de' ? 'de-DE' : 'zh-TW', long ? {} : { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }); };
+let FIT_ENTRIES = [];
+async function loadFit() {
+  const grid = $('#fit-grid'), msg = $('#fit-msg'), stats = $('#fit-stats');
+  if (!fitTok()) { grid.innerHTML = ''; stats.innerHTML = ''; $('#fit-count').textContent = ''; msg.innerHTML = escHtml(t('尚未設定試衣間後台金鑰。')) + ' <button type="button" class="small" id="fit-setup">' + escHtml(t('去設定')) + '</button>'; $('#fit-setup').onclick = () => showLogin(''); return; }
+  msg.textContent = t('載入中…');
+  const hours = $('#fit-range').value;
+  try {
+    const r = await fetch(`${FIT_API}/api/admin/list?limit=300&hours=${hours === '0' ? 876000 : hours}`, { headers: { 'x-admin-token': fitTok() }, cache: 'no-store' });
+    if (r.status === 401 || r.status === 403) throw new Error(t('試衣間後台金鑰不正確（{code}）', { code: r.status }));
+    if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+    const j = await r.json();
+    FIT_ENTRIES = (j.entries || []).slice().sort((a, b) => String(b.time || b.stamp || '').localeCompare(String(a.time || a.stamp || '')));
+    renderFit(j); msg.textContent = FIT_ENTRIES.length ? '' : t('這段期間沒有試穿紀錄。');
+  } catch (e) { grid.innerHTML = ''; stats.innerHTML = ''; $('#fit-count').textContent = ''; msg.textContent = e.name === 'TypeError' ? t('連不上試衣間伺服器（可能離線中）。') : e.message; }
+}
+function renderFit(j) {
+  const es = FIT_ENTRIES, ok = es.filter(e => fitStatus(e) === 'ok');
+  const durs = ok.map(e => e.durationMs).filter(x => x > 0), avg = durs.length ? durs.reduce((a, b) => a + b, 0) / durs.length : null;
+  const count = (arr, fn) => { const o = {}; arr.forEach(e => { const k = fn(e); if (k) o[k] = (o[k] || 0) + 1; }); return o; };
+  const top = o => Object.entries(o).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<span class="tag">${escHtml(k)} ${v}</span>`).join('') || '<span class="muted">—</span>';
+  $('#fit-count').textContent = t('{n} 筆', { n: j.total != null ? j.total : es.length }) + (j.savedBytes ? ' · ' + t('伺服器已存 {mb} MB', { mb: (j.savedBytes / 1048576).toFixed(1) }) : '');
+  const stat = (v, label, wide) => wide ? `<div class="stat wide"><span>${escHtml(t(label))}</span>${v}</div>` : `<div class="stat"><b>${v}</b><span>${escHtml(t(label))}</span></div>`;
+  $('#fit-stats').innerHTML = stat(es.length, '試穿次數') + stat(ok.length, '成功') + stat(es.length - ok.length, '失敗') + stat(avg != null ? fmtDur(avg) : '—', '平均耗時')
+    + stat(top(count(es, e => { const c = fitCoat(e); return c && tName(c); })), '款式', true) + stat(top(count(es, e => LANG_NAME[e.lang] || e.lang)), '語言', true) + stat(top(count(es, e => e.country)), '地區', true);
+  $('#fit-grid').innerHTML = es.map((e, i) => {
+    const st = fitStatus(e), [label, cls] = FIT_STATUS[st] || FIT_STATUS.failed, coat = fitCoat(e);
+    const line = [coat && tName(coat), LANG_NAME[e.lang] || e.lang, e.country, e.durationMs > 0 && fmtDur(e.durationMs)].filter(Boolean).map(escHtml).join(' · ');
+    return `<div class="fit-card${st === 'ok' ? '' : ' failed'}" data-i="${i}"><div class="fit-pics"><img src="${escHtml(fitImg(e.dogUrl))}" loading="lazy" alt=""><span>→</span>${e.resultUrl ? `<img src="${escHtml(fitImg(e.resultUrl))}" loading="lazy" alt="">` : '<div class="fit-none">✕</div>'}</div>`
+      + `<div class="fit-info"><div><b>${escHtml(fmtTime(e.time))}</b> <span class="badge ${cls}">${escHtml(t(label))}</span></div><div class="muted">${line}</div>${e.caption ? `<p class="fit-cap">${escHtml(e.caption)}</p>` : ''}</div></div>`;
+  }).join('');
+}
+function openFit(i) {
+  const e = FIT_ENTRIES[i]; if (!e) return;
+  const st = fitStatus(e), [label, cls] = FIT_STATUS[st] || FIT_STATUS.failed, coat = fitCoat(e);
+  const kv = [
+    ['時間', escHtml(e.time ? fmtTime(e.time, true) : e.stamp || '')],
+    ['狀態', `<span class="badge ${cls}">${escHtml(t(label))}</span>${e.error ? ' <code>' + escHtml(e.error) + '</code>' : ''}`],
+    ['款式', coat ? escHtml(tName(coat)) + (e.product ? ` · <a href="${siteUrl()}product/product&amp;product_id=${encodeURIComponent(e.product)}.html" target="_blank">${escHtml(t('查看商品 ↗'))}</a>` : '') : '—'],
+    ['語言', escHtml(LANG_NAME[e.lang] || e.lang || '—')],
+    ['地區', escHtml([e.country, e.ip].filter(Boolean).join(' · ') || '—')],
+    ['耗時', e.durationMs > 0 ? escHtml(fmtDur(e.durationMs) + (e.queuedMs > 0 ? ' ' + t('（排隊 {s}）', { s: fmtDur(e.queuedMs) }) : '')) : '—'],
+    ['帳號', escHtml(e.account || '—')],
+    ['來源', escHtml(e.origin || '—')],
+    ['ID', `<code>${escHtml(e.stamp || '')}</code>${e.jobId ? ' <code>' + escHtml(e.jobId) + '</code>' : ''}`],
+  ];
+  $('#fdlg-body').innerHTML = `<div class="fit-big"><figure><img src="${escHtml(fitImg(e.dogUrl))}" alt=""><figcaption>${escHtml(t('毛孩照片'))}</figcaption></figure><figure>${e.resultUrl ? `<img src="${escHtml(fitImg(e.resultUrl))}" alt="">` : '<div class="fit-none big">✕</div>'}<figcaption>${escHtml(t('試穿結果'))}</figcaption></figure></div>`
+    + (e.caption ? `<p class="fit-cap full">${escHtml(e.caption)}</p>` : '') + `<div class="fit-kv">${kv.map(([k, v]) => `<b>${escHtml(t(k))}</b><div>${v}</div>`).join('')}</div>`;
+  $('#fdlg').showModal();
+}
+$('#fit-grid').addEventListener('click', e => { const c = e.target.closest('.fit-card'); if (c) openFit(+c.dataset.i); });
+$('#fdlg-close').onclick = () => $('#fdlg').close();
+$('#fit-range').onchange = loadFit;
+$('#btn-fit-reload').onclick = loadFit;
+
 /* ---------------------------------------------------------------- wiring */
 function showLogin(err) {
   $('#pwlogin').style.display = 'none';
   $('#login').style.display = ''; $('#app').style.display = 'none';
-  $('#in-repo').value = cfg.repo; $('#in-branch').value = cfg.branch; $('#in-token').value = cfg.token;
+  $('#in-repo').value = cfg.repo; $('#in-branch').value = cfg.branch; $('#in-token').value = cfg.token; $('#in-fit').value = fitTok();
   $('#login-err').textContent = err || '';
 }
 async function connect() {
   const repo = $('#in-repo').value.trim() || guessRepo(), branch = $('#in-branch').value.trim() || 'main', token = $('#in-token').value.trim();
   if (!token) return $('#login-err').textContent = t('請輸入 token');
   localStorage.setItem(LS.repo, repo); localStorage.setItem(LS.branch, branch); localStorage.setItem(LS.token, token);
+  const fit = $('#in-fit').value.trim(); if (fit) localStorage.setItem(LS.fit, fit); else localStorage.removeItem(LS.fit);
   $('#login-err').textContent = t('連接中…');
-  try { await load(); $('#login').style.display = 'none'; $('#app').style.display = ''; }
+  try { await load(); $('#login').style.display = 'none'; $('#app').style.display = ''; loadFit(); }
   catch (e) { $('#login-err').textContent = t('連接失敗：') + e.message; }
 }
 $('#btn-login').onclick = connect;
@@ -1071,7 +1194,7 @@ $('#dlg-close').onclick = $('#dlg-cancel').onclick = () => $('#dlg').close();
   await loadSecret();
   const entry = err => SECRET ? showPw(err) : showLogin(err);
   if (!cfg.token) return entry('');
-  try { await load(); $('#app').style.display = ''; }
+  try { await load(); $('#app').style.display = ''; loadFit(); }
   catch (e) { localStorage.removeItem(LS.token); entry(t('登入已失效，請重新登入。') + (SECRET ? '' : e.message)); }
 })();
 </script>

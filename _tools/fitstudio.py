@@ -344,7 +344,7 @@ go.addEventListener('click',function(){
    if(d.key==='srv.queued'){var pos=d.vars&&+d.vars.pos||0;step(0,pos>0?t('srv.queued',{pos:pos}):t('srv.queuedNext'));return;}
    if(st>=6)step(2,txt||t('step.draw'));else if(st>=3)step(1,txt||t('step.send'));else if(txt&&st>=2)progT.textContent=txt;}).catch(function(){});},1000);
   return fetch(cfg.api+'/api/stylist',{method:'POST',signal:ctl.signal,headers:auth({'Content-Type':'application/json'}),
-   body:JSON.stringify({dogImage:imgs[0],clothesImage:imgs[1],lang:cfg.serverLang,jobId:jobId})});
+   body:JSON.stringify({dogImage:imgs[0],clothesImage:imgs[1],lang:cfg.serverLang,jobId:jobId,coat:coatKey||null,coatName:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].name)||null,product:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].product)||null})});
  }).then(function(r){
   if(!r.ok){return r.json().catch(function(){return {};}).then(function(d){
    if(r.status===429)throw new Error(t(d.errorKey||'err.busy'));if(r.status===503)throw new Error(t(d.errorKey||'err.allAccountsExhausted'));
@@ -392,6 +392,7 @@ def config_json(data, lang):
         p = by_id.get(pid)
         c = charts.get(chart_key)
         coats[k] = {"url": th.link(th.rel_dir(PAGE), th.sb.product_page(p), lang) if p and p.get("visible", True) else "",
+                    "name": p["name"] if p else colour, "product": pid,
                     "chart": {"rows": c["rows"], "offset": CHART_OFFSET.get(chart_key, 8)} if c else None}
     return json.dumps({"api": API_BASE, "key": API_KEY, "serverLang": SERVER_LANG.get(lang, "zh"),
                        "showNote": SHOW_NOTE.get(lang, False), "strings": strings, "ui": ui, "coats": coats}, ensure_ascii=False)

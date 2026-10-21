@@ -3,7 +3,11 @@
 Encrypt the GitHub token with a password so the admin page only needs the password.
 
   python _tools/set_admin_password.py <github_token> <password>
+  python _tools/set_admin_password.py --from <secrets.json> <password>
 
+The second form reads {"token": "<github token>", "fit": "<FitStudio ADMIN_TOKEN>"} from a file (so no
+secret appears on the command line) and encrypts both; the admin page then also unlocks the
+fitting-room history. Delete that file afterwards.
 Writes _tools/admin_secret.json (committed; deployed next to admin.html).
 PBKDF2-HMAC-SHA256 (600k iterations) -> AES-256-GCM. A longer password = much better protection.
 """
@@ -22,10 +26,18 @@ OUT = Path(__file__).resolve().parent / "admin_secret.json"
 
 
 def main():
-    if len(sys.argv) != 3:
+    args = sys.argv[1:]
+    if len(args) == 3 and args[0] == "--from":
+        secrets = json.loads(Path(args[1]).read_text(encoding="utf-8"))
+        payload = {"token": secrets["token"].strip()}
+        if secrets.get("fit"):
+            payload["fit"] = secrets["fit"].strip()
+        token, password = json.dumps(payload), args[2]
+    elif len(args) == 2:
+        token, password = args[0].strip(), args[1]
+    else:
         print(__doc__)
         sys.exit(1)
-    token, password = sys.argv[1].strip(), sys.argv[2]
     if len(password) < 3:
         sys.exit("password too short")
     salt, iv = os.urandom(16), os.urandom(12)
