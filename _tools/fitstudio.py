@@ -119,6 +119,7 @@ STR = {
     "srv.generating": {"zh": "AI 繪製中… {sec} 秒", "en": "AI is drawing… {sec} s", "ja": "AI が描画中… {sec} 秒", "de": "KI zeichnet… {sec} s"},
     "srv.caption": {"zh": "撰寫推薦文案…", "en": "Writing the stylist's note…", "ja": "おすすめ文を作成中…", "de": "Empfehlung wird geschrieben…"},
     "srv.queued": {"zh": "排隊中，前面還有 {pos} 位…", "en": "In the queue, {pos} ahead of you…", "ja": "順番待ち：前に {pos} 人…", "de": "In der Warteschlange, {pos} vor dir…"},
+    "srv.queuedNext": {"zh": "排隊中，下一個就輪到你…", "en": "In the queue, you're next…", "ja": "順番待ち：次はあなたです…", "de": "In der Warteschlange, du bist als Nächstes dran…"},
     "srv.done": {"zh": "圖片完成！", "en": "Picture ready!", "ja": "画像が完成！", "de": "Bild fertig!"},
     "note.writing": {"zh": "造型師正在寫推薦…", "en": "The stylist is writing a note…", "ja": "スタイリストがコメントを作成中…", "de": "Die Stylistin schreibt gerade…"},
     "err.pickFirst": {"zh": "請先選擇毛孩照片和一件衣服。", "en": "Please choose a photo and a coat first.", "ja": "先に写真と服を選んでください。", "de": "Bitte zuerst ein Foto und eine Jacke wählen."},
@@ -315,6 +316,7 @@ go.addEventListener('click',function(){
   step(1,t('step.send'));
   run.poll=setInterval(function(){fetch(cfg.api+'/api/status/'+encodeURIComponent(jobId),{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
    if(!d||running!==run)return;var txt=d.key&&S[d.key]?t(d.key,d.vars||{}):'';var st=d.step||0;
+   if(d.key==='srv.queued'){var pos=d.vars&&+d.vars.pos||0;step(0,pos>0?t('srv.queued',{pos:pos}):t('srv.queuedNext'));return;}
    if(st>=6)step(2,txt||t('step.draw'));else if(st>=3)step(1,txt||t('step.send'));else if(txt&&st>=2)progT.textContent=txt;}).catch(function(){});},1000);
   return fetch(cfg.api+'/api/stylist',{method:'POST',signal:ctl.signal,headers:auth({'Content-Type':'application/json'}),
    body:JSON.stringify({dogImage:imgs[0],clothesImage:imgs[1],lang:cfg.serverLang,jobId:jobId})});
