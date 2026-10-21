@@ -366,7 +366,7 @@ const DE = {
   '試穿次數': 'Anproben', '成功': 'Erfolgreich', '失敗': 'Fehlgeschlagen', '額度用完': 'Kontingent erschöpft', '中途取消': 'Abgebrochen', '平均耗時': 'Ø Dauer',
   '款式': 'Modell', '語言': 'Sprache', '地區': 'Region', '{n} 筆': '{n} Einträge', '伺服器已存 {mb} MB': '{mb} MB auf dem Server',
   '尚未設定試衣間後台金鑰。': 'Kein Admin-Schlüssel für die Anprobe hinterlegt.', '去設定': 'Einstellungen', '載入中…': 'Lädt…',
-  '試衣間後台金鑰不正確（{code}）': 'Admin-Schlüssel der Anprobe ungültig ({code})', '連不上試衣間伺服器（可能離線中）。': 'Anprobe-Server nicht erreichbar (vielleicht offline).',
+  '試衣間後台金鑰不正確（{code}）': 'Admin-Schlüssel der Anprobe ungültig ({code})', '伺服器要求金鑰（{code}）；若伺服器已信任本站網域，請稍後再試。': 'Der Server verlangt einen Schlüssel ({code}); wenn er diese Domain bereits zulässt, bitte später erneut versuchen.', '連不上試衣間伺服器（可能離線中）。': 'Anprobe-Server nicht erreichbar (vielleicht offline).',
   '這段期間沒有試穿紀錄。': 'Keine Anproben in diesem Zeitraum.', '試穿紀錄': 'Anprobe', '時間': 'Zeit', '狀態': 'Status', '耗時': 'Dauer', '（排隊 {s}）': '(Warteschlange {s})',
   '帳號': 'Konto', '來源': 'Herkunft', '毛孩照片': 'Hundefoto', '試穿結果': 'Ergebnis', '查看商品 ↗': 'Produkt ansehen ↗',
   '試衣間後台金鑰（選填）': 'Admin-Schlüssel der Anprobe (optional)', 'FitStudio ADMIN_TOKEN': 'FitStudio ADMIN_TOKEN',
@@ -1103,7 +1103,7 @@ const FIT_COATS = { pink: '莓果桃', yellow: '檸檬螢光黃', blue: '普魯�
 const LANG_NAME = { zh: '中文', en: 'English', ja: '日本語', de: 'Deutsch' };
 const FIT_STATUS = { ok: ['成功', 'on'], failed: ['失敗', 'off'], quota: ['額度用完', 'off'], cancelled: ['中途取消', 'off'] };
 const fitTok = () => localStorage.getItem(LS.fit) || '';
-const fitImg = u => { if (!u) return ''; let url = /^[a-z]+:/i.test(u) ? u : FIT_API + u; if (!/[?&]token=/.test(url)) url += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(fitTok()); return url; };
+const fitImg = u => { if (!u) return ''; let url = /^[a-z]+:/i.test(u) ? u : FIT_API + u; if (fitTok() && !/[?&]token=/.test(url)) url += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(fitTok()); return url; };
 const fitStatus = e => e.status || (e.resultUrl ? 'ok' : 'failed');
 const fitCoat = e => e.coatName || (e.coat && FIT_COATS[e.coat]) || e.coat || '';
 const fmtDur = ms => ms == null ? '' : (ms / 1000).toFixed(ms < 10000 ? 1 : 0) + ' s';
@@ -1111,12 +1111,11 @@ const fmtTime = (iso, long) => { const d = new Date(iso); if (isNaN(d)) return i
 let FIT_ENTRIES = [];
 async function loadFit() {
   const grid = $('#fit-grid'), msg = $('#fit-msg'), stats = $('#fit-stats');
-  if (!fitTok()) { grid.innerHTML = ''; stats.innerHTML = ''; $('#fit-count').textContent = ''; msg.innerHTML = escHtml(t('尚未設定試衣間後台金鑰。')) + ' <button type="button" class="small" id="fit-setup">' + escHtml(t('去設定')) + '</button>'; $('#fit-setup').onclick = () => showLogin(''); return; }
   msg.textContent = t('載入中…');
-  const hours = $('#fit-range').value;
+  const hours = $('#fit-range').value, tok = fitTok();
   try {
-    const r = await fetch(`${FIT_API}/api/admin/list?limit=300&hours=${hours === '0' ? 876000 : hours}`, { headers: { 'x-admin-token': fitTok() }, cache: 'no-store' });
-    if (r.status === 401 || r.status === 403) throw new Error(t('試衣間後台金鑰不正確（{code}）', { code: r.status }));
+    const r = await fetch(`${FIT_API}/api/admin/list?limit=300&hours=${hours === '0' ? 876000 : hours}${tok ? '&token=' + encodeURIComponent(tok) : ''}`, { headers: tok ? { 'x-admin-token': tok } : {}, cache: 'no-store' });
+    if (r.status === 401 || r.status === 403) { grid.innerHTML = ''; stats.innerHTML = ''; $('#fit-count').textContent = ''; msg.innerHTML = escHtml(t(tok ? '試衣間後台金鑰不正確（{code}）' : '伺服器要求金鑰（{code}）；若伺服器已信任本站網域，請稍後再試。', { code: r.status })) + ' <button type="button" class="small" id="fit-setup">' + escHtml(t('去設定')) + '</button>'; $('#fit-setup').onclick = () => showLogin(''); return; }
     if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
     const j = await r.json();
     FIT_ENTRIES = (j.entries || []).slice().sort((a, b) => String(b.time || b.stamp || '').localeCompare(String(a.time || a.stamp || '')));
