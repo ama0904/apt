@@ -1,18 +1,21 @@
 {
  "dogs": [
   {
-   "key": "golden",
-   "label": "黃金獵犬",
-   "image": "assets/fitstudio/dog_golden.jpg",
-   "visible": true,
-   "i18n": {"en": {"label": "Golden retriever"}, "ja": {"label": "ゴールデン"}, "de": {"label": "Golden Retriever"}}
-  },
-  {
    "key": "labrador",
    "label": "拉布拉多",
    "image": "assets/fitstudio/dog_labrador.webp",
    "visible": true,
-   "i18n": {"en": {"label": "Labrador"}, "ja": {"label": "ラブラドール"}, "de": {"label": "Labrador"}}
+   "i18n": {
+    "en": {
+     "label": "Labrador"
+    },
+    "ja": {
+     "label": "ラブラドール"
+    },
+    "de": {
+     "label": "Labrador"
+    }
+   }
   }
  ],
  "coats": [
@@ -23,7 +26,17 @@
    "product": 15,
    "chart": "small_warm_cape",
    "visible": true,
-   "i18n": {"en": {"label": "Berry pink"}, "ja": {"label": "ベリーピンク"}, "de": {"label": "Beerenrosa"}}
+   "i18n": {
+    "en": {
+     "label": "Berry pink"
+    },
+    "ja": {
+     "label": "ベリーピンク"
+    },
+    "de": {
+     "label": "Beerenrosa"
+    }
+   }
   },
   {
    "key": "yellow",
@@ -32,7 +45,17 @@
    "product": 16,
    "chart": "small_cape",
    "visible": true,
-   "i18n": {"en": {"label": "Neon lemon"}, "ja": {"label": "ネオンイエロー"}, "de": {"label": "Neongelb"}}
+   "i18n": {
+    "en": {
+     "label": "Neon lemon"
+    },
+    "ja": {
+     "label": "ネオンイエロー"
+    },
+    "de": {
+     "label": "Neongelb"
+    }
+   }
   },
   {
    "key": "blue",
@@ -41,7 +64,17 @@
    "product": 8,
    "chart": "big_raincoat",
    "visible": true,
-   "i18n": {"en": {"label": "Prussian blue"}, "ja": {"label": "プルシアンブルー"}, "de": {"label": "Preußischblau"}}
+   "i18n": {
+    "en": {
+     "label": "Prussian blue"
+    },
+    "ja": {
+     "label": "プルシアンブルー"
+    },
+    "de": {
+     "label": "Preußischblau"
+    }
+   }
   }
  ]
 }
