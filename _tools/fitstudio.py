@@ -73,6 +73,7 @@ UI = {
     "下載照片": {"en": "Download photo", "ja": "写真を保存", "de": "Foto speichern"},
     "再試一件": {"en": "Try another", "ja": "別の服を試す", "de": "Noch eine probieren"},
     "AI 造型師的話": {"en": "From the AI stylist", "ja": "AI スタイリストより", "de": "Von der KI-Stylistin"},
+    "造型師寫好了": {"en": "Note ready", "ja": "コメント完成", "de": "Notiz fertig"},
     "試穿圖由 AI 生成，顏色與版型以實際商品為準。": {
         "en": "The picture is AI-generated. Colours and fit follow the actual product.",
         "ja": "画像は AI 生成です。色や形は実際の商品をご確認ください。",
@@ -208,8 +209,23 @@ CSS = r"""
 @media (prefers-reduced-motion:reduce){.fit-stage[data-state=done] .shot,.fit-stage.flash .box,.fit-stage.flash .done-badge{animation:none}.fit-stage.flash .done-badge{display:inline-flex}}
 .fit-steps{display:flex;gap:6px;margin:14px 0 0}.fit-steps span{flex:1;height:4px;border-radius:2px;background:var(--line)}.fit-steps span.on{background:var(--ink)}.fit-steps span.done{background:#1fa463}
 .fit-note{display:none;margin-top:14px;background:var(--sand);border-radius:14px;padding:14px 16px;font-size:15px;color:var(--ink2)}
-.fit-note b{display:block;font-size:13px;color:var(--brand-ink);letter-spacing:.06em;margin-bottom:4px}.fit-note p{margin:0}.fit-note.wait p{color:var(--mute);font-style:italic}
+.fit-note b{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--brand-ink);letter-spacing:.06em;margin-bottom:6px}.fit-note p{margin:0}.fit-note.wait p{color:var(--mute);font-style:italic}
 .fit-note.show{display:block}
+/* LED in the title: spinning + glowing while the stylist is still writing, steady green once the note is in */
+.fit-note .led{position:relative;flex:0 0 auto;width:14px;height:14px;border-radius:50%;background:#1fa463;box-shadow:0 0 0 3px rgba(31,164,99,.18),0 0 10px rgba(31,164,99,.55)}
+.fit-note.wait .led{background:rgba(255,36,20,.12);animation:fit-led-glow 1.1s ease-in-out infinite alternate}
+.fit-note.wait .led::after{content:"";position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,var(--brand) 0 72%,transparent 72% 100%);-webkit-mask:radial-gradient(farthest-side,transparent 52%,#000 56%);mask:radial-gradient(farthest-side,transparent 52%,#000 56%);animation:fit-led-spin .9s linear infinite}
+@keyframes fit-led-spin{to{transform:rotate(360deg)}}
+@keyframes fit-led-glow{from{box-shadow:0 0 0 2px rgba(255,36,20,.12),0 0 4px rgba(255,36,20,.3)}to{box-shadow:0 0 0 5px rgba(255,36,20,.1),0 0 16px 3px rgba(255,36,20,.75)}}
+/* the note just arrived: slide in, pulse a ring twice, flash the background, show a badge for a few seconds */
+.fit-note .new{display:none;margin-left:auto;background:var(--brand);color:#fff;font-size:12px;font-weight:800;letter-spacing:.04em;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.fit-note .new::before{content:"✓ "}
+.fit-note.pop{animation:fit-note-in .5s cubic-bezier(.2,.8,.3,1.2) both,fit-note-ring 1.6s ease-out .1s 2 both,fit-note-bg 4.4s ease both}
+.fit-note.pop .new{display:inline-block;animation:fit-badge 4.4s ease both}
+@keyframes fit-note-in{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes fit-note-ring{0%{box-shadow:0 0 0 0 rgba(255,36,20,.55)}70%{box-shadow:0 0 0 12px rgba(255,36,20,0)}100%{box-shadow:0 0 0 0 rgba(255,36,20,0)}}
+@keyframes fit-note-bg{0%,45%{background:#fff0ec;outline:2px solid rgba(255,36,20,.5)}100%{background:var(--sand);outline:2px solid transparent}}
+@media (prefers-reduced-motion:reduce){.fit-note.wait .led,.fit-note.wait .led::after,.fit-note.pop,.fit-note.pop .new{animation:none}.fit-note.pop{background:#fff0ec;outline:2px solid rgba(255,36,20,.5)}}
 .fit-actions{display:none;gap:10px;margin-top:14px;flex-wrap:wrap}.fit-actions .btn{flex:1 1 160px}.fit-stage[data-state=done] .fit-actions{display:flex}
 .fit-actions .btn svg{width:18px;height:18px;flex:0 0 auto}
 .fit-fine{margin:12px 0 0;font-size:13px;color:var(--mute)}
@@ -289,8 +305,17 @@ document.querySelectorAll('.fit-size input').forEach(function(i){i.addEventListe
 /* progress */
 var curStep=0;
 function step(n,txt){curStep=n;steps.forEach(function(s,i){s.className=i<n?'done':i===n?'on':'';});if(txt)progT.textContent=txt;bar.style.width=Math.min(96,8+n*28)+'%';}
+var noteTimer=null;
 function showNote(text,pending){clearTimeout(captionTimer);if(!cfg.showNote){note.classList.remove('show');return;}
- note.classList.toggle('wait',!!pending);noteP.textContent=pending?t('note.writing'):(text||'');note.classList.toggle('show',!!(pending||(text||'').trim()));}
+ var arrived=!pending&&(text||'').trim()&&note.classList.contains('wait');
+ note.classList.toggle('wait',!!pending);noteP.textContent=pending?t('note.writing'):(text||'');note.classList.toggle('show',!!(pending||(text||'').trim()));
+ if(!pending)note.classList.remove('pop');if(arrived)noteReady();}
+/* the stylist's note landed after a wait: make it as hard to miss as the picture */
+function noteReady(){void note.offsetWidth;note.classList.add('pop');clearTimeout(noteTimer);noteTimer=setTimeout(function(){note.classList.remove('pop');},4600);
+ setTimeout(function(){var r=note.getBoundingClientRect();if(r.top<0||r.bottom>window.innerHeight)note.scrollIntoView({behavior:'smooth',block:'center'});},80);
+ try{if(navigator.vibrate)navigator.vibrate([30,50,30]);}catch(e){}
+ blinkTitle('💬 ');}
+function blinkTitle(mark){if(!document.hidden)return;var old=document.title,n=0,tt=setInterval(function(){document.title=(n++%2?mark:'')+old;if(!document.hidden||n>20){clearInterval(tt);document.title=old;}},900);}
 function pollCaption(id){if(!id||!cfg.showNote)return;var end=Date.now()+120000;showNote('',true);
  var tick=function(){if(Date.now()>end){showNote('');return;}
   fetch(cfg.api+'/api/caption/'+encodeURIComponent(id),{headers:auth()}).then(function(r){return r.ok?r.json():null;}).then(function(d){
@@ -301,7 +326,7 @@ var flashTimer=null;
 function celebrate(){stage.classList.remove('flash');void stage.offsetWidth;stage.classList.add('flash');clearTimeout(flashTimer);flashTimer=setTimeout(function(){stage.classList.remove('flash');},3400);
  var box=$('.fit-stage .box');setTimeout(function(){box.scrollIntoView({behavior:'smooth',block:'center'});},80);
  try{if(navigator.vibrate)navigator.vibrate([40,60,40]);}catch(e){}
- if(document.hidden){var old=document.title,n=0,tt=setInterval(function(){document.title=(n++%2?'✓ ':'')+old;if(!document.hidden||n>20){clearInterval(tt);document.title=old;}},900);}}
+ blinkTitle('✓ ');}
 function finish(){if(running){clearInterval(running.poll);clearInterval(running.tick);clearTimeout(running.tm);running=null;}update();}
 go.addEventListener('click',function(){
  if(!dog||!coat){setErr(t('err.pickFirst'));return;}if(online===false){setErr(t('err.offline'));return;}
@@ -422,7 +447,7 @@ def render(data, lang):
     <label><span>領圍</span><div><input type="number" inputmode="decimal" min="10" max="120" step="0.5" data-m="neck"><em>cm</em></div></label>
     <label><span>腹圍</span><div><input type="number" inputmode="decimal" min="10" max="150" step="0.5" data-m="belly"><em>cm</em></div></label></div>
    <div class="fit-size-out"></div></div>
-  <div class="fit-note"><b>AI 造型師的話</b><p></p></div>
+  <div class="fit-note" aria-live="polite"><b><i class="led" aria-hidden="true"></i><span>AI 造型師的話</span><span class="new">造型師寫好了</span></b><p></p></div>
   <div class="fit-actions"><button type="button" class="btn fit-dl">{ICON_DL}下載照片</button><button type="button" class="btn ghost fit-share">分享</button><button type="button" class="btn ghost fit-again">再試一件</button></div>
   <p class="fit-fine">試穿圖由 AI 生成，顏色與版型以實際商品為準。</p>
  </section>
