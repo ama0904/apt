@@ -19,6 +19,16 @@
   #deploy a { color:inherit; }
   main { max-width:1200px; margin:24px auto; padding:0 16px; }
   .toolbar { display:flex; gap:10px; align-items:center; margin-bottom:16px; flex-wrap:wrap; }
+  .tabs { display:flex; gap:4px; align-items:center; border-bottom:1px solid var(--line); margin-bottom:18px; overflow-x:auto; }
+  .tabs .tab { border:none; background:none; border-radius:0; padding:10px 14px; margin-bottom:-1px; font-weight:600; color:var(--muted); border-bottom:2px solid transparent; white-space:nowrap; }
+  .tabs .tab:hover { color:var(--text); background:none; }
+  .tabs .tab.on { color:var(--text); border-bottom-color:var(--accent); }
+  .tabs .sp { flex:1; }
+  .tabs .tools { display:flex; gap:6px; padding-bottom:6px; }
+  .tabs .tools button { padding:6px 10px; font-size:13px; white-space:nowrap; }
+  .pane { display:none; }
+  .pane.on { display:block; }
+  .pane > .sec-title:first-child { margin-top:4px; }
   .sec-title { font-size:17px; margin:36px 0 12px; }
   input[type=date] { width:100%; font:inherit; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; }
   .toolbar .count { color:var(--muted); font-size:14px; }
@@ -143,7 +153,11 @@
     .toolbar { gap:8px; }
     .toolbar .count { width:100%; order:-1; font-size:13px; }
     #btn-add { flex:1 1 100%; padding:12px; font-size:16px; }
-    #btn-reload, #btn-redeploy { flex:1; padding:10px; }
+    .tabs { flex-wrap:wrap; gap:0; margin-bottom:14px; }
+    .tabs .tab { padding:10px 10px; font-size:14px; }
+    .tabs .sp { display:none; }
+    .tabs .tools { width:100%; padding:8px 0 10px; }
+    .tabs .tools button { flex:1; padding:9px; font-size:14px; }
     /* product table becomes a list of cards */
     table, tbody { display:block; border:0; background:none; }
     thead { display:none; }
@@ -224,10 +238,18 @@
   </section>
 
   <section id="app" style="display:none">
+    <nav class="tabs" aria-label="後台分頁">
+      <button type="button" class="tab" data-tab="products">商品</button>
+      <button type="button" class="tab" data-tab="news">最新消息</button>
+      <button type="button" class="tab" data-tab="fit">試衣間</button>
+      <button type="button" class="tab" data-tab="history">試衣間紀錄</button>
+      <span class="sp"></span>
+      <span class="tools"><button id="btn-reload">重新載入</button><button id="btn-redeploy" title="不改資料，只重新執行部署流程">重新部署</button></span>
+    </nav>
+
+    <div class="pane" data-pane="products">
     <div class="toolbar">
       <button class="primary" id="btn-add">＋ 新增商品</button>
-      <button id="btn-reload">重新載入</button>
-      <button id="btn-redeploy" title="不改資料，只重新執行部署流程">重新部署</button>
       <span class="count" id="count"></span>
     </div>
     <table>
@@ -236,8 +258,9 @@
       </thead>
       <tbody id="rows"></tbody>
     </table>
+    </div>
 
-    <h2 class="sec-title">最新消息</h2>
+    <div class="pane" data-pane="news">
     <div class="toolbar">
       <button class="primary" id="btn-news-add">＋ 新增消息</button>
       <span class="count" id="news-count"></span>
@@ -246,8 +269,11 @@
       <thead><tr><th style="width:120px">日期</th><th>標題</th><th>狀態</th><th style="width:300px">操作</th></tr></thead>
       <tbody id="news-rows"></tbody>
     </table>
+    </div>
 
+    <div class="pane" data-pane="fit">
     <h2 class="sec-title">試衣間衣服</h2>
+    <p class="hint" style="margin:-6px 0 12px">客人在試衣間能選的衣服。圖要用「衣服套在黑色狗狗剪影、白底」的合成圖；「尺寸表」決定試穿後的尺寸建議，「連結商品」決定前往商品頁的按鈕。</p>
     <div class="toolbar">
       <button class="primary" id="btn-coat-add">＋ 新增衣服</button>
       <span class="count" id="coat-count"></span>
@@ -258,6 +284,7 @@
     </table>
 
     <h2 class="sec-title">試衣間示範狗狗</h2>
+    <p class="hint" style="margin:-6px 0 12px">沒有自己照片的客人可以先用這些狗狗試。</p>
     <div class="toolbar">
       <button class="primary" id="btn-dog-add">＋ 新增示範狗狗</button>
       <span class="count" id="dog-count"></span>
@@ -266,8 +293,9 @@
       <thead><tr><th style="width:64px">圖片</th><th>名稱</th><th class="hide-sm">檔案</th><th>狀態</th><th style="width:300px">操作</th></tr></thead>
       <tbody id="dog-rows"></tbody>
     </table>
+    </div>
 
-    <h2 class="sec-title">試衣間紀錄</h2>
+    <div class="pane" data-pane="history">
     <div class="toolbar">
       <select id="fit-range" style="width:auto"><option value="24">最近 24 小時</option><option value="168" selected>最近 7 天</option><option value="720">最近 30 天</option><option value="0">全部</option></select>
       <button id="btn-fit-reload">重新載入</button>
@@ -276,6 +304,7 @@
     <div class="fit-stats" id="fit-stats"></div>
     <div class="fit-grid" id="fit-grid"></div>
     <p class="muted" id="fit-msg" style="font-size:14px"></p>
+    </div>
   </section>
 </main>
 
@@ -416,6 +445,9 @@ const DE = {
   'apetto 商品後台': 'apetto Produktverwaltung', '開啟前台 ↗': 'Shop öffnen ↗', '設定': 'Einstellungen', '登出': 'Abmelden', '介面語言': 'Sprache der Oberfläche',
   '登入後台': 'Anmelden', '請輸入後台密碼。': 'Bitte das Admin-Passwort eingeben.', '密碼': 'Passwort', '改用 token 登入': 'Stattdessen mit Token anmelden', '登入': 'Anmelden',
   '連接 GitHub': 'Mit GitHub verbinden',
+  '試衣間': 'Anprobe', '後台分頁': 'Bereiche',
+  '客人在試衣間能選的衣服。圖要用「衣服套在黑色狗狗剪影、白底」的合成圖；「尺寸表」決定試穿後的尺寸建議，「連結商品」決定前往商品頁的按鈕。': 'Die Kleidungsstücke, die Kundinnen in der Anprobe wählen können. Bild als Montage „Kleidungsstück auf schwarzer Hundesilhouette, weißer Hintergrund“; die Größentabelle bestimmt die Größenempfehlung, das verknüpfte Produkt den Button zur Produktseite.',
+  '沒有自己照片的客人可以先用這些狗狗試。': 'Wer kein eigenes Foto hat, kann es mit diesen Hunden ausprobieren.',
   '試衣間衣服': 'Anprobe: Kleidung', '＋ 新增衣服': '＋ Kleidungsstück', '試衣間示範狗狗': 'Anprobe: Beispielhunde', '＋ 新增示範狗狗': '＋ Beispielhund', '名稱 / 商品': 'Name / Produkt', '尺寸表': 'Größentabelle', '檔案': 'Datei',
   '共 {n} 件，顯示中 {m} 件': '{n} Stück, {m} sichtbar', '共 {n} 隻，顯示中 {m} 隻': '{n} Hunde, {m} sichtbar', '商品已隱藏': 'Produkt ausgeblendet', '（未連結商品）': '(kein Produkt verknüpft)', '往前': 'nach vorn', '往後': 'nach hinten',
   '新增衣服': 'Kleidungsstück hinzufügen', '編輯衣服': 'Kleidungsstück bearbeiten', '新增示範狗狗': 'Beispielhund hinzufügen', '編輯示範狗狗': 'Beispielhund bearbeiten',
@@ -1153,7 +1185,7 @@ async function pwConnect() {
     const plain = await decryptToken(pw); let token = plain, fit = '';
     if (plain.trim().startsWith('{')) { try { const o = JSON.parse(plain); token = o.token || ''; fit = o.fit || ''; } catch (e) {} }
     localStorage.setItem(LS.token, token); if (fit) localStorage.setItem(LS.fit, fit);
-    await load(); $('#pwlogin').style.display = 'none'; $('#app').style.display = ''; loadFit();
+    await load(); $('#pwlogin').style.display = 'none'; $('#app').style.display = ''; afterLogin();
   } catch (e) { $('#pw-err').textContent = e.name === 'OperationError' ? t('密碼錯誤') : t('連接失敗：') + e.message; }
   finally { $('#btn-pw').disabled = false; }
 }
@@ -1328,6 +1360,23 @@ $('#fdlg-close').onclick = () => $('#fdlg').close();
 $('#fit-range').onchange = loadFit;
 $('#btn-fit-reload').onclick = loadFit;
 
+/* ---------------------------------------------------------------- tabs */
+const TABS = ['products', 'news', 'fit', 'history'];
+let historyLoaded = false;
+function showPane(k) {
+  if (!TABS.includes(k)) k = 'products';
+  document.querySelectorAll('.tabs .tab').forEach(b => b.classList.toggle('on', b.dataset.tab === k));
+  document.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.dataset.pane === k));
+  try { localStorage.setItem('apetto_admin_tab', k); } catch (e) {}
+  if (location.hash !== '#' + k) history.replaceState(null, '', '#' + k);
+  // the history pane talks to the bridge, so fetch it only when it is actually shown
+  if (k === 'history' && !historyLoaded && $('#app').style.display !== 'none') { historyLoaded = true; loadFit(); }
+}
+const startTab = () => (location.hash || '').slice(1) || localStorage.getItem('apetto_admin_tab') || 'products';
+document.querySelectorAll('.tabs .tab').forEach(b => b.onclick = () => showPane(b.dataset.tab));
+window.addEventListener('hashchange', () => showPane(startTab()));
+function afterLogin() { historyLoaded = false; showPane(startTab()); }
+
 /* ---------------------------------------------------------------- wiring */
 function showLogin(err) {
   $('#pwlogin').style.display = 'none';
@@ -1341,7 +1390,7 @@ async function connect() {
   localStorage.setItem(LS.repo, repo); localStorage.setItem(LS.branch, branch); localStorage.setItem(LS.token, token);
   const fit = $('#in-fit').value.trim(); if (fit) localStorage.setItem(LS.fit, fit); else localStorage.removeItem(LS.fit);
   $('#login-err').textContent = t('連接中…');
-  try { await load(); $('#login').style.display = 'none'; $('#app').style.display = ''; loadFit(); }
+  try { await load(); $('#login').style.display = 'none'; $('#app').style.display = ''; afterLogin(); }
   catch (e) { $('#login-err').textContent = t('連接失敗：') + e.message; }
 }
 $('#btn-login').onclick = connect;
@@ -1360,7 +1409,7 @@ $('#dlg-close').onclick = $('#dlg-cancel').onclick = () => $('#dlg').close();
   await loadSecret();
   const entry = err => SECRET ? showPw(err) : showLogin(err);
   if (!cfg.token) return entry('');
-  try { await load(); $('#app').style.display = ''; loadFit(); }
+  try { await load(); $('#app').style.display = ''; afterLogin(); }
   catch (e) { localStorage.removeItem(LS.token); entry(t('登入已失效，請重新登入。') + (SECRET ? '' : e.message)); }
 })();
 </script>
