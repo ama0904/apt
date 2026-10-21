@@ -83,7 +83,7 @@
   .blk-tag { font-size:12px; font-weight:600; color:var(--muted); }
   .blk-body { padding:8px; }
   .blk-body textarea { min-height:64px; }
-  .blk-img { max-width:220px; max-height:150px; border-radius:6px; display:block; margin-bottom:6px; border:1px solid var(--line); }
+  .blk-pic { max-width:100%; width:220px; max-height:150px; object-fit:contain; object-position:left; border-radius:6px; display:block; margin-bottom:6px; border:1px solid var(--line); }
   .addbar { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:8px; font-size:13px; color:var(--muted); }
   details.tr { border:1px solid var(--line); border-radius:10px; padding:0 12px; margin-bottom:8px; background:#fafbfc; }
   details.tr summary { cursor:pointer; padding:10px 0; font-weight:600; font-size:14px; }
@@ -711,7 +711,7 @@ function renderBlocks() {
     if (b.t === 'h') body = `<input type="text" data-k="text" value="${escHtml(b.text || '')}" placeholder="${t('小標題')}">`;
     else if (b.t === 'p') body = `<textarea data-k="text" placeholder="${t('一段文字')}">${escHtml(b.text || '')}</textarea>`;
     else if (b.t === 'ul') body = `<textarea data-k="items" placeholder="${t('每行一點')}">${escHtml((b.items || []).join('\n'))}</textarea>`;
-    else if (b.t === 'img') { const u = b.url || (b.src ? rawUrl(b.src) : ''); body = `${u ? `<img class="blk-img" src="${escHtml(u)}">` : ''}<input type="file" accept="image/*" data-k="file">`; }
+    else if (b.t === 'img') { const u = b.url || (b.src ? rawUrl(b.src) : ''); body = `${u ? `<img class="blk-pic" src="${escHtml(u)}">` : ''}<input type="file" accept="image/*" data-k="file">`; }
     else if (b.t === 'chart') body = `<select data-k="key">${Object.entries(CHARTS).map(([k, c]) => `<option value="${k}" ${k === b.key ? 'selected' : ''}>${escHtml(tName(c.title))}</option>`).join('')}</select>`;
     d.innerHTML = `<div class="blk-head"><span class="blk-tag">${label}</span><span class="sp"></span><button type="button" class="small" data-mv="-1" ${i === 0 ? 'disabled' : ''}>↑</button><button type="button" class="small" data-mv="1" ${i === BLOCKS.length - 1 ? 'disabled' : ''}>↓</button><button type="button" class="small danger" data-del>✕</button></div><div class="blk-body">${body}</div>`;
     const te = d.querySelector('[data-k="text"],[data-k="items"]');
