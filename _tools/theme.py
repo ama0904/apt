@@ -257,8 +257,9 @@ body.menu-open .bars i:nth-child(1){transform:translateY(6.75px) rotate(45deg)}b
 @media (max-width:980px){
  .nav,.srch,.hd-in>.lang{display:none}.burger{display:grid;place-items:center;order:-1;margin-left:-8px}
  .hd-in{display:flex;align-items:center;min-height:64px;gap:12px;padding-top:0}.hd-in>.logo{margin:0 auto;padding-right:36px}.logo img{height:50px}
- .lang-row{display:flex;gap:6px;padding:0 var(--gutter) 10px}
- .lang-row a{flex:1;display:inline-flex;align-items:center;justify-content:center;height:44px;border:1.5px solid var(--line2);border-radius:999px;background:#fff;font-weight:700;font-size:15.5px;color:var(--ink2)}
+ /* phones: the language row sits once at the very top of the page and scrolls away; only the logo/menu bar stays sticky */
+ .lang-row{display:flex;gap:6px;padding:8px var(--gutter) 2px;background:var(--bg,#fbfaf7)}
+ .lang-row a{flex:1;display:inline-flex;align-items:center;justify-content:center;height:40px;border:1.5px solid var(--line2);border-radius:999px;background:#fff;font-weight:700;font-size:15.5px;color:var(--ink2)}
  .lang-row a.cur{background:var(--ink);border-color:var(--ink);color:#fff}
  body.menu-open .mobile-menu,body.menu-closing .mobile-menu{display:block;position:fixed;inset:0;z-index:60;background:rgba(23,24,26,.8);animation:mm-fade .25s ease both}
  body.menu-closing .mobile-menu{animation:mm-fade .22s ease reverse both}
@@ -501,14 +502,14 @@ def lang_links(site_rel, lang, cls=""):
 def header(data, site_rel, lang, current=""):
     d = rel_dir(site_rel)
     search = link(d, "search.html", lang)
-    return f"""<header class="hd">
+    return f"""<div class="lang-row" aria-label="語言">{lang_links(site_rel, lang)}</div>
+<header class="hd">
  <div class="wrap hd-in">
   <a class="logo" href="{link(d, 'index.html', lang)}" aria-label="apetto"><img src="{asset(d, LOGO)}" alt="apetto"></a>
   <nav class="nav" aria-label="主選單">{nav_links(data, d, lang, current)}</nav>
   <div class="lang" aria-label="語言">{lang_links(site_rel, lang)}</div>
   <button class="burger" aria-label="選單" aria-expanded="false"><span class="bars"><i></i><i></i><i></i></span></button>
  </div>
- <div class="lang-row" aria-label="語言">{lang_links(site_rel, lang)}</div>
 </header>
 <div class="mobile-menu" role="dialog" aria-label="選單"><div class="mm-panel">
   <div class="mm-top"><a href="{link(d, 'index.html', lang)}" aria-label="apetto"><img src="{asset(d, LOGO)}" alt="apetto"></a><button class="mm-close" aria-label="關閉">✕</button></div>
