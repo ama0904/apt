@@ -457,7 +457,7 @@ const DE = {
   '（不連結商品）': '(kein Produkt)', '（不提供尺寸建議）': '(keine Größenempfehlung)', '名稱不能空白': 'Der Name darf nicht leer sein', '請選一張衣服圖': 'Bitte ein Bild des Kleidungsstücks wählen', '請選一張狗狗照片': 'Bitte ein Hundefoto wählen',
   '圖片請用 JPG、PNG 或 WEBP': 'Bitte JPG, PNG oder WEBP verwenden', '圖片請小於 4 MB': 'Bild bitte unter 4 MB', '上傳圖片…': 'Bild wird hochgeladen…',
   '試衣間紀錄': 'Anprobe-Verlauf', '最近 24 小時': 'Letzte 24 Stunden', '最近 7 天': 'Letzte 7 Tage', '最近 30 天': 'Letzte 30 Tage', '全部': 'Alle',
-  '試穿次數': 'Anproben', '成功': 'Erfolgreich', '失敗': 'Fehlgeschlagen', '額度用完': 'Kontingent erschöpft', '中途取消': 'Abgebrochen', '平均耗時': 'Ø Dauer',
+  '試穿次數': 'Anproben', '成功': 'Erfolgreich', '失敗': 'Fehlgeschlagen', '額度用完': 'Kontingent erschöpft', '中途取消': 'Abgebrochen', '貼圖失敗': 'Anhängen fehlgeschlagen', '頁面逾時': 'Seite nicht geladen', '平均耗時': 'Ø Dauer',
   '款式': 'Modell', '語言': 'Sprache', '地區': 'Region', '{n} 筆': '{n} Einträge', '伺服器已存 {mb} MB': '{mb} MB auf dem Server',
   '尚未設定試衣間後台金鑰。': 'Kein Admin-Schlüssel für die Anprobe hinterlegt.', '去設定': 'Einstellungen', '載入中…': 'Lädt…',
   '試衣間後台金鑰不正確（{code}）': 'Admin-Schlüssel der Anprobe ungültig ({code})', '伺服器要求金鑰（{code}）；若伺服器已信任本站網域，請稍後再試。': 'Der Server verlangt einen Schlüssel ({code}); wenn er diese Domain bereits zulässt, bitte später erneut versuchen.', '連不上試衣間伺服器（可能離線中）。': 'Anprobe-Server nicht erreichbar (vielleicht offline).',
@@ -1302,7 +1302,7 @@ const FIT_COATS = { pink: '莓果桃', yellow: '檸檬螢光黃', blue: '普魯�
 const coatRec = k => F.coats.find(c => c.key === k);
 const coatThumb = e => { const r = coatRec(e.coat); return r ? `<img class="fit-coat-thumb" src="${escHtml(fitImgUrl(r.image))}" alt="" title="${escHtml(fitCoat(e))}">` : ''; };
 const LANG_NAME = { zh: '中文', en: 'English', ja: '日本語', de: 'Deutsch' };
-const FIT_STATUS = { ok: ['成功', 'on'], failed: ['失敗', 'off'], quota: ['額度用完', 'off'], cancelled: ['中途取消', 'off'] };
+const FIT_STATUS = { ok: ['成功', 'on'], failed: ['失敗', 'off'], quota: ['額度用完', 'off'], cancelled: ['中途取消', 'off'], attachFailed: ['貼圖失敗', 'off'], loadTimeout: ['頁面逾時', 'off'] };
 const fitTok = () => localStorage.getItem(LS.fit) || '';
 const fitImg = u => { if (!u) return ''; let url = /^[a-z]+:/i.test(u) ? u : FIT_API + u; if (fitTok() && !/[?&]token=/.test(url)) url += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(fitTok()); return url; };
 const fitStatus = e => e.status || (e.resultUrl ? 'ok' : 'failed');

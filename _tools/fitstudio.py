@@ -147,6 +147,7 @@ STR = {
     "srv.sent": {"zh": "已送出，等待 AI 回應…", "en": "Sent, waiting for the AI…", "ja": "送信済み、AI の応答待ち…", "de": "Gesendet, warte auf die KI…"},
     "srv.generating": {"zh": "AI 繪製中… {sec} 秒", "en": "AI is drawing… {sec} s", "ja": "AI が描画中… {sec} 秒", "de": "KI zeichnet… {sec} s"},
     "srv.caption": {"zh": "撰寫推薦文案…", "en": "Writing the stylist's note…", "ja": "おすすめ文を作成中…", "de": "Empfehlung wird geschrieben…"},
+    "srv.retrying": {"zh": "遇到一點狀況，正在自動重試…", "en": "Hit a snag, retrying automatically…", "ja": "問題が発生したため、自動で再試行中…", "de": "Kleines Problem, es wird automatisch erneut versucht…"},
     "srv.queued": {"zh": "排隊中，前面還有 {pos} 位…", "en": "In the queue, {pos} ahead of you…", "ja": "順番待ち：前に {pos} 人…", "de": "In der Warteschlange, {pos} vor dir…"},
     "srv.queuedNext": {"zh": "排隊中，下一個就輪到你…", "en": "In the queue, you're next…", "ja": "順番待ち：次はあなたです…", "de": "In der Warteschlange, du bist als Nächstes dran…"},
     "srv.done": {"zh": "圖片完成！", "en": "Picture ready!", "ja": "画像が完成！", "de": "Bild fertig!"},
@@ -375,6 +376,7 @@ go.addEventListener('click',function(){
   run.poll=setInterval(function(){fetch(cfg.api+'/api/status/'+encodeURIComponent(jobId),{cache:'no-store'}).then(function(r){return r.ok?r.json():null;}).then(function(d){
    if(!d||running!==run)return;var txt=d.key&&S[d.key]?t(d.key,d.vars||{}):'';var st=d.step||0;
    if(d.key==='srv.queued'){var pos=d.vars&&+d.vars.pos||0;step(0,pos>0?t('srv.queued',{pos:pos}):t('srv.queuedNext'));return;}
+   if(d.key==='srv.retrying'){progT.textContent=txt;return;}
    if(st>=6)step(2,txt||t('step.draw'));else if(st>=3)step(1,txt||t('step.send'));else if(txt&&st>=2)progT.textContent=txt;}).catch(function(){});},1000);
   return fetch(cfg.api+'/api/stylist',{method:'POST',signal:ctl.signal,headers:auth({'Content-Type':'application/json'}),
    body:JSON.stringify({dogImage:imgs[0],clothesImage:imgs[1],lang:cfg.serverLang,jobId:jobId,coat:coatKey||null,coatName:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].name)||null,product:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].product)||null})});
