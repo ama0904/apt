@@ -24,7 +24,7 @@ IMG = {
     "story": CDN + "2026/08/26/cf1d3a5ae88219b7f6c3868005c2ff8d.clean.jpg",     # labrador, neon raincoat, picnic (shown zoomed: top-left had text)
     "rain": CDN + "2022/01/20/84765377d689a07961bcf145562ffd35.jpg",             # shiba splashing
     "cat1": CDN + "2026/08/26/2e2d960fcdd9a821b141df7d41b8f5c7.clean.jpg",      # frenchie, blue cape
-    "cat2": CDN + "2022/02/05/e413d6bbc217658bf1a529f3b51c0a28.PNG",            # black dog, neon
+    "cat2": CDN + "2022/02/05/e413d6bbc217658bf1a529f3b51c0a28.clean.jpg",      # black dog, neon (white frame of the original PNG trimmed)
     "cat3": CDN + "2022/02/05/314005a881b4008f09fb07335e50ed44.jpg",            # lime fleece lining
     "f_water": CDN + "2022/02/05/bd9fc68d2a8955f173b21fcc8aae271a.jpg",
     "f_leash": CDN + "1f9e72ac7a5d7e832966283819693d54.jpg",
