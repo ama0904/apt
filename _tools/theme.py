@@ -725,9 +725,7 @@ CSS += """
 .cat-card .img{aspect-ratio:16/10;background:var(--sand);overflow:hidden}.cat-card .img img{width:100%;height:100%;object-fit:cover}
 .cat-card .ph-empty{display:flex;align-items:center;justify-content:center;width:100%;height:100%}.cat-card .ph-empty img{width:56px;height:auto;opacity:.22;filter:grayscale(1)}
 .cat-card .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
-.cat-card h3{font-size:19px}.cat-card p{margin:0;font-size:14px;color:var(--mute);line-height:1.5}
-.cat-card .subs{display:flex;flex-wrap:wrap;gap:6px}
-.cat-card .sub{display:inline-flex;align-items:center;height:28px;padding:0 11px;border-radius:999px;background:var(--brand-soft);color:var(--brand-ink);font-size:13.5px;font-weight:700}
+.cat-card h3{font-size:18px}.cat-card p{margin:0;font-size:14px;color:var(--mute);line-height:1.5}
 .cat-card .n{margin-top:auto;font-size:13.5px;font-weight:600;color:var(--ink2)}
 .cat-card .tag{margin-top:auto;align-self:flex-start;background:var(--ink);color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px}
 .chips button{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line2);background:#fff;font-weight:600;font-size:15px;color:var(--ink2);cursor:pointer}
@@ -1191,9 +1189,9 @@ def category_card(c, visible, d, lang):
     else:
         pic = f'<span class="ph-empty" aria-hidden="true"><img src="{asset(d, LOGO)}" alt=""></span>'
         meta = '<span class="tag">即將推出</span>'
-    types = "".join(f'<span class="sub">{esc(t["name"])}</span>' for t in types_of(c))
+    types = "・".join(esc(t["name"]) for t in types_of(c))
     return (f'<a class="cat-card" href="{link(d, sb.category_page(c["id"]), lang)}"><div class="img">{pic}</div>'
-            f'<div class="body"><h3>{esc(c["name"])}</h3>{f"<div class=subs>{types}</div>" if types else ""}{meta}</div></a>')
+            f'<div class="body"><h3>{esc(c["name"])}</h3>{f"<p>{types}</p>" if types else ""}{meta}</div></a>')
 
 
 def render_shop(data, visible, lang):
