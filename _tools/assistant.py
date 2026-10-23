@@ -435,11 +435,11 @@ var R={
 };
 var COLORS={gray:/(灰|gr[ae]y|グレー|grau)/,blue:/(藍|blue|ブルー|青|blau)/,orange:/(桔|橘|orange|オレンジ)/,green:/(綠|green|グリーン|緑|grün)/,pink:/(桃|粉|pink|ピンク|rosa|beere)/,yellow:/(黃|黄|yellow|lemon|neon|イエロー|レモン|gelb)/};
 var BREEDS=[[/(吉娃娃|chihuahua|チワワ)/,22],[/(約克夏|yorkshire|yorkie|ヨーキー|ヨークシャー)/,24],[/(博美|pomeranian|ポメ|zwergspitz)/,25],[/(馬爾濟斯|maltese|マルチーズ|malteser)/,27],
- [/(貴賓|泰迪|poodle|プードル|pudel)/,29],[/(比熊|bichon|ビション)/,30],[/(西施|shih ?tzu|シーズー)/,31],[/(巴哥|pug|パグ|mops)/,30],[/(瑪爾|蝴蝶犬|papillon|パピヨン)/,27],
- [/(法鬥|法國鬥牛|french bulldog|frenchie|フレブル|フレンチ・?ブルドッグ|französische bulldogge)/,34],[/(雪納瑞|schnauzer|シュナウザー)/,35],[/(傑克羅素|jack russell|ジャックラッセル)/,33],
+ [/(貴賓犬|貴賓|泰迪|poodle|プードル|pudel)/,29],[/(比熊|bichon|ビション)/,30],[/(西施|shih ?tzu|シーズー)/,31],[/(巴哥|pug|パグ|mops)/,30],[/(瑪爾|蝴蝶犬|papillon|パピヨン)/,27],
+ [/(法國鬥牛犬|法鬥|法國鬥牛|french bulldog|frenchie|フレブル|フレンチ・?ブルドッグ|französische bulldogge)/,34],[/(雪納瑞|schnauzer|シュナウザー)/,35],[/(傑克羅素|jack russell|ジャックラッセル)/,33],
  [/(臘腸|dachshund|ダックス|dackel)/,38],[/(柯基|corgi|コーギー)/,40],[/(柴犬|柴柴|shiba|しばいぬ|柴)/,40],[/(米格魯|beagle|ビーグル)/,40],[/(喜樂蒂|sheltie|シェルティ)/,40],
- [/(鬥牛犬|英國鬥牛|bulldog|ブルドッグ|bulldogge)/,40],[/(邊境牧羊|邊牧|border collie|ボーダーコリー)/,50],[/(哈士奇|husky|ハスキー)/,55],[/(拉布拉多|labrador|ラブラドール)/,58],
- [/(黃金|golden|ゴールデン)/,60],[/(德國狼犬|german shepherd|シェパード|schäferhund)/,63],[/(杜賓|doberman|ドーベルマン)/,62]];
+ [/(鬥牛犬|英國鬥牛|bulldog|ブルドッグ|bulldogge)/,40],[/(邊境牧羊犬|邊境牧羊|邊牧|border collie|ボーダーコリー)/,50],[/(哈士奇|husky|ハスキー)/,55],[/(拉布拉多犬|拉布拉多|labrador|ラブラドール)/,58],
+ [/(黃金獵犬|黃金|golden|ゴールデン)/,60],[/(德國狼犬|german shepherd|シェパード|schäferhund)/,63],[/(杜賓|doberman|ドーベルマン)/,62]];
 var CAT_WORDS={3:/(浴袍|浴巾|bathrobe|robe|hoodie|バスローブ|bademantel)/,4:/(牽繩|頸圈|項圈|胸背|leash|collar|harness|リード|首輪|leine|halsband)/,5:/(領巾|圍巾|bandana|scarf|バンダナ|halstuch)/,6:/(鞋|shoe|boot|靴|シューズ|schuh)/,7:/(墊|睡墊|床|pad|mat|bed|マット|ベッド|matte|decke)/};
 function norm(s){return String(s||'').normalize('NFKC').toLowerCase().replace(/[“”"'`]/g,'').replace(/\s+/g,' ').trim();}
 function pick(a){return Array.isArray(a)?a[Math.floor(Math.random()*a.length)]:a;}
@@ -483,7 +483,7 @@ function measures(q){var m={},s=norm(q).replace(/,/g,'.'),num='(\\d{1,3}(?:\\.\\
  if(!m.back){x=s.match(new RegExp(num+'\\s*(cm|公分|センチ|厘米)'));if(x&&+x[1]!==m.chest&&+x[1]!==m.neck)m.back=+x[1];}
  if(!m.back&&!m.kg&&ST.want==='back'){x=s.match(/^\D{0,6}(\d{2,3}(?:\.\d)?)\D{0,8}$/);if(x)m.back=+x[1];}
  if(m.back&&(m.back<12||m.back>110))delete m.back;return m;}
-function breedOf(q){var s=norm(q);for(var i=0;i<BREEDS.length;i++){var x=s.match(BREEDS[i][0]);if(x)return {name:/^[a-z]/.test(x[1])?x[1].replace(/(^|\s)[a-z]/g,function(c){return c.toUpperCase();}):x[1],cm:BREEDS[i][1]};}return null;}
+function breedOf(q){var s=norm(q);for(var i=0;i<BREEDS.length;i++){var x=s.match(BREEDS[i][0]);if(x){var full=BREEDS[i][0].source.slice(1).split('|')[0].replace(/[()]/g,'');return {name:/^[a-z]/.test(x[1])?x[1].replace(/(^|\s)[a-z]/g,function(c){return c.toUpperCase();}):(LANG==='zh'&&/[\u4e00-\u9fff]/.test(full)?full:x[1]),cm:BREEDS[i][1]};}}return null;}
 // size from a chart: the size closest to (back - offset), smaller on ties, then one up if the chest does not fit
 function sizeFor(chKey,back,chest){var ch=KB.charts[chKey];if(!ch||!ch.rows.length)return null;var target=back-ch.off,bi=0,bd=1e9;
  ch.rows.forEach(function(r,i){var d=Math.abs(r.len-target);if(d<bd-0.01){bd=d;bi=i;}});var up=false,warn=false;
