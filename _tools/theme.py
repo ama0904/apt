@@ -718,6 +718,15 @@ CSS += """
 """
 CSS += """
 /* sub-category blocks */
+.grp-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start;margin:10px 0 64px}
+.grp-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;scroll-margin-top:140px}
+.grp-card .img{aspect-ratio:16/9;background:var(--sand)}.grp-card .img img{width:100%;height:100%;object-fit:cover}
+.grp-card .bd{padding:18px 20px 8px}.grp-card h2{font-size:22px;margin-bottom:4px}.grp-card .bd>p{color:var(--mute);font-size:14.5px;margin:0 0 6px}
+.grp-card ul{list-style:none;margin:0;padding:0 20px 10px}
+.grp-card li a{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 0;border-top:1px solid var(--line);color:var(--ink);font-weight:600}
+.grp-card li a:hover{color:var(--brand-ink)}.grp-card li small{font-weight:600;color:var(--mute);font-size:13px;white-space:nowrap}
+.grp-card li a.empty{color:var(--ink2);font-weight:500}
+@media (max-width:980px){.grp-cards{grid-template-columns:1fr;gap:16px}.grp-card{scroll-margin-top:80px}}
 .shop-group{padding:28px 0 8px;scroll-margin-top:140px}.shop-group-head{margin-bottom:16px}.shop-group-head h2{font-size:clamp(22px,2.4vw,28px)}.shop-group-head p{margin:4px 0 0;color:var(--mute)}
 .cat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
 .cat-card{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;color:var(--ink);transition:border-color .15s}
@@ -1180,36 +1189,28 @@ def item_text(obj, lang, field):
 SOON = '<div class="soon"><span class="tag">即將推出</span><p>這個分類的商品即將推出，先看看其他系列。</p></div>'
 
 
-def category_card(c, visible, d, lang):
-    items = [p for p in visible if c["id"] in p.get("categories", [])]
-    if items:
-        img = crop(items[0]["image"]["full"], "w43")
-        pic = f'<img src="{asset(d, img)}" alt="" loading="lazy">'
-        meta = f'<span class="n">共 {len(items)} 件商品</span>'
-    else:
-        pic = f'<span class="ph-empty" aria-hidden="true"><img src="{asset(d, LOGO)}" alt=""></span>'
-        meta = '<span class="tag">即將推出</span>'
-    types = "・".join(esc(t["name"]) for t in types_of(c))
-    return (f'<a class="cat-card" href="{link(d, sb.category_page(c["id"]), lang)}"><div class="img">{pic}</div>'
-            f'<div class="body"><h3>{esc(c["name"])}</h3>{f"<p>{types}</p>" if types else ""}{meta}</div></a>')
-
-
 def render_shop(data, visible, lang):
+    """商品分類: one card per group (photo, name, blurb) listing its categories with a count or 即將推出."""
     d = ""
-    blocks = ""
+    cards = ""
     for g in groups_of(data):
-        cards = "".join(category_card(c, visible, d, lang) for c in cats_in(data, g["key"]))
-        if not cards:
+        cats = cats_in(data, g["key"])
+        if not cats:
             continue
-        blocks += (f'<section class="shop-group" id="{g["key"]}"><div class="shop-group-head"><h2>{esc(g["name"])}</h2>'
-                   f'{("<p>" + esc(g.get("blurb", "")) + "</p>") if g.get("blurb") else ""}</div>'
-                   f'<div class="cat-cards">{cards}</div></section>')
+        img = IMG.get(GROUP_IMG.get(g["key"], ""), "")
+        lis = ""
+        for c in cats:
+            n = cat_count(c, visible)
+            meta = f'共 {n} 件商品<span aria-hidden="true"> →</span>' if n else "即將推出"
+            lis += (f'<li><a{"" if n else " class=empty"} href="{link(d, sb.category_page(c["id"]), lang)}"><span>{esc(c["name"])}</span>'
+                    f'<small>{meta}</small></a></li>')
+        pic = f'<div class="img"><img src="{asset(d, img)}" alt="" loading="lazy"></div>' if img else ""
+        cards += (f'<section class="grp-card" id="{g["key"]}">{pic}<div class="bd"><h2>{esc(g["name"])}</h2>'
+                  f'{("<p>" + esc(g.get("blurb", "")) + "</p>") if g.get("blurb") else ""}</div><ul>{lis}</ul></section>')
     body = f"""<div class="wrap">
 <ol class="breadcrumb"><li><a href="{link(d, 'index.html', lang)}">首頁</a></li><li><span>商品分類</span></li></ol>
 <div class="ph"><h1>商品分類</h1><p>依用途挑選</p></div>
-<div class="chips">{"".join(f'<a href="#{g["key"]}">{esc(g["name"])}</a>' for g in groups_of(data))}<a href="{link(d, 'search.html', lang)}">全系列</a></div>
-{blocks}
-<div style="height:56px"></div>
+<div class="grp-cards">{cards}</div>
 </div>"""
     return page(data, SHOP, lang, f"商品分類 | {BRAND}", body, "依用途挑選 apetto 的機能服飾、外出配件與舒適生活用品。", current=SHOP)
 
