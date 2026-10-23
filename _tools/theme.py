@@ -721,7 +721,8 @@ CSS += """
 .grp-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start;margin:10px 0 64px}
 .grp-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;scroll-margin-top:140px}
 .grp-card .img{aspect-ratio:16/9;background:var(--sand)}.grp-card .img img{width:100%;height:100%;object-fit:cover}
-.grp-card .bd{padding:18px 20px 8px}.grp-card h2{font-size:22px;margin-bottom:4px}.grp-card .bd>p{color:var(--mute);font-size:14.5px;margin:0 0 6px}
+.grp-card .img{display:block}.grp-card .bd{padding:18px 20px 8px}.grp-card h2{font-size:22px;margin-bottom:4px}.grp-card h2 a{color:var(--ink)}.grp-card h2 a:hover{color:var(--brand-ink)}.grp-card h2 a span{font-size:.8em;color:var(--mute)}
+.other-groups{margin-top:28px}.grp-card .bd>p{color:var(--mute);font-size:14.5px;margin:0 0 6px}
 .grp-card ul{list-style:none;margin:0;padding:0 20px 10px}
 .grp-card li a{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 0;border-top:1px solid var(--line);color:var(--ink);font-weight:600}
 .grp-card li a:hover{color:var(--brand-ink)}.grp-card li small{font-weight:600;color:var(--mute);font-size:13px;white-space:nowrap}
@@ -1189,6 +1190,40 @@ def item_text(obj, lang, field):
 SOON = '<div class="soon"><span class="tag">即將推出</span><p>這個分類的商品即將推出，先看看其他系列。</p></div>'
 
 
+def group_page(g):
+    return f"group/{g['key']}.html"
+
+
+def category_card(c, visible, d, lang):
+    items = [p for p in visible if c["id"] in p.get("categories", [])]
+    if items:
+        pic = f'<img src="{asset(d, crop(items[0]["image"]["full"], "w43"))}" alt="" loading="lazy">'
+        meta = f'<span class="n">共 {len(items)} 件商品</span>'
+    else:
+        pic = f'<span class="ph-empty" aria-hidden="true"><img src="{asset(d, LOGO)}" alt=""></span>'
+        meta = '<span class="tag">即將推出</span>'
+    types = "・".join(esc(t["name"]) for t in types_of(c))
+    return (f'<a class="cat-card" href="{link(d, sb.category_page(c["id"]), lang)}"><div class="img">{pic}</div>'
+            f'<div class="body"><h3>{esc(c["name"])}</h3>{f"<p>{types}</p>" if types else ""}{meta}</div></a>')
+
+
+def render_group(data, visible, g, lang):
+    """A group page: its categories as cards (photo, name, sub-categories, count or 即將推出)."""
+    rel = group_page(g)
+    d = rel_dir(rel)
+    cards = "".join(category_card(c, visible, d, lang) for c in cats_in(data, g["key"]))
+    others = "".join(f'<a href="{link(d, group_page(x), lang)}">{esc(x["name"])}</a>' for x in groups_of(data) if x["key"] != g["key"] and cats_in(data, x["key"]))
+    body = f"""<div class="wrap">
+<ol class="breadcrumb"><li><a href="{link(d, 'index.html', lang)}">首頁</a></li><li><a href="{link(d, SHOP, lang)}">商品分類</a></li><li><span>{esc(g["name"])}</span></li></ol>
+<div class="ph"><h1>{esc(g["name"])}</h1>{f'<p>{esc(g["blurb"])}</p>' if g.get("blurb") else ''}</div>
+<div style="height:18px"></div>
+<div class="cat-cards">{cards or SOON}</div>
+{f'<div class="chips other-groups">{others}</div>' if others else ''}
+<div style="height:48px"></div>
+</div>"""
+    return page(data, rel, lang, f"{g['name']} | {BRAND}", body, g.get("blurb") or g["name"], current=SHOP)
+
+
 def render_shop(data, visible, lang):
     """商品分類: one card per group (photo, name, blurb) listing its categories with a count or 即將推出."""
     d = ""
@@ -1204,8 +1239,9 @@ def render_shop(data, visible, lang):
             meta = f'共 {n} 件商品<span aria-hidden="true"> →</span>' if n else "即將推出"
             lis += (f'<li><a{"" if n else " class=empty"} href="{link(d, sb.category_page(c["id"]), lang)}"><span>{esc(c["name"])}</span>'
                     f'<small>{meta}</small></a></li>')
-        pic = f'<div class="img"><img src="{asset(d, img)}" alt="" loading="lazy"></div>' if img else ""
-        cards += (f'<section class="grp-card" id="{g["key"]}">{pic}<div class="bd"><h2>{esc(g["name"])}</h2>'
+        gl = link(d, group_page(g), lang)
+        pic = f'<a class="img" href="{gl}" tabindex="-1" aria-hidden="true"><img src="{asset(d, img)}" alt="" loading="lazy"></a>' if img else ""
+        cards += (f'<section class="grp-card" id="{g["key"]}">{pic}<div class="bd"><h2><a href="{gl}">{esc(g["name"])}<span aria-hidden="true"> →</span></a></h2>'
                   f'{("<p>" + esc(g.get("blurb", "")) + "</p>") if g.get("blurb") else ""}</div><ul>{lis}</ul></section>')
     body = f"""<div class="wrap">
 <ol class="breadcrumb"><li><a href="{link(d, 'index.html', lang)}">首頁</a></li><li><span>商品分類</span></li></ol>
@@ -1234,7 +1270,7 @@ def render_category(data, visible, c, lang):
     cards = "".join(product_card(p, d, lang, attrs=f' data-types="{esc(" ".join(p.get("types") or []))}"') for p in items)
     grid = (f'<div class="product-grid" id="{grid_id}">{cards}</div><div id="{grid_id}-soon" hidden>{SOON}</div>' if items else SOON)
     crumbs = (f'<li><a href="{link(d, "index.html", lang)}">首頁</a></li><li><a href="{link(d, SHOP, lang)}">商品分類</a></li>'
-              + (f'<li><a href="{link(d, SHOP, lang)}#{g["key"]}">{esc(g["name"])}</a></li>' if g else "") + f'<li><span>{esc(c["name"])}</span></li>')
+              + (f'<li><a href="{link(d, group_page(g), lang)}">{esc(g["name"])}</a></li>' if g else "") + f'<li><span>{esc(c["name"])}</span></li>')
     body = f"""<div class="wrap">
 <ol class="breadcrumb">{crumbs}</ol>
 <div class="ph"><h1>{esc(c["name"])}</h1>{f'<p>{esc(c["blurb"])}</p>' if c.get("blurb") else ''}</div>
@@ -1507,6 +1543,8 @@ def build_all(data, visible):
             items = [p for p in visible if c["id"] in p.get("categories", [])]
             write_page(render_category(data, visible, c, lang), sb.category_page(c["id"]), lang, table)
         write_page(render_shop(data, visible, lang), SHOP, lang, table)
+        for g in groups_of(data):
+            write_page(render_group(data, visible, g, lang), group_page(g), lang, table)
         write_page(render_features(data, visible, lang), FEATURES, lang, table)
         write_page(render_guides_list(data, lang), GUIDES, lang, table)
         for g in load_guides():
@@ -1526,6 +1564,10 @@ def build_all(data, visible):
             if n.get("alias"):
                 write_page(render_news_article(data, n, lang, n["alias"]), n["alias"], lang, table)
         write_page(render_404(data, lang), "404.html", lang, table)
+    keepgr = {sb.lang_variant(group_page(g), c) for g in groups_of(data) for c in LANG_CODES}
+    for f in (sb.SITE / "group").glob("*.html"):
+        if f.relative_to(sb.SITE).as_posix() not in keepgr:
+            f.unlink()
     keepg = {sb.lang_variant(guide_page(g), c) for g in load_guides() for c in LANG_CODES}
     for f in (sb.SITE / "guide").glob("*.html"):
         if f.relative_to(sb.SITE).as_posix() not in keepg:

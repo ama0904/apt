@@ -475,7 +475,7 @@ def lang_variant(site_rel, lang):
     return f"{root}.{lang}{ext}"
 
 
-_LOCALIZED_RE = re.compile(r"^(index|search|bestsellers|shop|guides|features|guide/[a-z0-9-]+|(?:product/)?category&path=\d+|(?:product/)?product&product_id=\d+"
+_LOCALIZED_RE = re.compile(r"^(index|search|bestsellers|shop|guides|features|guide/[a-z0-9-]+|group/[a-z0-9-]+|(?:product/)?category&path=\d+|(?:product/)?product&product_id=\d+"
                            r"|(?:pages/)?\d+|(?:information/)?(?:news|notice)(?:&(?:news|notice)_id=\d+)?)\.html$")
 
 # About / terms / news / announcements: translated copies are generated from _templates/info/<same path>
@@ -1203,6 +1203,7 @@ def build_sitemap(visible, data):
     urls = [ONLINE] + [f"{ONLINE}product/product&product_id={p['id']}" for p in visible]
     urls += [f"{ONLINE}product/category&path={c['id']}" for c in data["categories"]]
     urls += [f"{ONLINE}{p}" for p in ("shop.html", "guides.html", "features.html", "fitstudio.html", "pages/4.html", "pages/5.html", "information/news.html")]
+    urls += [f"{ONLINE}group/{g['key']}.html" for g in (data.get("groups") or [])]
     gf = DATA_DIR / "guides.json"
     if gf.exists():
         urls += [f"{ONLINE}guide/{g['key']}.html" for g in json.loads(gf.read_text(encoding="utf-8")).get("items", []) if g.get("visible", True)]
