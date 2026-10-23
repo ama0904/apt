@@ -564,6 +564,14 @@ document.querySelectorAll('#image-additional a').forEach(function(a){a.addEventL
  if(main&&img)main.src=a.getAttribute('href')||img.src;document.querySelectorAll('#image-additional li').forEach(function(l){l.classList.remove('cur');});a.parentNode.classList.add('cur');});});
 if('IntersectionObserver' in window){var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{rootMargin:'0px 0px -6% 0px'});
  document.querySelectorAll('.rv').forEach(function(el){io.observe(el);});}else{document.querySelectorAll('.rv').forEach(function(el){el.classList.add('in');});}
+document.querySelectorAll('.type-tabs').forEach(function(bar){var grid=document.getElementById(bar.dataset.grid);if(!grid)return;
+ var soon=document.getElementById(bar.dataset.grid+'-soon');
+ function pick(k){var n=0;bar.querySelectorAll('button').forEach(function(x){x.classList.toggle('cur',x.dataset.type===k);x.setAttribute('aria-pressed',x.dataset.type===k?'true':'false');});
+  grid.querySelectorAll('.grid-box').forEach(function(c){var on=!k||(' '+(c.dataset.types||'')+' ').indexOf(' '+k+' ')>=0;c.hidden=!on;if(on)n++;});
+  grid.hidden=n===0;if(soon)soon.hidden=n>0;}
+ bar.addEventListener('click',function(e){var x=e.target.closest('button');if(!x)return;pick(x.dataset.type);
+  try{history.replaceState(null,'',x.dataset.type?'#type-'+x.dataset.type:location.pathname+location.search);}catch(err){}});
+ var h=decodeURIComponent((location.hash||'').replace(/^#type-/,''));if(h&&bar.querySelector('[data-type="'+h+'"]'))pick(h);});
 })();"""
 
 ICON_SEARCH = ('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">'
@@ -698,17 +706,29 @@ CSS += """
 """
 CSS += """
 /* sub-category blocks */
-.type-sec{margin-bottom:28px;scroll-margin-top:140px}.type-sec:last-child{margin-bottom:0}
-.type-sec h4{font-size:17px;margin:0 0 12px}
-.type-sec .soon{padding:14px 18px}
-@media (max-width:980px){.type-sec{scroll-margin-top:80px}}
+.shop-group{padding:28px 0 8px;scroll-margin-top:140px}.shop-group-head{margin-bottom:16px}.shop-group-head h2{font-size:clamp(22px,2.4vw,28px)}.shop-group-head p{margin:4px 0 0;color:var(--mute)}
+.cat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.cat-card{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;color:var(--ink);transition:border-color .15s}
+.cat-card:hover{border-color:var(--ink)}
+.cat-card .img{aspect-ratio:16/10;background:var(--sand);overflow:hidden}.cat-card .img img{width:100%;height:100%;object-fit:cover}
+.cat-card .ph-empty{display:flex;align-items:center;justify-content:center;width:100%;height:100%}.cat-card .ph-empty img{width:56px;height:auto;opacity:.22;filter:grayscale(1)}
+.cat-card .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.cat-card h3{font-size:18px}.cat-card p{margin:0;font-size:14px;color:var(--mute);line-height:1.5}
+.cat-card .n{margin-top:auto;font-size:13.5px;font-weight:600;color:var(--ink2)}
+.cat-card .tag{margin-top:auto;align-self:flex-start;background:var(--ink);color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px}
+.chips button{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line2);background:#fff;font-weight:600;font-size:15px;color:var(--ink2);cursor:pointer}
+.chips button small{font-size:12px;font-weight:600;color:var(--mute)}
+.chips button:hover{border-color:var(--ink);color:var(--ink)}.chips button.cur{background:var(--ink);border-color:var(--ink);color:#fff}.chips button.cur small{color:#c9ccd3}
+.chips button.empty{color:var(--mute)}
+.grid-box[hidden],.product-grid[hidden]{display:none}
+@media (max-width:980px){.cat-cards{grid-template-columns:repeat(2,1fr);gap:12px}.cat-card .body{padding:12px 12px 14px}.cat-card h3{font-size:16px}.shop-group{scroll-margin-top:80px}}
 """
 CSS = CSS + fit.CSS
 ASSET_VER = {"css": digest(CSS), "js": digest(JS), "fit": digest(fit.JS)}
 
 
 # ----------------------------------------------------------------- components
-def product_card(p, page_dir, lang, tag=None):
+def product_card(p, page_dir, lang, tag=None, attrs=""):
     url = link(page_dir, sb.product_page(p), lang)
     sq = crop(p["image"]["full"], "sq")
     thumb = asset(page_dir, sq if sq != p["image"]["full"] else (p["image"]["thumb"] or p["image"]["full"]))
@@ -717,7 +737,7 @@ def product_card(p, page_dir, lang, tag=None):
         badge = '<span class="tag hot">熱賣</span>'
     elif tag == "new":
         badge = '<span class="tag">最新</span>'
-    return (f'<a class="grid-box" href="{url}" data-producttlid="{p["id"]}" data-zh-name="{esc(p["name"])}">'
+    return (f'<a class="grid-box" href="{url}" data-producttlid="{p["id"]}" data-zh-name="{esc(p["name"])}"{attrs}>'
             f'<div class="image"><img src="{thumb}" alt="{esc(p["name"])}" loading="lazy"></div>{badge}'
             f'<div class="inner"><div class="name">{esc(p["name"])}</div><div class="price">{price_text(p["price"])}</div></div></a>')
 
@@ -1132,58 +1152,69 @@ def item_text(obj, lang, field):
 
 
 
-# ----------------------------------------------------------------- 商品分類 (shop.html) + group tiles
-def type_sections(data, visible, c, d, lang, limit=None):
-    """Products of one category, one block per sub-category (empty ones say 即將推出)."""
-    out = ""
-    for t in types_of(c):
-        items = type_items(visible, c, t)
-        body = product_grid(items[:limit] if limit else items, d, lang) if items else '<div class="soon"><span class="tag">即將推出</span><p>這個分類的商品即將推出，先看看其他系列。</p></div>'
-        out += f'<div class="type-sec" id="type-{esc(t["key"])}"><h4>{esc(t["name"])}</h4>{body}</div>'
-    rest = untyped_items(visible, c)
-    if rest:
-        out += f'<div class="type-sec">{"<h4>其他</h4>" if types_of(c) else ""}{product_grid(rest, d, lang)}</div>'
-    if not out:
-        out = '<div class="soon"><span class="tag">即將推出</span><p>這個分類的商品即將推出，先看看其他系列。</p></div>'
-    return out
+# ----------------------------------------------------------------- 商品分類 (shop.html): a directory of category cards
+SOON = '<div class="soon"><span class="tag">即將推出</span><p>這個分類的商品即將推出，先看看其他系列。</p></div>'
+
+
+def category_card(c, visible, d, lang):
+    items = [p for p in visible if c["id"] in p.get("categories", [])]
+    if items:
+        img = crop(items[0]["image"]["full"], "w43")
+        pic = f'<img src="{asset(d, img)}" alt="" loading="lazy">'
+        meta = f'<span class="n">共 {len(items)} 件商品</span>'
+    else:
+        pic = f'<span class="ph-empty" aria-hidden="true"><img src="{asset(d, LOGO)}" alt=""></span>'
+        meta = '<span class="tag">即將推出</span>'
+    types = "・".join(esc(t["name"]) for t in types_of(c))
+    return (f'<a class="cat-card" href="{link(d, sb.category_page(c["id"]), lang)}"><div class="img">{pic}</div>'
+            f'<div class="body"><h3>{esc(c["name"])}</h3>{f"<p>{types}</p>" if types else ""}{meta}</div></a>')
 
 
 def render_shop(data, visible, lang):
     d = ""
     blocks = ""
     for g in groups_of(data):
-        cats_html = ""
-        for c in cats_in(data, g["key"]):
-            more = (f'<a class="more" href="{link(d, sb.category_page(c["id"]), lang)}">查看全部<span aria-hidden="true"> →</span></a>'
-                    if cat_count(c, visible) else "")
-            cats_html += (f'<div class="shop-cat" id="cat-{c["id"]}"><div class="shop-cat-head"><div><h3>{esc(c["name"])}</h3>'
-                          f'{("<p>" + esc(c.get("blurb", "")) + "</p>") if c.get("blurb") else ""}</div>{more}</div>{type_sections(data, visible, c, d, lang)}</div>')
-        blocks += (f'<section class="sec tight shop-group" id="{g["key"]}"><div class="wrap"><div class="sec-head rv"><div><span class="eyebrow">商品分類</span>'
-                   f'<h2>{esc(g["name"])}</h2><p>{esc(g.get("blurb", ""))}</p></div></div><div class="rv">{cats_html}</div></div></section>')
+        cards = "".join(category_card(c, visible, d, lang) for c in cats_in(data, g["key"]))
+        if not cards:
+            continue
+        blocks += (f'<section class="shop-group" id="{g["key"]}"><div class="shop-group-head"><h2>{esc(g["name"])}</h2>'
+                   f'{("<p>" + esc(g.get("blurb", "")) + "</p>") if g.get("blurb") else ""}</div>'
+                   f'<div class="cat-cards">{cards}</div></section>')
     body = f"""<div class="wrap">
 <ol class="breadcrumb"><li><a href="{link(d, 'index.html', lang)}">首頁</a></li><li><span>商品分類</span></li></ol>
 <div class="ph"><h1>商品分類</h1><p>依用途挑選</p></div>
 <div class="chips">{"".join(f'<a href="#{g["key"]}">{esc(g["name"])}</a>' for g in groups_of(data))}<a href="{link(d, 'search.html', lang)}">全系列</a></div>
-</div>
-{blocks}"""
+{blocks}
+<div style="height:56px"></div>
+</div>"""
     return page(data, SHOP, lang, f"商品分類 | {BRAND}", body, "依用途挑選 apetto 的機能服飾、外出配件與舒適生活用品。", current=SHOP)
 
 
 def render_category(data, visible, c, lang):
-    """A category page: sub-category chips, then one product block per sub-category."""
+    """A category page: one product grid, filtered by sub-category tabs (works without JS: everything shows)."""
     site_rel = sb.category_page(c["id"])
     d = rel_dir(site_rel)
     g = next((x for x in groups_of(data) if x["key"] == c.get("group")), None)
-    chips = "".join(f'<a href="#type-{esc(t["key"])}">{esc(t["name"])}</a>' for t in types_of(c))
+    items = [p for p in visible if c["id"] in p.get("categories", [])]
+    types = types_of(c)
+    grid_id = f"cat{c['id']}-grid"
+    tabs = ""
+    if types and items:
+        tabs = f'<button type="button" class="cur" data-type="">全部 <small>{len(items)}</small></button>'
+        for t in types:
+            k = len(type_items(visible, c, t))
+            tabs += (f'<button type="button" data-type="{esc(t["key"])}">{esc(t["name"])} <small>{k}</small></button>' if k else
+                     f'<button type="button" data-type="{esc(t["key"])}" class="empty">{esc(t["name"])} <small>即將推出</small></button>')
+        tabs = f'<div class="chips type-tabs" data-grid="{grid_id}" role="toolbar">{tabs}</div>'
+    cards = "".join(product_card(p, d, lang, attrs=f' data-types="{esc(" ".join(p.get("types") or []))}"') for p in items)
+    grid = (f'<div class="product-grid" id="{grid_id}">{cards}</div><div id="{grid_id}-soon" hidden>{SOON}</div>' if items else SOON)
     crumbs = (f'<li><a href="{link(d, "index.html", lang)}">首頁</a></li><li><a href="{link(d, SHOP, lang)}">商品分類</a></li>'
               + (f'<li><a href="{link(d, SHOP, lang)}#{g["key"]}">{esc(g["name"])}</a></li>' if g else "") + f'<li><span>{esc(c["name"])}</span></li>')
-    n = cat_count(c, visible)
     body = f"""<div class="wrap">
 <ol class="breadcrumb">{crumbs}</ol>
 <div class="ph"><h1>{esc(c["name"])}</h1>{f'<p>{esc(c["blurb"])}</p>' if c.get("blurb") else ''}</div>
-{f'<div class="chips">{chips}</div>' if chips else '<div style="height:18px"></div>'}
-<div class="pagination"><p class="results">共 {n} 件商品</p></div>
-{type_sections(data, visible, c, d, lang)}
+{tabs or '<div style="height:18px"></div>'}
+{grid}
 <div style="height:48px"></div>
 </div>"""
     return page(data, site_rel, lang, f"{c['name']} | {BRAND}", body, c.get("blurb") or c["name"], current=SHOP)
