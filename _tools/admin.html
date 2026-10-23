@@ -38,6 +38,18 @@
   .rte-bar button.on { background:#dbeafe; border-color:#93c5fd; }
   .rte-bar select { border-color:var(--line); background:#fff; }
   .rte-bar .sep { width:1px; height:22px; background:var(--line); margin:0 4px; }
+  .rte { overflow:visible; } .rte-bar { border-radius:10px 10px 0 0; }
+  .rte-colorwrap { position:relative; display:inline-flex; }
+  .rte-color { font-weight:700; display:inline-flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; gap:2px; }
+  .rte-color i { display:block; width:16px; height:3px; border-radius:2px; background:#d41d0e; }
+  .rte-pop { position:absolute; top:36px; left:0; z-index:5; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,.15); padding:10px; width:212px; }
+  .rte-pop[hidden] { display:none; }
+  .rte-sw { display:grid; grid-template-columns:repeat(8, 1fr); gap:6px; }
+  .rte-sw button { width:20px !important; min-width:0 !important; height:20px !important; padding:0 !important; border-radius:50% !important; border:1px solid rgba(0,0,0,.15) !important; }
+  .rte-sw button:hover { transform:scale(1.15); }
+  .rte-pop-foot { display:flex; justify-content:space-between; align-items:center; margin-top:10px; gap:8px; font-size:13px; }
+  .rte-pop-foot button { border:1px solid var(--line) !important; height:28px !important; font-size:13px !important; }
+  .rte-pop-foot label { display:flex; align-items:center; gap:4px; } .rte-pop-foot input[type=color] { width:30px; height:26px; padding:0; border:0; background:none; }
   .rte-bar svg { width:16px; height:16px; vertical-align:-3px; }
   .rte-area { min-height:200px; max-height:60vh; overflow:auto; padding:12px 14px; outline:none; font-size:15px; line-height:1.75; color:#1f2328; }
   .rte-area:empty::before { content:attr(data-ph); color:#8c959f; }
@@ -466,8 +478,8 @@
         </fieldset>
         <fieldset class="full box"><legend>商品介紹</legend>
           <div id="blocks"></div>
-          <div class="addbar"><span>加入：</span><button type="button" data-add="h">標題</button><button type="button" data-add="p">文字</button><button type="button" data-add="ul">條列</button><button type="button" data-add="img">圖片</button><button type="button" data-add="chart">尺寸表</button></div>
-          <div class="hint">由上到下就是商品頁的順序，用 ↑ ↓ 調整。</div>
+          <div class="addbar"><span>加入：</span><button type="button" data-add="rich">文字</button><button type="button" data-add="img">圖片</button><button type="button" data-add="chart">尺寸表</button></div>
+          <div class="hint">由上到下就是商品頁的順序，用 ↑ ↓ 調整。文字區塊有工具列，可以設定標題、粗體、文字大小、顏色、對齊、清單與連結，也可以直接從 Word 貼上。</div>
         </fieldset>
         <div>
           <label class="f">主圖 <span id="img-req">*</span></label>
@@ -517,6 +529,28 @@
 const $ = s => document.querySelector(s);
 const UI_LANG = localStorage.getItem('apetto_admin_lang') || ((navigator.language || '').toLowerCase().startsWith('de') ? 'de' : 'zh');
 const DE = {
+  "預設顏色": "Standardfarbe",
+  "自訂": "Eigene",
+  "黑色": "Schwarz",
+  "深灰": "Dunkelgrau",
+  "灰色": "Grau",
+  "品牌紅": "Markenrot",
+  "紅色": "Rot",
+  "桃紅": "Pink",
+  "紫紅": "Magenta",
+  "紫色": "Violett",
+  "靛藍": "Indigo",
+  "藍色": "Blau",
+  "青色": "Türkis",
+  "綠色": "Grün",
+  "草綠": "Olivgrün",
+  "金黃": "Goldgelb",
+  "橘色": "Orange",
+  "咖啡": "Braun",
+  "在這裡輸入商品介紹…": "Hier die Produktbeschreibung eingeben…",
+  "商品介紹": "Produktbeschreibung",
+  "填了會取代該語言的整段介紹（圖片與尺寸表沿用中文版的請留空）。": "Ersetzt die ganze Beschreibung in dieser Sprache (leer lassen, um Bilder und Größentabelle der chinesischen Fassung zu behalten).",
+  "由上到下就是商品頁的順序，用 ↑ ↓ 調整。文字區塊有工具列，可以設定標題、粗體、文字大小、顏色、對齊、清單與連結，也可以直接從 Word 貼上。": "Von oben nach unten ist die Reihenfolge auf der Produktseite, mit ↑ ↓ verschieben. Textblöcke haben eine Werkzeugleiste für Überschriften, Fett, Schriftgröße, Farbe, Ausrichtung, Listen und Links; Text aus Word kann direkt eingefügt werden.",
   "中文名稱": "Chinesischer Name",
   "中文": "Chinesisch",
   "＋ 新增子分類": "＋ Unterkategorie hinzufügen",
@@ -1019,6 +1053,7 @@ function parseBlocks(html) {
   const doc = new DOMParser().parseFromString('<div id="r">' + (html || '') + '</div>', 'text/html'), out = [];
   [...doc.getElementById('r').children].forEach(el => {
     const tag = el.tagName.toLowerCase();
+    if (el.classList && el.classList.contains('rt')) { out.push({ t: 'rich', html: el.innerHTML }); return; }
     if (el.dataset && el.dataset.chart) { out.push({ t: 'chart', key: el.dataset.chart }); return; }
     const imgs = tag === 'img' ? [el] : [...el.querySelectorAll('img')];
     if (imgs.length && !txtOf(el)) {
@@ -1039,6 +1074,17 @@ function parseBlocks(html) {
       if (/^h[1-6]$/.test(tag) || (b && text.length <= 40 && txtOf(b) === text)) out.push({ t: 'h', text }); else out.push({ t: 'p', text });
     });
   });
+  return mergeText(out);
+}
+/* runs of the older heading / paragraph / list blocks become one rich text block */
+const textBlockHtml = b => b.t === 'h' ? `<h3>${escHtml(b.text)}</h3>` : b.t === 'p' ? `<p>${escHtml(b.text).replace(/\n/g, '<br>')}</p>` : b.t === 'ul' ? `<ul>${b.items.map(i => `<li>${escHtml(i)}</li>`).join('')}</ul>` : '';
+function mergeText(blocks) {
+  const out = [];
+  blocks.forEach(b => {
+    if (['h', 'p', 'ul'].includes(b.t)) { const last = out[out.length - 1]; if (last && last.t === 'rich' && last.merged) last.html += textBlockHtml(b); else out.push({ t: 'rich', html: textBlockHtml(b), merged: true }); }
+    else out.push(b);
+  });
+  out.forEach(b => delete b.merged);
   return out;
 }
 function blocksToHtml(blocks, imgSrc) {
@@ -1048,22 +1094,31 @@ function blocksToHtml(blocks, imgSrc) {
     if (b.t === 'ul') return b.items.length ? `<ul>${b.items.map(i => `<li>${escHtml(i)}</li>`).join('')}</ul>` : '';
     if (b.t === 'img') { const u = imgSrc(b); return u ? `<p><img src="${escHtml(u)}" alt=""></p>` : ''; }
     if (b.t === 'chart') return b.key ? `<div data-chart="${escHtml(b.key)}"></div>` : '';
+    if (b.t === 'rich') { const h = cleanRich(b.html); return h ? `<div class="rt">${h}</div>` : ''; }
     return '';
   }).filter(Boolean).join('\n');
 }
-const blocksText = blocks => blocks.map(b => b.t === 'ul' ? b.items.join('\n') : (b.t === 'h' || b.t === 'p') ? b.text : '').filter(Boolean).join('\n');
+const blocksText = blocks => blocks.map(b => b.t === 'ul' ? b.items.join('\n') : (b.t === 'h' || b.t === 'p') ? b.text : b.t === 'rich' ? txtOf(new DOMParser().parseFromString(b.html, 'text/html').body) : '').filter(Boolean).join('\n');
+/* a translated description for the editor: its rich text, or the older plain lines */
+function trDescription(html) {
+  const doc = new DOMParser().parseFromString('<div id="r">' + (html || '') + '</div>', 'text/html'), rts = doc.querySelectorAll('#r > .rt');
+  return rts.length ? [...rts].map(x => x.innerHTML).join('') : blocksText(parseBlocks(html));
+}
 function renderBlocks() {
   const box = $('#blocks'); box.innerHTML = '';
   BLOCKS.forEach((b, i) => {
     const d = document.createElement('div'); d.className = 'blk blk-' + b.t;
-    const label = { h: t('標題'), p: t('文字'), ul: t('條列'), img: t('圖片'), chart: t('尺寸表') }[b.t];
+    const label = { h: t('標題'), p: t('文字'), ul: t('條列'), img: t('圖片'), chart: t('尺寸表'), rich: t('文字') }[b.t];
     let body = '';
     if (b.t === 'h') body = `<input type="text" data-k="text" value="${escHtml(b.text || '')}" placeholder="${t('小標題')}">`;
     else if (b.t === 'p') body = `<textarea data-k="text" placeholder="${t('一段文字')}">${escHtml(b.text || '')}</textarea>`;
     else if (b.t === 'ul') body = `<textarea data-k="items" placeholder="${t('每行一點')}">${escHtml((b.items || []).join('\n'))}</textarea>`;
     else if (b.t === 'img') { const u = b.url || (b.src ? rawUrl(b.src) : ''); body = `${u ? `<img class="blk-pic" src="${escHtml(u)}">` : ''}<input type="file" accept="image/*" data-k="file">`; }
+    else if (b.t === 'rich') body = `<textarea data-k="html"></textarea>`;
     else if (b.t === 'chart') body = `<select data-k="key">${Object.entries(CHARTS).map(([k, c]) => `<option value="${k}" ${k === b.key ? 'selected' : ''}>${escHtml(tName(c.title))}</option>`).join('')}</select>`;
     d.innerHTML = `<div class="blk-head"><span class="blk-tag">${label}</span><span class="sp"></span><button type="button" class="small" data-mv="-1" ${i === 0 ? 'disabled' : ''}>↑</button><button type="button" class="small" data-mv="1" ${i === BLOCKS.length - 1 ? 'disabled' : ''}>↓</button><button type="button" class="small danger" data-del>✕</button></div><div class="blk-body">${body}</div>`;
+    const rt = d.querySelector('[data-k="html"]');
+    if (rt) { rt.value = b.html || ''; setTimeout(() => { mountRich(rt, t('在這裡輸入商品介紹…')); b.html = rt.value; rt.addEventListener('input', () => { b.html = rt.value; }); }); }
     const te = d.querySelector('[data-k="text"],[data-k="items"]');
     if (te) te.addEventListener('input', e => { if (b.t === 'ul') b.items = e.target.value.split(/\r?\n/).map(x => x.trim()).filter(Boolean); else b.text = e.target.value; });
     const sel = d.querySelector('[data-k="key"]'); if (sel) { b.key = sel.value; sel.addEventListener('change', e => b.key = e.target.value); }
@@ -1075,9 +1130,9 @@ function renderBlocks() {
 }
 document.querySelectorAll('[data-add]').forEach(btn => btn.onclick = () => {
   const k = btn.dataset.add;
-  BLOCKS.push({ h: { t: 'h', text: '' }, p: { t: 'p', text: '' }, ul: { t: 'ul', items: [] }, img: { t: 'img' }, chart: { t: 'chart', key: Object.keys(CHARTS)[0] || '' } }[k]);
+  BLOCKS.push({ rich: { t: 'rich', html: '' }, h: { t: 'h', text: '' }, p: { t: 'p', text: '' }, ul: { t: 'ul', items: [] }, img: { t: 'img' }, chart: { t: 'chart', key: Object.keys(CHARTS)[0] || '' } }[k]);
   renderBlocks();
-  const last = $('#blocks').lastElementChild; if (last) { last.scrollIntoView({ block: 'nearest' }); const f = last.querySelector('input,textarea,select'); f && f.focus(); }
+  const last = $('#blocks').lastElementChild; if (last) { last.scrollIntoView({ block: 'nearest' }); setTimeout(() => { const f = last.querySelector('.rte-area,input,select'); f && f.focus(); }, 30); }
 });
 function chartTable(c) {  // preview only; the real page renders the chart at build time
   if (!c) return '';
@@ -1093,7 +1148,7 @@ function buildTrBlocks() {
         <div><label class="f">${t('列表卡片上的一句話')}</label><input type="text" name="tr_${k}_summary"></div>
         <div><label class="f">${t('重點標題')}</label><input type="text" name="tr_${k}_feat_title"></div>
         <div><label class="f">${t('重點一句話')}</label><input type="text" name="tr_${k}_feat_line"></div>
-        <div class="full"><label class="f">${t('介紹文字（每行一段）')}</label><textarea name="tr_${k}_description"></textarea></div>
+        <div class="full"><label class="f">${t('商品介紹')}</label><textarea name="tr_${k}_description"></textarea><div class="hint">${t('填了會取代該語言的整段介紹（圖片與尺寸表沿用中文版的請留空）。')}</div></div>
       </div></details>`).join('');
 }
 function productTr(p) {  // {lang: {name, summary, feature_html, description_html}}, incl. older name-only data
@@ -1104,12 +1159,12 @@ function productTr(p) {  // {lang: {name, summary, feature_html, description_htm
 function readTr(fd) {
   const out = {};
   TR_LANGS.forEach(([k]) => {
-    const lines = (fd.get(`tr_${k}_description`) || '').split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+    const desc = cleanRich(fd.get(`tr_${k}_description`) || '');
     const o = {
       name: (fd.get(`tr_${k}_name`) || '').trim(),
       summary: (fd.get(`tr_${k}_summary`) || '').trim(),
       feature_html: featureToHtml(fd.get(`tr_${k}_feat_title`), fd.get(`tr_${k}_feat_line`)),
-      description_html: lines.map(l => `<p>${escHtml(l)}</p>`).join('\n'),
+      description_html: desc ? `<div class="rt">${desc}</div>` : '',
     };
     Object.keys(o).forEach(x => { if (!o[x]) delete o[x]; });
     if (Object.keys(o).length) out[k] = o;
@@ -1118,7 +1173,7 @@ function readTr(fd) {
 }
 function markFilled() {
   document.querySelectorAll('details.tr').forEach(d => {
-    const n = [...d.querySelectorAll('input,textarea')].filter(i => i.value.trim()).length;
+    const n = [...d.querySelectorAll('input,textarea:not(.rte-src)')].filter(i => i.value.trim()).length;
     d.querySelector('[data-filled]').textContent = n ? t('已填 {n} 欄', { n }) : t('未填');
   });
 }
@@ -1145,7 +1200,7 @@ function openForm(p) {
       const o = tr[k] || {}, ft = parseFeature(o.feature_html);
       f[`tr_${k}_name`].value = o.name || ''; f[`tr_${k}_summary`].value = o.summary || '';
       f[`tr_${k}_feat_title`].value = ft.title; f[`tr_${k}_feat_line`].value = ft.line;
-      f[`tr_${k}_description`].value = blocksText(parseBlocks(o.description_html));
+      f[`tr_${k}_description`].value = trDescription(o.description_html);
     });
     f.visible.checked = p.visible !== false;
     f.querySelectorAll('input[name=categories]').forEach(c => c.checked = (p.categories || []).includes(Number(c.value)));
@@ -1154,6 +1209,7 @@ function openForm(p) {
   } else {
     f.querySelectorAll('input[name=sections]').forEach(c => c.checked = c.value === 'latest');
   }
+  TR_LANGS.forEach(([k]) => mountRich(f[`tr_${k}_description`], t('在這裡輸入商品介紹…')));
   markFilled();
   $('#tr-blocks').oninput = markFilled;
   $('#dlg').showModal();
@@ -1582,6 +1638,8 @@ function plainToRich(v) {
 function cleanRich(html) {
   const doc = new DOMParser().parseFromString(`<!doctype html><body>${(html || '').replace(/>\s*\n\s*</g, '><')}</body>`, 'text/html'), body = doc.body;
   const unwrap = el => { while (el.firstChild) el.parentNode.insertBefore(el.firstChild, el); el.remove(); };
+  const hexOf = v => { v = (v || '').trim().toLowerCase(); let m = v.match(/^#([0-9a-f]{6})$/); if (m) return '#' + m[1]; m = v.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/); if (m) return '#' + m[1] + m[1] + m[2] + m[2] + m[3] + m[3];
+    m = v.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/); return m ? '#' + [m[1], m[2], m[3]].map(x => (+x).toString(16).padStart(2, '0')).join('') : ''; };
   const rename = (el, tag) => { const r = doc.createElement(tag); [...el.attributes].forEach(a => r.setAttribute(a.name, a.value)); while (el.firstChild) r.appendChild(el.firstChild); el.replaceWith(r); return r; };
   const walk = node => [...node.childNodes].forEach(n => {
     if (n.nodeType === 3) return;
@@ -1590,7 +1648,7 @@ function cleanRich(html) {
     let el = n; const st = el.getAttribute('style') || '';
     if (el.tagName === 'FONT') {     // execCommand fontSize / pasted <font>
       const sz = +el.getAttribute('size'), cls = sz && sz <= 2 ? 'fs-s' : sz >= 6 ? 'fs-xl' : sz >= 4 ? 'fs-l' : '';
-      el = rename(el, 'SPAN'); el.removeAttribute('size'); el.removeAttribute('color'); el.removeAttribute('face'); if (cls) el.className = cls;
+      const fc = el.getAttribute('color'); el = rename(el, 'SPAN'); el.removeAttribute('size'); el.removeAttribute('color'); el.removeAttribute('face'); if (cls) el.className = cls; if (fc) el.setAttribute('style', `color:${fc}`);
     }
     if (el.tagName === 'SPAN' && /font-weight\s*:\s*(bold|[6-9]00)/i.test(st)) el = rename(el, 'STRONG');
     else if (el.tagName === 'SPAN' && /font-style\s*:\s*italic/i.test(st)) el = rename(el, 'EM');
@@ -1598,9 +1656,11 @@ function cleanRich(html) {
     if (!RICH_TAGS.includes(el.tagName) || (/^(P|H2|H3|H4|BLOCKQUOTE)$/.test(el.tagName) && el.querySelector('ul,ol,p,h2,h3,h4'))) { unwrap(el); return; }
     const align = ((el.getAttribute('style') || '').match(/text-align\s*:\s*(center|right|justify)/i) || [])[1] || (/(center|right|justify)/i.test(el.getAttribute('align') || '') ? el.getAttribute('align') : '');
     const cls = [...el.classList].filter(c => RICH_CLASSES.includes(c)), href = el.getAttribute('href') || '';
+    let color = el.tagName === 'SPAN' ? hexOf(((el.getAttribute('style') || '').match(/(?:^|;)\s*color\s*:\s*([^;]+)/i) || [])[1]) : '';
+    if (color === '#010203' || color === '#000000') color = '';
     [...el.attributes].forEach(a => el.removeAttribute(a.name));
     if (align && RICH_BLOCKS.includes(el.tagName)) el.setAttribute('style', `text-align:${align.toLowerCase()}`);
-    if (el.tagName === 'SPAN') { if (cls.length) el.className = cls.join(' '); else unwrap(el); }
+    if (el.tagName === 'SPAN') { if (cls.length) el.className = cls.join(' '); if (color) el.setAttribute('style', `color:${color}`); if (!cls.length && !color) unwrap(el); }
     if (el.tagName === 'A') { if (!href || /^\s*(javascript|data|vbscript):/i.test(href)) unwrap(el); else el.setAttribute('href', href.trim()); }
   });
   walk(body);
@@ -1615,6 +1675,7 @@ function cleanRich(html) {
   if (!body.textContent.trim()) return '';
   return body.innerHTML.replace(/<p><br><\/p>/g, '').trim();
 }
+const RTE_COLORS = [["#17181a", "黑色"], ["#3d4047", "深灰"], ["#8c959f", "灰色"], ["#d41d0e", "品牌紅"], ["#e03131", "紅色"], ["#d6336c", "桃紅"], ["#ae3ec9", "紫紅"], ["#7048e8", "紫色"], ["#3b5bdb", "靛藍"], ["#1971c2", "藍色"], ["#1098ad", "青色"], ["#2b8a3e", "綠色"], ["#5c940d", "草綠"], ["#f59f00", "金黃"], ["#e8590c", "橘色"], ["#8d5524", "咖啡"]];
 const RTE_ICON = {
   left: '<svg viewBox="0 0 16 16"><path d="M2 3h12M2 6.5h8M2 10h12M2 13.5h8" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>',
   center: '<svg viewBox="0 0 16 16"><path d="M2 3h12M4 6.5h8M2 10h12M4 13.5h8" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>',
@@ -1632,7 +1693,9 @@ function mountRich(ta, placeholder) {
   box.innerHTML = `<div class="rte-bar">
       <select data-cmd="block" title="${t('段落樣式')}"><option value="p">${t('內文')}</option><option value="h2">${t('大標題')}</option><option value="h3">${t('小標題')}</option><option value="blockquote">${t('引言')}</option></select>
       <select data-cmd="size" title="${t('文字大小')}"><option value="">${t('文字大小')}</option><option value="fs-s">${t('小')}</option><option value="normal">${t('標準')}</option><option value="fs-l">${t('大')}</option><option value="fs-xl">${t('特大')}</option></select>
-      <select data-cmd="color" title="${t('文字顏色')}"><option value="">${t('文字顏色')}</option><option value="normal">${t('預設')}</option><option value="tc-brand">${t('品牌紅')}</option><option value="tc-mute">${t('灰色')}</option></select>
+      <span class="rte-colorwrap"><button type="button" data-cmd="palette" class="rte-color" title="${t('文字顏色')}">A<i></i></button>
+        <span class="rte-pop" hidden><span class="rte-sw">${RTE_COLORS.map(([c, n]) => `<button type="button" data-color="${c}" title="${t(n)}" style="background:${c}"></button>`).join('')}</span>
+          <span class="rte-pop-foot"><button type="button" data-color="normal">${t('預設顏色')}</button><label>${t('自訂')} <input type="color" value="#d41d0e"></label></span></span></span>
       <span class="sep"></span>
       <button type="button" data-cmd="bold" title="${t('粗體')}"><b>B</b></button><button type="button" data-cmd="italic" title="${t('斜體')}"><i>I</i></button><button type="button" data-cmd="underline" title="${t('底線')}"><u>U</u></button>
       <span class="sep"></span>
@@ -1658,20 +1721,23 @@ function mountRich(ta, placeholder) {
     const blk = (() => { let n = getSelection().anchorNode; while (n && n !== area) { if (n.nodeType === 1 && /^(H2|H3|BLOCKQUOTE|P)$/.test(n.tagName)) return n.tagName.toLowerCase(); n = n.parentNode; } return 'p'; })();
     if (area.contains(getSelection().anchorNode)) bar.querySelector('[data-cmd=block]').value = blk;
   };
-  // size / colour: mark the selection with a throw-away <font>, then turn it into one of our classes
-  const mark = (cmd, val, family, cls) => {
+  // size / colour: mark the selection with a throw-away <font>, then turn it into one of our classes (or an inline colour)
+  const mark = (cmd, val, family, cls, color) => {
+    const colorFam = family.includes('tc-brand');
     document.execCommand('styleWithCSS', false, false);
     document.execCommand(cmd, false, val);
     area.querySelectorAll(cmd === 'fontSize' ? 'font[size="7"]' : 'font[color="#010203"]').forEach(f => {
-      f.querySelectorAll('span').forEach(sp => { family.forEach(c => sp.classList.remove(c)); if (!sp.classList.length) { while (sp.firstChild) sp.before(sp.firstChild); sp.remove(); } });
+      const strip = sp => { family.forEach(c => sp.classList.remove(c)); if (colorFam) sp.style.removeProperty('color'); if (!sp.classList.length && !sp.style.cssText) { while (sp.firstChild) sp.before(sp.firstChild); sp.remove(); } };
+      f.querySelectorAll('span').forEach(strip);
       for (let a = f.parentNode; a && a !== area && a.textContent === f.textContent;) {
         const up = a.parentNode;
-        if (a.tagName === 'SPAN') { family.forEach(c => a.classList.remove(c)); if (!a.classList.length) { while (a.firstChild) a.before(a.firstChild); a.remove(); } }
+        if (a.tagName === 'SPAN') strip(a);
         else if (!/^(STRONG|B|EM|I|U|S|A)$/.test(a.tagName)) break;
         a = up;
       }
-      const sp = document.createElement('span'); if (cls !== 'normal') sp.className = cls; while (f.firstChild) sp.appendChild(f.firstChild); f.replaceWith(sp);
-      if (cls === 'normal') { while (sp.firstChild) sp.before(sp.firstChild); sp.remove(); }
+      const sp = document.createElement('span'); if (cls && cls !== 'normal') sp.className = cls; if (color) sp.style.color = color;
+      while (f.firstChild) sp.appendChild(f.firstChild); f.replaceWith(sp);
+      if (!sp.className && !sp.style.cssText) { while (sp.firstChild) sp.before(sp.firstChild); sp.remove(); }
     });
   };
   const run = (cmd, val) => {
@@ -1683,15 +1749,24 @@ function mountRich(ta, placeholder) {
       document.execCommand('formatBlock', false, `<${val}>`);
     }
     else if (cmd === 'size') mark('fontSize', '7', ['fs-s', 'fs-l', 'fs-xl'], val);
-    else if (cmd === 'color') mark('foreColor', '#010203', ['tc-brand', 'tc-mute'], val);
+    else if (cmd === 'color') { mark('foreColor', '#010203', ['tc-brand', 'tc-mute'], 'normal', val === 'normal' ? '' : val); if (val !== 'normal') bar.querySelector('.rte-color i').style.background = val; }
     else if (cmd === 'link') { const u = prompt(t('連結網址（例如 https://… 或站內頁面 fitstudio.html）'), 'https://'); if (u && u.trim() && u.trim() !== 'https://') document.execCommand('createLink', false, u.trim()); }
     else if (cmd === 'removeFormat') { document.execCommand('removeFormat'); mark('fontSize', '7', ['fs-s', 'fs-l', 'fs-xl', 'tc-brand', 'tc-mute'], 'normal'); }
     else document.execCommand(cmd, false, val);
     keep(); sync();
   };
   bar.addEventListener('mousedown', e => { if (e.target.closest('button')) e.preventDefault(); });   // keep the text selection
+  bar.addEventListener('pointerdown', e => { if (e.target.closest('button')) e.preventDefault(); });
+  document.addEventListener('selectionchange', () => { if (box.isConnected) keep(); });
   bar.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
+    const pop = bar.querySelector('.rte-pop');
+    if (b.dataset.cmd === 'palette') {
+      pop.hidden = !pop.hidden;
+      if (!pop.hidden) { pop.style.left = '0px'; const r = pop.getBoundingClientRect(), over = r.right - (document.documentElement.clientWidth - 8); if (over > 0) pop.style.left = -Math.min(over, r.left - 8) + 'px'; }
+      return;
+    }
+    if (b.dataset.color) { pop.hidden = true; run('color', b.dataset.color); return; }
     if (b.dataset.cmd === 'source') {
       if (box.classList.toggle('src')) { src.value = cleanRich(area.innerHTML).replace(/(<\/(p|h2|h3|h4|ul|ol|li|blockquote)>)/g, '$1\n'); b.classList.add('on'); src.focus(); }
       else { area.innerHTML = cleanRich(src.value); b.classList.remove('on'); sync(); }
@@ -1699,6 +1774,8 @@ function mountRich(ta, placeholder) {
     }
     run(b.dataset.cmd);
   });
+  bar.querySelector('.rte-pop input[type=color]').addEventListener('change', e => { bar.querySelector('.rte-pop').hidden = true; run('color', e.target.value); });
+  area.addEventListener('mousedown', () => { bar.querySelector('.rte-pop').hidden = true; });
   bar.querySelectorAll('select').forEach(sel => sel.addEventListener('change', () => { if (sel.value) run(sel.dataset.cmd, sel.value); if (sel.dataset.cmd !== 'block') sel.value = ''; }));
   src.addEventListener('input', () => { ta.value = cleanRich(src.value); ta.dispatchEvent(new Event('input', { bubbles: true })); });
   area.addEventListener('input', sync);

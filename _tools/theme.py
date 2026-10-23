@@ -269,9 +269,14 @@ def buy_link(p, data):
     return (p.get("buy_url") or "").strip() or (settings.get("shop_url") or "").strip() or f"{sb.ONLINE}product/product&product_id={p['id']}"
 
 
-def clean_rich_html(fragment_html, page_dir):
-    """Description HTML from the shop: real image sources, no inline fonts/sizes, no handlers."""
+def clean_rich_html(fragment_html, page_dir, lang="zh"):
+    """Description HTML from the shop: real image sources, no inline fonts/sizes, no handlers.
+    Text written in the admin editor (<div class="rt">) keeps its formatting via rich_html()."""
     frag = BeautifulSoup(fragment_html or "", "html.parser")
+    rich_parts = []
+    for div in frag.find_all("div", class_="rt"):
+        rich_parts.append(rich_html(div.decode_contents(), page_dir, lang))
+        div.replace_with(NavigableString(f"@@RT{len(rich_parts) - 1}@@"))
     for img in frag.find_all("img"):
         src = img.get("data-lazy-src") or img.get("data-src") or img.get("src") or ""
         for a in ("data-lazy-src", "data-src", "onerror", "onload", "width", "height", "style", "class"):
@@ -295,7 +300,10 @@ def clean_rich_html(fragment_html, page_dir):
     for t in list(frag.find_all(string=True)):
         if " " in t or re.match(r"^\s{2,}", t):
             t.replace_with(NavigableString(re.sub(r"[\s ]+", " ", t)))
-    return str(frag)
+    out = str(frag)
+    for i, part in enumerate(rich_parts):
+        out = out.replace(f"@@RT{i}@@", f'<div class="rt">{part}</div>')
+    return out
 
 
 # ----------------------------------------------------------------- static assets (CSS / JS)
@@ -854,7 +862,7 @@ def render_product(data, visible, p, lang, overrides):
   <input type="hidden" id="product_id" value="{p['id']}">
  </div>
 </div>
-<section class="pd-desc"><h2>商品介紹</h2><div id="tab-description" class="rich">{clean_rich_html(description, d)}</div></section>
+<section class="pd-desc"><h2>商品介紹</h2><div id="tab-description" class="rich">{clean_rich_html(description, d, lang)}</div></section>
 </div>
 {section('相關商品', product_grid(related, d, lang), cls='tight', page_dir=d, lang=lang) if related else ''}"""
     extra = f'<script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>\n'
@@ -1068,6 +1076,7 @@ RICH_RENAME = {"b": "strong", "i": "em", "div": "p", "h1": "h2", "h5": "h4", "h6
 RICH_BLOCKS = {"p", "h2", "h3", "h4", "li", "blockquote"}
 RICH_CLASSES = {"fs-s", "fs-l", "fs-xl", "tc-brand", "tc-mute"}
 _ALIGN_RE = re.compile(r"text-align\s*:\s*(left|center|right|justify)", re.I)
+_COLOR_RE = re.compile(r"(?:^|;)\s*color\s*:\s*(#[0-9a-fA-F]{6})\b")
 _HTML_START = re.compile(r"^\s*<(p|h[1-6]|ul|ol|div|blockquote|span|strong|b|em|i|u|a|br)\b", re.I)
 
 
@@ -1095,9 +1104,12 @@ def rich_html(text, page_dir="", lang="zh"):
         if align in ("left", "center", "right", "justify") and align != "left":
             el["style"] = f"text-align:{align}"
         if el.name == "span":
+            m_col = _COLOR_RE.search(style)
             if cls:
                 el["class"] = cls
-            else:
+            if m_col:
+                el["style"] = f"color:{m_col.group(1).lower()}"
+            if not cls and not m_col:
                 el.unwrap()
             continue
         if el.name == "a":
