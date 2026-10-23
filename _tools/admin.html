@@ -30,6 +30,10 @@
   .pane.on { display:block; }
   .pane > .sec-title:first-child { margin-top:4px; }
   .sec-title { font-size:17px; margin:36px 0 12px; }
+  .content-view { background:#fafbfc; border:1px solid var(--line); border-radius:10px; padding:12px 16px; font-size:14px; }
+  .content-view b { display:block; font-size:18px; margin-bottom:4px; } .content-view p { margin:4px 0 0; color:var(--mute); }
+  td.ord { color:var(--mute); font-size:13px; }
+  .checks .grp-label { width:100%; font-size:12.5px; color:var(--mute); margin-top:4px; }
   input[type=date] { width:100%; font:inherit; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; }
   .toolbar .count { color:var(--muted); font-size:14px; }
   button { font:inherit; border:1px solid var(--line); background:#fff; color:var(--text); padding:7px 12px; border-radius:8px; cursor:pointer; }
@@ -240,6 +244,7 @@
   <section id="app" style="display:none">
     <nav class="tabs" aria-label="後台分頁">
       <button type="button" class="tab" data-tab="products">商品</button>
+      <button type="button" class="tab" data-tab="content">網站內容</button>
       <button type="button" class="tab" data-tab="news">最新消息</button>
       <button type="button" class="tab" data-tab="fit">試衣間</button>
       <button type="button" class="tab" data-tab="history">試衣間紀錄</button>
@@ -293,6 +298,33 @@
       <thead><tr><th style="width:64px">圖片</th><th>名稱</th><th class="hide-sm">檔案</th><th>狀態</th><th style="width:300px">操作</th></tr></thead>
       <tbody id="dog-rows"></tbody>
     </table>
+    </div>
+
+    <div class="pane" data-pane="content">
+    <h2 class="sec-title" style="margin-top:8px">首頁主視覺與頁面文字</h2>
+    <p class="hint" style="margin:-6px 0 12px">首頁大標題、副標，以及「機能與設計細節」頁的副標。</p>
+    <div class="toolbar"><button class="primary" id="btn-hero-edit">編輯文字</button></div>
+    <div class="content-view" id="hero-view"></div>
+
+    <h2 class="sec-title">商品分類：群組</h2>
+    <p class="hint" style="margin:-6px 0 12px">「商品分類」頁與首頁的大分類，例如機能服飾、外出配件。</p>
+    <div class="toolbar"><button class="primary" id="btn-grp-add">＋ 新增群組</button><span class="count" id="grp-count"></span></div>
+    <table class="fit-table"><thead><tr><th style="width:64px">順序</th><th>群組</th><th class="hide-sm">包含的分類</th><th>狀態</th><th style="width:300px">操作</th></tr></thead><tbody id="grp-rows"></tbody></table>
+
+    <h2 class="sec-title">商品分類：分類</h2>
+    <p class="hint" style="margin:-6px 0 12px">每個分類屬於一個群組；新增商品時勾選的就是這些分類。沒有商品的分類會在前台顯示「即將推出」。</p>
+    <div class="toolbar"><button class="primary" id="btn-cat-add">＋ 新增分類</button><span class="count" id="cat-count"></span></div>
+    <table class="fit-table"><thead><tr><th style="width:64px">順序</th><th>分類</th><th class="hide-sm">群組</th><th>商品數</th><th style="width:300px">操作</th></tr></thead><tbody id="cat-rows"></tbody></table>
+
+    <h2 class="sec-title">商品指南</h2>
+    <p class="hint" style="margin:-6px 0 12px">「商品指南」頁的文章，首頁也會列出。</p>
+    <div class="toolbar"><button class="primary" id="btn-guide-add">＋ 新增指南</button><span class="count" id="guide-count"></span></div>
+    <table class="fit-table"><thead><tr><th style="width:64px">順序</th><th>標題</th><th class="hide-sm">網址</th><th>狀態</th><th style="width:300px">操作</th></tr></thead><tbody id="guide-rows"></tbody></table>
+
+    <h2 class="sec-title">機能與設計細節</h2>
+    <p class="hint" style="margin:-6px 0 12px">「機能與設計細節」頁的每一段（圖片＋文字）。勾「放在首頁」的會出現在首頁，最多 4 個。</p>
+    <div class="toolbar"><button class="primary" id="btn-feat-add">＋ 新增細節</button><span class="count" id="feat-count"></span></div>
+    <table class="fit-table"><thead><tr><th style="width:64px">圖片</th><th>標題</th><th class="hide-sm">首頁</th><th>狀態</th><th style="width:300px">操作</th></tr></thead><tbody id="feat-rows"></tbody></table>
     </div>
 
     <div class="pane" data-pane="history">
@@ -359,6 +391,26 @@
       <span class="progress" id="cform-progress"></span>
       <button type="button" id="cdlg-cancel">取消</button>
       <button type="submit" class="primary" id="cdlg-save">儲存並發布</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="edlg">
+  <form id="eform" method="dialog">
+    <div class="dlg-head"><h2 id="edlg-title">編輯</h2><button type="button" id="edlg-close" class="small">✕</button></div>
+    <div class="dlg-body">
+      <div class="grid" id="efields"></div>
+      <div id="etr-wrap" style="margin-top:14px">
+        <label class="f">外語版（選填）</label>
+        <div class="hint" style="margin-bottom:6px">沒填的會自動用翻譯表；表裡沒有的句子會維持中文。</div>
+        <div id="etr"></div>
+      </div>
+    </div>
+    <div class="dlg-foot">
+      <span class="err" id="eform-err"></span>
+      <span class="progress" id="eform-progress"></span>
+      <button type="button" id="edlg-cancel">取消</button>
+      <button type="submit" class="primary" id="edlg-save">儲存並發布</button>
     </div>
   </form>
 </dialog>
@@ -442,6 +494,85 @@
 const $ = s => document.querySelector(s);
 const UI_LANG = localStorage.getItem('apetto_admin_lang') || ((navigator.language || '').toLowerCase().startsWith('de') ? 'de' : 'zh');
 const DE = {
+  "網站內容": "Seiteninhalte",
+  "首頁主視覺與頁面文字": "Startseite & Seitentexte",
+  "首頁大標題、副標，以及「機能與設計細節」頁的副標。": "Überschrift und Untertitel der Startseite sowie der Untertitel der Seite „Funktionen & Details“.",
+  "編輯文字": "Texte bearbeiten",
+  "商品分類：群組": "Shop: Gruppen",
+  "「商品分類」頁與首頁的大分類，例如機能服飾、外出配件。": "Die Hauptgruppen auf der Shop-Seite und der Startseite, z. B. Funktionsbekleidung, Zubehör.",
+  "＋ 新增群組": "＋ Neue Gruppe",
+  "順序": "Reihenfolge",
+  "群組": "Gruppe",
+  "包含的分類": "Kategorien",
+  "商品分類：分類": "Shop: Kategorien",
+  "每個分類屬於一個群組；新增商品時勾選的就是這些分類。沒有商品的分類會在前台顯示「即將推出」。": "Jede Kategorie gehört zu einer Gruppe; beim Anlegen eines Produkts wählt man diese Kategorien. Kategorien ohne Produkte zeigen „Demnächst“.",
+  "＋ 新增分類": "＋ Neue Kategorie",
+  "分類": "Kategorie",
+  "商品數": "Produkte",
+  "商品指南": "Ratgeber",
+  "「商品指南」頁的文章，首頁也會列出。": "Artikel der Ratgeber-Seite; sie erscheinen auch auf der Startseite.",
+  "＋ 新增指南": "＋ Neuer Ratgeber",
+  "網址": "Adresse",
+  "機能與設計細節": "Funktionen & Details",
+  "「機能與設計細節」頁的每一段（圖片＋文字）。勾「放在首頁」的會出現在首頁，最多 4 個。": "Die Abschnitte der Seite „Funktionen & Details“ (Bild + Text). Mit „Auf der Startseite“ markierte erscheinen dort, höchstens 4.",
+  "＋ 新增細節": "＋ Neues Detail",
+  "首頁": "Startseite",
+  "外語版（選填）": "Fremdsprachen (optional)",
+  "編輯": "Bearbeiten",
+  "機能頁副標：": "Untertitel Funktionsseite: ",
+  "共 {n} 個": "{n} insgesamt",
+  "{n} 個分類": "{n} Kategorien",
+  "（未分群組）": "(keine Gruppe)",
+  "{n} 件商品": "{n} Produkte",
+  "即將推出": "Demnächst",
+  "共 {n} 篇，顯示中 {m} 篇": "{n} Artikel, {m} sichtbar",
+  "共 {n} 段，首頁顯示 {m} 段": "{n} Abschnitte, {m} auf der Startseite",
+  "放在首頁": "Auf der Startseite",
+  "請選一張圖片": "Bitte ein Bild wählen",
+  "「{f}」不能空白": "„{f}“ darf nicht leer sein",
+  "建立 commit…": "Commit wird erstellt…",
+  "首頁大標題": "Überschrift Startseite",
+  "首頁副標": "Untertitel Startseite",
+  "「機能與設計細節」頁副標": "Untertitel der Seite „Funktionen & Details“",
+  "例如：為每一段毛孩生活，做好準備。": "z. B. Bereit für jeden Moment im Leben Ihres Hundes.",
+  "編輯群組": "Gruppe bearbeiten",
+  "新增群組": "Neue Gruppe",
+  "群組名稱": "Name der Gruppe",
+  "一句話介紹": "Kurzbeschreibung",
+  "例如：機能服飾": "z. B. Funktionsbekleidung",
+  "例如：雨衣、保暖外套與浴袍，應對每一種天氣": "z. B. Regenmäntel, Wärmejacken und Bademäntel für jedes Wetter",
+  "這個群組裡還有分類，請先把分類移到別的群組或刪除。": "In dieser Gruppe sind noch Kategorien. Bitte zuerst verschieben oder löschen.",
+  "編輯分類": "Kategorie bearbeiten",
+  "新增分類": "Neue Kategorie",
+  "分類名稱": "Name der Kategorie",
+  "所屬群組": "Gruppe",
+  "例如：雨衣": "z. B. Regenmäntel",
+  "例如：防水防風，雨天散步不受限": "z. B. Wasser- und winddicht für Regenspaziergänge",
+  "「{title}」裡有 {n} 件商品。刪除分類不會刪除商品，但它們會從這個分類拿掉。確定要刪除嗎？": "In „{title}“ sind {n} Produkte. Die Produkte bleiben erhalten, werden aber aus dieser Kategorie entfernt. Wirklich löschen?",
+  "請先新增一個群組。": "Bitte zuerst eine Gruppe anlegen.",
+  "編輯指南": "Ratgeber bearbeiten",
+  "新增指南": "Neuer Ratgeber",
+  "標題": "Titel",
+  "一句話摘要": "Kurzfassung",
+  "列表上顯示的短介紹": "Kurztext für die Übersicht",
+  "例如：雨衣怎麼選？": "z. B. Welcher Regenmantel passt?",
+  "內容": "Inhalt",
+  "每行一段。開頭打「## 」會變成小標題，開頭打「- 」會變成項目符號。": "Eine Zeile pro Absatz. „## “ am Zeilenanfang ergibt eine Zwischenüberschrift, „- “ einen Aufzählungspunkt.",
+  "文章最後的按鈕連到（選填）": "Button am Ende verlinkt auf (optional)",
+  "按鈕文字": "Button-Text",
+  "例如：fitstudio.html 或 https://…": "z. B. fitstudio.html oder https://…",
+  "例如：到試衣間試穿": "z. B. In der Anprobe testen",
+  "顯示在前台": "Im Shop anzeigen",
+  "編輯細節": "Detail bearbeiten",
+  "新增細節": "Neues Detail",
+  "圖片": "Bild",
+  "橫式照片最好看（會裁成 4:3）；大圖會自動縮到 1600px。": "Querformat wirkt am besten (wird auf 4:3 zugeschnitten); große Bilder werden auf 1600 px verkleinert.",
+  "例如：耐水壓 10000mmH2O": "z. B. Wassersäule 10.000 mm",
+  "標題上方的小字（選填）": "Kleiner Text über dem Titel (optional)",
+  "例如：極致防水，奔跑不受限。": "z. B. Absolut wasserdicht.",
+  "說明": "Beschreibung",
+  "放在首頁（最多 4 個）": "Auf der Startseite (höchstens 4)",
+  "上傳圖片…": "Bild wird hochgeladen…",
   'apetto 商品後台': 'apetto Produktverwaltung', '開啟前台 ↗': 'Shop öffnen ↗', '設定': 'Einstellungen', '登出': 'Abmelden', '介面語言': 'Sprache der Oberfläche',
   '登入後台': 'Anmelden', '請輸入後台密碼。': 'Bitte das Admin-Passwort eingeben.', '密碼': 'Passwort', '改用 token 登入': 'Stattdessen mit Token anmelden', '登入': 'Anmelden',
   '連接 GitHub': 'Mit GitHub verbinden',
@@ -723,9 +854,11 @@ async function load() {
   await readFit();
   $('#repo-label').textContent = `${cfg.repo} @ ${cfg.branch}`;
   $('#site-link').href = siteUrl();
+  await readContent();
   render();
   renderNews();
   renderCoats();
+  renderContent();
   watchDeploy();
 }
 
@@ -757,7 +890,9 @@ async function action(act, p) {
 
 /* ---------------------------------------------------------------- form */
 function buildChecks() {
-  $('#cat-checks').innerHTML = S.data.categories.map(c => `<label><input type="checkbox" name="categories" value="${c.id}"> ${escHtml(tName(c.name))}</label>`).join('');
+  const chk = c => `<label><input type="checkbox" name="categories" value="${c.id}"> ${escHtml(tName(c.name))}</label>`, gs = S.data.groups || [];
+  $('#cat-checks').innerHTML = gs.map(g => { const cs = S.data.categories.filter(c => c.group === g.key); return cs.length ? `<span class="grp-label">${escHtml(tName(g.name))}</span>` + cs.map(chk).join('') : ''; }).join('')
+    + S.data.categories.filter(c => !gs.some(g => g.key === c.group)).map(chk).join('');
   $('#sec-checks').innerHTML = sections().map(s => `<label><input type="checkbox" name="sections" value="${s.key}"> ${escHtml(tName(s.name))}</label>`).join('');
 }
 const TR_LANGS = [['en', 'English'], ['ja', '日本語'], ['de', 'Deutsch']];
@@ -1362,8 +1497,288 @@ $('#fdlg-close').onclick = () => $('#fdlg').close();
 $('#fit-range').onchange = loadFit;
 $('#btn-fit-reload').onclick = loadFit;
 
+/* ---------------------------------------------------------------- 網站內容: hero text, groups, categories, guides, features */
+const siteJsonPath = () => `${SITE_DIR}/_data/site.json`, guidesPath = () => `${SITE_DIR}/_data/guides.json`;
+const DEFAULT_GROUPS = [{ key: 'apparel', name: '機能服飾', blurb: '' }, { key: 'outdoor', name: '外出配件', blurb: '' }, { key: 'living', name: '舒適生活', blurb: '' }];
+let SITE = {}, GUIDES = { items: [] };
+async function readJsonFile(path, fallback) {
+  try { const j = await gh(`/repos/${cfg.repo}/contents/${encPath(path)}?ref=${encodeURIComponent(cfg.branch)}&t=${Date.now()}`); return JSON.parse(b64decodeUtf8(j.content)); }
+  catch (e) { return fallback; }
+}
+async function readContent() {
+  SITE = await readJsonFile(siteJsonPath(), {}) || {};
+  SITE.hero = SITE.hero || { title: '', lead: '' }; SITE.features = SITE.features || {}; if (!Array.isArray(SITE.features.items)) SITE.features.items = [];
+  GUIDES = await readJsonFile(guidesPath(), { items: [] }) || { items: [] }; if (!Array.isArray(GUIDES.items)) GUIDES.items = [];
+  if (S.data && !Array.isArray(S.data.groups)) S.data.groups = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+}
+const contentImg = p => p ? rawUrl(p) : '';
+const ownContentUpload = p => /^assets\/content\/feat_[a-z0-9]+_[a-z0-9]+\.jpg$/.test(p || '');
+const trOf = (o, k) => (UI_LANG !== 'zh' && o.i18n && o.i18n[UI_LANG] && o.i18n[UI_LANG][k]) || o[k] || '';
+const badge = (on, a, b) => on ? `<span class="badge on">${t(a)}</span>` : `<span class="badge off">${t(b)}</span>`;
+
+/* one table row with the usual buttons; acts: edit up down toggle del */
+function contentRow(cells, i, n, acts, hidden, onAct) {
+  const tr = document.createElement('tr'); if (hidden) tr.className = 'hidden-row';
+  const btn = { edit: `<button class="small" data-act="edit">${t('編輯')}</button>`, up: `<button class="small" data-act="up" ${i === 0 ? 'disabled' : ''} title="${t('往前')}">↑</button>`,
+    down: `<button class="small" data-act="down" ${i === n - 1 ? 'disabled' : ''} title="${t('往後')}">↓</button>`,
+    toggle: `<button class="small" data-act="toggle">${t(hidden ? '顯示' : '隱藏')}</button>`, del: `<button class="small danger" data-act="del">${t('刪除')}</button>` };
+  tr.innerHTML = cells.map((c, k) => `<td${k === 0 ? ' class="ord"' : k === 1 ? ' class="name"' : k === 2 ? ' class="hide-sm"' : ''}>${c}</td>`).join('') + `<td><div class="actions">${acts.map(a => btn[a]).join('')}</div></td>`;
+  tr.querySelectorAll('button[data-act]').forEach(b => b.onclick = () => onAct(b.dataset.act));
+  return tr;
+}
+const moveIn = (arr, i, act) => { const j = act === 'up' ? i - 1 : i + 1; if (j < 0 || j >= arr.length) return false; [arr[i], arr[j]] = [arr[j], arr[i]]; return true; };
+const catCount = id => S.data.products.filter(p => (p.categories || []).includes(id)).length;
+
+function renderContent() {
+  if (!S.data) return;
+  const h = SITE.hero, fi = SITE.features;
+  $('#hero-view').innerHTML = `<b>${escHtml(trOf(h, 'title') || '—')}</b><p>${escHtml(trOf(h, 'lead'))}</p><p>${t('機能頁副標：')}${escHtml(trOf(fi, 'intro') || '—')}</p>`;
+  // groups
+  const G = S.data.groups, gr = $('#grp-rows'); gr.innerHTML = '';
+  $('#grp-count').textContent = t('共 {n} 個', { n: G.length });
+  G.forEach((g, i) => {
+    const cs = S.data.categories.filter(c => c.group === g.key);
+    gr.appendChild(contentRow([i + 1, `<b>${escHtml(tName(g.name))}</b>${g.blurb ? `<div class="muted">${escHtml(trOf(g, 'blurb'))}</div>` : ''}`,
+      escHtml(cs.map(c => tName(c.name)).join('、')) || '<span class="muted">—</span>', t('{n} 個分類', { n: cs.length })],
+      i, G.length, ['edit', 'up', 'down', 'del'], false, act => groupAction(act, g, i)));
+  });
+  // categories
+  const C = S.data.categories, cr = $('#cat-rows'); cr.innerHTML = '';
+  $('#cat-count').textContent = t('共 {n} 個', { n: C.length });
+  C.forEach((c, i) => {
+    const g = G.find(x => x.key === c.group), n = catCount(c.id);
+    cr.appendChild(contentRow([i + 1, `<a href="${siteUrl()}product/category&path=${c.id}.html" target="_blank"><b>${escHtml(tName(c.name))}</b></a>${c.blurb ? `<div class="muted">${escHtml(trOf(c, 'blurb'))}</div>` : ''}`,
+      g ? escHtml(tName(g.name)) : `<span class="muted">${t('（未分群組）')}</span>`, n ? t('{n} 件商品', { n }) : `<span class="badge off">${t('即將推出')}</span>`],
+      i, C.length, ['edit', 'up', 'down', 'del'], false, act => categoryAction(act, c, i)));
+  });
+  // guides
+  const L = GUIDES.items, lr = $('#guide-rows'); lr.innerHTML = '';
+  $('#guide-count').textContent = t('共 {n} 篇，顯示中 {m} 篇', { n: L.length, m: L.filter(x => x.visible !== false).length });
+  L.forEach((g, i) => {
+    lr.appendChild(contentRow([i + 1, `<a href="${siteUrl()}guide/${g.key}.html" target="_blank"><b>${escHtml(trOf(g, 'title'))}</b></a><div class="muted">${escHtml(trOf(g, 'summary'))}</div>`,
+      `<span class="muted">guide/${escHtml(g.key)}.html</span>`, badge(g.visible !== false, '顯示中', '已隱藏')],
+      i, L.length, ['edit', 'up', 'down', 'toggle', 'del'], g.visible === false, act => guideAction(act, g, i)));
+  });
+  // features
+  const FI = fi.items, fr = $('#feat-rows'); fr.innerHTML = '';
+  $('#feat-count').textContent = t('共 {n} 段，首頁顯示 {m} 段', { n: FI.length, m: Math.min(4, FI.filter(x => x.home && x.visible !== false).length) });
+  FI.forEach((f, i) => {
+    fr.appendChild(contentRow([`<img src="${escHtml(contentImg(f.image))}" alt="" loading="lazy">`, `<b>${escHtml(trOf(f, 'title'))}</b>${f.tag ? `<div class="muted">${escHtml(trOf(f, 'tag'))}</div>` : ''}`,
+      f.home ? t('放在首頁') : '<span class="muted">—</span>', badge(f.visible !== false, '顯示中', '已隱藏')],
+      i, FI.length, ['edit', 'up', 'down', 'toggle', 'del'], f.visible === false, act => featureAction(act, f, i)));
+  });
+}
+
+/* ---- saving */
+const eProgress = m => { $('#eform-progress').textContent = m; };
+async function saveJsonFile(path, obj, message, extra = []) {
+  const sha = await commitFiles([...extra, { path, base64: b64encodeUtf8(JSON.stringify(obj, null, 1) + '\n') }], message, eProgress);
+  await load(); watchDeploy(sha);
+}
+const saveSite = (msg, extra) => saveJsonFile(siteJsonPath(), SITE, msg, extra);
+const saveGuides = msg => saveJsonFile(guidesPath(), GUIDES, msg);
+const saveProducts = msg => saveData(msg, [], eProgress);
+async function runAct(fn) {
+  try { busy(true); await fn(); }
+  catch (e) { alert(t('操作失敗：') + e.message); await load().catch(() => {}); }
+  finally { busy(false); }
+}
+
+/* ---- generic editor dialog
+   o = { title, fields: [{k, label, type: text|textarea|select|check|image, options, hint, required, full, placeholder}], tr: [{k, label, type}], values, save(vals, i18n, file) } */
+let ED = null;
+function openEditor(o) {
+  ED = o; const f = $('#eform'), v = o.values || {}; f.reset(); $('#eform-err').textContent = ''; eProgress('');
+  $('#edlg-title').textContent = t(o.title);
+  $('#efields').innerHTML = o.fields.map(fl => {
+    const lab = `<label class="f">${t(fl.label)}${fl.required ? ' *' : ''}</label>`, hint = fl.hint ? `<div class="hint">${t(fl.hint)}</div>` : '', ph = fl.placeholder ? ` placeholder="${escHtml(t(fl.placeholder))}"` : '';
+    const full = fl.full === false ? '' : ' class="full"';
+    if (fl.type === 'textarea') return `<div${full}>${lab}<textarea name="f_${fl.k}" class="tall" style="font-family:inherit;font-size:14px"${ph}></textarea>${hint}</div>`;
+    if (fl.type === 'select') return `<div${full}>${lab}<select name="f_${fl.k}">${fl.options.map(([val, txt]) => `<option value="${escHtml(val)}">${escHtml(txt)}</option>`).join('')}</select>${hint}</div>`;
+    if (fl.type === 'check') return `<div class="full"><label class="checks"><input type="checkbox" name="f_${fl.k}" value="1"> ${t(fl.label)}</label>${hint}</div>`;
+    if (fl.type === 'image') return `<div class="full">${lab}<input type="file" name="f_${fl.k}" accept="image/jpeg,image/png,image/webp">${hint}<img id="epv" class="blk-pic" alt="" style="display:none;margin-top:8px"></div>`;
+    return `<div${full}>${lab}<input type="text" name="f_${fl.k}"${ph}>${hint}</div>`;
+  }).join('');
+  o.fields.forEach(fl => {
+    const el = f[`f_${fl.k}`];
+    if (fl.type === 'check') el.checked = fl.k in v ? v[fl.k] !== false : !!fl.default;
+    else if (fl.type === 'image') { const pv = $('#epv'); if (v[fl.k]) { pv.src = contentImg(v[fl.k]); pv.style.display = ''; } el.onchange = () => { const file = el.files[0]; if (file) { pv.src = URL.createObjectURL(file); pv.style.display = ''; } }; }
+    else el.value = v[fl.k] == null ? '' : String(v[fl.k]);
+  });
+  const tr = o.tr || [];
+  $('#etr-wrap').style.display = tr.length ? '' : 'none';
+  $('#etr').innerHTML = TR_LANGS.map(([lang, label]) => `<details class="tr" data-lang="${lang}"><summary>${label}<span class="muted" data-filled></span></summary><div class="grid">` +
+    tr.map(fl => `<div class="full"><label class="f">${t(fl.label)}</label>${fl.type === 'textarea' ? `<textarea name="tr_${lang}_${fl.k}"></textarea>` : `<input type="text" name="tr_${lang}_${fl.k}">`}</div>`).join('') + '</div></details>').join('');
+  TR_LANGS.forEach(([lang]) => tr.forEach(fl => { f[`tr_${lang}_${fl.k}`].value = (((v.i18n || {})[lang] || {})[fl.k]) || ''; }));
+  const mark = () => $('#etr').querySelectorAll('details.tr').forEach(d => { const c = [...d.querySelectorAll('input,textarea')].filter(i => i.value.trim()).length; d.querySelector('[data-filled]').textContent = c ? t('已填 {n} 欄', { n: c }) : t('未填'); });
+  mark(); $('#etr').oninput = mark;
+  $('#edlg').showModal();
+}
+async function shrinkImage(file, max = 1600) {
+  const bmp = await createImageBitmap(file), sc = Math.min(1, max / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas'); c.width = Math.round(bmp.width * sc); c.height = Math.round(bmp.height * sc);
+  const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(bmp, 0, 0, c.width, c.height);
+  return await new Promise(r => c.toBlob(r, 'image/jpeg', 0.85));
+}
+$('#eform').onsubmit = async ev => {
+  ev.preventDefault();
+  const o = ED, f = $('#eform'), btn = $('#edlg-save'); btn.disabled = true; $('#eform-err').textContent = '';
+  try {
+    const vals = {}; let file = null;
+    for (const fl of o.fields) {
+      const el = f[`f_${fl.k}`];
+      if (fl.type === 'check') vals[fl.k] = el.checked;
+      else if (fl.type === 'image') { file = el.files[0] || null; if (file && !/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error(t('圖片請用 JPG、PNG 或 WEBP')); if (fl.required && !file && !(o.values || {})[fl.k]) throw new Error(t('請選一張圖片')); }
+      else { vals[fl.k] = (el.value || '').trim(); if (fl.required && !vals[fl.k]) throw new Error(t('「{f}」不能空白', { f: t(fl.label) })); }
+    }
+    const i18n = {};
+    TR_LANGS.forEach(([lang]) => { const x = {}; (o.tr || []).forEach(fl => { const val = (f[`tr_${lang}_${fl.k}`].value || '').trim(); if (val) x[fl.k] = val; }); if (Object.keys(x).length) i18n[lang] = x; });
+    eProgress(t('建立 commit…'));
+    await o.save(vals, i18n, file);
+    $('#edlg').close(); toast(t('已儲存，網站重新部署中'));
+  } catch (e) { $('#eform-err').textContent = e.message; await load().catch(() => {}); }
+  finally { btn.disabled = false; eProgress(''); }
+};
+$('#edlg-close').onclick = $('#edlg-cancel').onclick = () => $('#edlg').close();
+
+/* ---- hero + page subtitles */
+$('#btn-hero-edit').onclick = () => openEditor({
+  title: '首頁主視覺與頁面文字',
+  fields: [{ k: 'title', label: '首頁大標題', required: true, placeholder: '例如：為每一段毛孩生活，做好準備。' }, { k: 'lead', label: '首頁副標', type: 'textarea' },
+           { k: 'intro', label: '「機能與設計細節」頁副標' }],
+  tr: [{ k: 'title', label: '首頁大標題' }, { k: 'lead', label: '首頁副標', type: 'textarea' }, { k: 'intro', label: '「機能與設計細節」頁副標' }],
+  values: { title: SITE.hero.title, lead: SITE.hero.lead, intro: SITE.features.intro,
+            i18n: Object.fromEntries(TR_LANGS.map(([l]) => [l, { ...((SITE.hero.i18n || {})[l] || {}), ...((SITE.features.i18n || {})[l] || {}) }])) },
+  async save(v, i18n) {
+    Object.assign(SITE.hero, { title: v.title, lead: v.lead }); SITE.features.intro = v.intro;
+    SITE.hero.i18n = {}; SITE.features.i18n = {};
+    Object.entries(i18n).forEach(([l, o]) => { const h = {}, fe = {}; if (o.title) h.title = o.title; if (o.lead) h.lead = o.lead; if (o.intro) fe.intro = o.intro;
+      if (Object.keys(h).length) SITE.hero.i18n[l] = h; if (Object.keys(fe).length) SITE.features.i18n[l] = fe; });
+    await saveSite('更新首頁主視覺與頁面文字');
+  },
+});
+
+/* ---- groups */
+const groupForm = g => openEditor({
+  title: g ? '編輯群組' : '新增群組',
+  fields: [{ k: 'name', label: '群組名稱', required: true, placeholder: '例如：機能服飾' }, { k: 'blurb', label: '一句話介紹', placeholder: '例如：雨衣、保暖外套與浴袍，應對每一種天氣' }],
+  tr: [{ k: 'name', label: '群組名稱' }, { k: 'blurb', label: '一句話介紹' }],
+  values: g || {},
+  async save(v, i18n) {
+    const x = g ? S.data.groups.find(y => y.key === g.key) : { key: 'g' + Date.now().toString(36) };
+    Object.assign(x, { name: v.name, blurb: v.blurb, i18n }); if (!g) S.data.groups.push(x);
+    await saveProducts(`${g ? '更新' : '新增'}商品分類群組 ${v.name}`);
+  },
+});
+function groupAction(act, g, i) {
+  if (act === 'edit') return groupForm(g);
+  runAct(async () => {
+    if (act === 'up' || act === 'down') { if (moveIn(S.data.groups, i, act)) await saveProducts('調整商品分類群組順序'); }
+    if (act === 'del') {
+      if (S.data.categories.some(c => c.group === g.key)) return alert(t('這個群組裡還有分類，請先把分類移到別的群組或刪除。'));
+      if (!confirm(t('確定要刪除「{title}」嗎？', { title: g.name }))) return;
+      S.data.groups = S.data.groups.filter(x => x.key !== g.key); await saveProducts(`刪除商品分類群組 ${g.name}`); toast(t('已刪除，網站重新部署中'));
+    }
+  });
+}
+$('#btn-grp-add').onclick = () => groupForm(null);
+
+/* ---- categories */
+const categoryForm = c => openEditor({
+  title: c ? '編輯分類' : '新增分類',
+  fields: [{ k: 'name', label: '分類名稱', required: true, placeholder: '例如：雨衣' },
+           { k: 'group', label: '所屬群組', type: 'select', options: S.data.groups.map(g => [g.key, tName(g.name)]) },
+           { k: 'blurb', label: '一句話介紹', placeholder: '例如：防水防風，雨天散步不受限' }],
+  tr: [{ k: 'name', label: '分類名稱' }, { k: 'blurb', label: '一句話介紹' }],
+  values: c || { group: (S.data.groups[0] || {}).key },
+  async save(v, i18n) {
+    const x = c ? S.data.categories.find(y => y.id === c.id) : { id: Math.max(0, ...S.data.categories.map(y => y.id)) + 1 };
+    Object.assign(x, { name: v.name, group: v.group, blurb: v.blurb, i18n }); if (!c) S.data.categories.push(x);
+    await saveProducts(`${c ? '更新' : '新增'}商品分類 ${v.name}`);
+  },
+});
+function categoryAction(act, c, i) {
+  if (act === 'edit') return categoryForm(c);
+  runAct(async () => {
+    if (act === 'up' || act === 'down') { if (moveIn(S.data.categories, i, act)) await saveProducts('調整商品分類順序'); }
+    if (act === 'del') {
+      const n = catCount(c.id);
+      if (!confirm(n ? t('「{title}」裡有 {n} 件商品。刪除分類不會刪除商品，但它們會從這個分類拿掉。確定要刪除嗎？', { title: c.name, n }) : t('確定要刪除「{title}」嗎？', { title: c.name }))) return;
+      S.data.products.forEach(p => { p.categories = (p.categories || []).filter(id => id !== c.id); });
+      S.data.categories = S.data.categories.filter(x => x.id !== c.id); await saveProducts(`刪除商品分類 ${c.name}`); toast(t('已刪除，網站重新部署中'));
+    }
+  });
+}
+$('#btn-cat-add').onclick = () => { if (!S.data.groups.length) return alert(t('請先新增一個群組。')); categoryForm(null); };
+
+/* ---- guides */
+const guideForm = g => openEditor({
+  title: g ? '編輯指南' : '新增指南',
+  fields: [{ k: 'title', label: '標題', required: true, placeholder: '例如：雨衣怎麼選？' }, { k: 'summary', label: '一句話摘要', placeholder: '列表上顯示的短介紹' },
+           { k: 'body', label: '內容', type: 'textarea', hint: '每行一段。開頭打「## 」會變成小標題，開頭打「- 」會變成項目符號。' },
+           { k: 'link', label: '文章最後的按鈕連到（選填）', full: false, placeholder: '例如：fitstudio.html 或 https://…' }, { k: 'link_text', label: '按鈕文字', full: false, placeholder: '例如：到試衣間試穿' },
+           { k: 'visible', label: '顯示在前台', type: 'check', default: true }],
+  tr: [{ k: 'title', label: '標題' }, { k: 'summary', label: '一句話摘要' }, { k: 'body', label: '內容', type: 'textarea' }, { k: 'link_text', label: '按鈕文字' }],
+  values: g || { visible: true },
+  async save(v, i18n) {
+    const x = g ? GUIDES.items.find(y => y.key === g.key) : { key: 'guide-' + Date.now().toString(36) };
+    Object.assign(x, { title: v.title, summary: v.summary, body: v.body, link: v.link, link_text: v.link_text, visible: v.visible, i18n });
+    if (!x.link) { delete x.link; delete x.link_text; }
+    if (!g) GUIDES.items.push(x);
+    await saveGuides(`${g ? '更新' : '新增'}商品指南 ${v.title}`);
+  },
+});
+function guideAction(act, g, i) {
+  if (act === 'edit') return guideForm(g);
+  runAct(async () => {
+    const L = GUIDES.items;
+    if (act === 'up' || act === 'down') { if (moveIn(L, i, act)) await saveGuides('調整商品指南順序'); }
+    if (act === 'toggle') { L[i].visible = g.visible === false; await saveGuides(`${L[i].visible ? '顯示' : '隱藏'}商品指南 ${g.title}`); toast(t('已儲存，網站重新部署中')); }
+    if (act === 'del') { if (!confirm(t('確定要刪除「{title}」嗎？', { title: g.title }))) return; GUIDES.items = L.filter(x => x.key !== g.key); await saveGuides(`刪除商品指南 ${g.title}`); toast(t('已刪除，網站重新部署中')); }
+  });
+}
+$('#btn-guide-add').onclick = () => guideForm(null);
+
+/* ---- features */
+const featureForm = f => openEditor({
+  title: f ? '編輯細節' : '新增細節',
+  fields: [{ k: 'image', label: '圖片', type: 'image', required: true, hint: '橫式照片最好看（會裁成 4:3）；大圖會自動縮到 1600px。' },
+           { k: 'title', label: '標題', required: true, placeholder: '例如：耐水壓 10000mmH2O' }, { k: 'tag', label: '標題上方的小字（選填）', placeholder: '例如：極致防水，奔跑不受限。' },
+           { k: 'text', label: '說明', type: 'textarea' },
+           { k: 'home', label: '放在首頁（最多 4 個）', type: 'check' }, { k: 'visible', label: '顯示在前台', type: 'check', default: true }],
+  tr: [{ k: 'title', label: '標題' }, { k: 'tag', label: '標題上方的小字（選填）' }, { k: 'text', label: '說明', type: 'textarea' }],
+  values: f || { visible: true },
+  async save(v, i18n, file) {
+    const FI = SITE.features.items, x = f ? FI.find(y => y.key === f.key) : { key: 'f' + Date.now().toString(36) };
+    Object.assign(x, { title: v.title, tag: v.tag, text: v.text, home: v.home, visible: v.visible, i18n });
+    const extra = [];
+    if (file) {
+      eProgress(t('上傳圖片…'));
+      if (ownContentUpload(x.image)) extra.push({ path: `${SITE_DIR}/${x.image}`, delete: true });
+      x.image = `assets/content/feat_${x.key}_${Date.now().toString(36)}.jpg`;
+      extra.push({ path: `${SITE_DIR}/${x.image}`, base64: await blobToB64(await shrinkImage(file)) });
+    }
+    if (!f) FI.push(x);
+    await saveSite(`${f ? '更新' : '新增'}機能與設計細節 ${v.title}`, extra);
+  },
+});
+function featureAction(act, f, i) {
+  if (act === 'edit') return featureForm(f);
+  runAct(async () => {
+    const FI = SITE.features.items;
+    if (act === 'up' || act === 'down') { if (moveIn(FI, i, act)) await saveSite('調整機能與設計細節順序'); }
+    if (act === 'toggle') { FI[i].visible = f.visible === false; await saveSite(`${FI[i].visible ? '顯示' : '隱藏'}機能與設計細節 ${f.title}`); toast(t('已儲存，網站重新部署中')); }
+    if (act === 'del') {
+      if (!confirm(t('確定要刪除「{title}」嗎？', { title: f.title }))) return;
+      SITE.features.items = FI.filter(x => x.key !== f.key);
+      await saveSite(`刪除機能與設計細節 ${f.title}`, ownContentUpload(f.image) ? [{ path: `${SITE_DIR}/${f.image}`, delete: true }] : []); toast(t('已刪除，網站重新部署中'));
+    }
+  });
+}
+$('#btn-feat-add').onclick = () => featureForm(null);
+
 /* ---------------------------------------------------------------- tabs */
-const TABS = ['products', 'news', 'fit', 'history'];
+const TABS = ['products', 'content', 'news', 'fit', 'history'];
 let historyLoaded = false;
 function showPane(k) {
   if (!TABS.includes(k)) k = 'products';

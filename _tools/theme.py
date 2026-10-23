@@ -39,6 +39,21 @@ DEFAULT_GROUPS = [{"key": "apparel", "name": "機能服飾", "blurb": "雨衣、
 SHOP, GUIDES, FEATURES, ABOUT = "shop.html", "guides.html", "features.html", "pages/4.html"
 
 
+SITE_FILE = sb.DATA_DIR / "site.json"
+
+
+def load_site():
+    """Admin-editable page copy: home hero + the features page (falls back to the built-in text)."""
+    site = json.loads(SITE_FILE.read_text(encoding="utf-8")) if SITE_FILE.exists() else {}
+    hero = site.get("hero") or {}
+    hero.setdefault("title", "為每一段毛孩生活，做好準備。")
+    hero.setdefault("lead", "從天候防護到日常外出，探索 apetto 為毛孩打造的機能與舒適設計。")
+    feats = site.get("features") or {}
+    feats.setdefault("intro", "每一個細節，都為了雨天也能自在奔跑。")
+    feats["items"] = [f for f in feats.get("items", []) if f.get("visible", True) and f.get("image")]
+    return {"hero": hero, "features": feats}
+
+
 def groups_of(data):
     return data.get("groups") or DEFAULT_GROUPS
 
@@ -691,24 +706,23 @@ def render_home(data, visible, lang):
     best = [p for p in visible if "bestseller" in p.get("sections", [])]
     latest = [p for p in visible if "latest" in p.get("sections", [])]
     tiles = group_tiles(data, visible, d, lang)
-    feats = [("f_water", "耐水壓 10000mmH2O", "頂級防水防風布料，水滴輕易滑落，台灣多雨濕冷也不怕。"),
-             ("f_leash", "穿著也能上牽繩", "領圍開口設計，穿上 apetto 仍然可以扣上牽繩。"),
-             ("f_snap", "快速穿脫", "前扣式鈕扣與腹部插扣，扣上就能出門。"),
-             ("f_name", "寫上名字", "專屬名牌，寫上毛孩的名字，衣服就是他的。")]
+    site = load_site()
+    items = site["features"]["items"]
+    feats = ([f for f in items if f.get("home")] or items)[:4]
     news_html = "".join(f'<a href="{link(d, news_page(n), lang)}"><time>{esc(n.get("date", ""))}</time><b>{esc(news_text(n, lang, "title"))}</b></a>' for n in load_news()[:6])
     news_html = f'<div class="news-list home">{news_html}</div>' if news_html else ""
-    feats_html = "".join(f'<div class="feat"><div class="img"><img src="{asset(d, IMG[k])}" alt="" loading="lazy"></div>'
-                         f'<div class="body"><h3>{esc(t)}</h3><p>{esc(s)}</p></div></div>' for k, t, s in feats)
+    feats_html = "".join(f'<div class="feat"><div class="img"><img src="{asset(d, f["image"])}" alt="" loading="lazy"></div>'
+                         f'<div class="body"><h3>{esc(f.get("title", ""))}</h3><p>{esc(f.get("text", ""))}</p></div></div>' for f in feats)
     body = f"""<section class="hero"><div class="wrap hero-in">
- <div class="rv in"><span class="eyebrow">{esc(BRAND)}</span><h1>為每一段毛孩生活，做好準備。</h1>
-  <p class="lead">從天候防護到日常外出，探索 apetto 為毛孩打造的機能與舒適設計。</p>
+ <div class="rv in"><span class="eyebrow">{esc(BRAND)}</span><h1>{esc(site["hero"]["title"])}</h1>
+  <p class="lead">{esc(site["hero"]["lead"])}</p>
   <div class="cta"><a class="btn brand" href="{link(d, SHOP, lang)}">商品分類</a><a class="btn" href="{link(d, fit.PAGE, lang)}">試衣間</a></div>
   <div class="hero-badges"><span class="badge"><i></i>耐水壓 10000mmH2O</span><span class="badge"><i></i>3M 反光條</span><span class="badge"><i></i>台灣設計製造</span></div>
  </div>
  <div class="hero-img rv in"><img src="{asset(d, IMG['hero'])}" alt="大汪系列" fetchpriority="high"></div>
 </div></section>
 {section('商品分類', f'<div class="tiles">{tiles}</div>', sub='依用途挑選', more=(SHOP, '查看全部'), cls='tight', page_dir=d, lang=lang)}
-{section('機能與設計細節', f'<div class="feats">{feats_html}</div>', sub='為什麼選擇 apetto', more=(FEATURES, '看完整細節'), cls='tight', page_dir=d, lang=lang)}
+{section('機能與設計細節', f'<div class="feats">{feats_html}</div>', sub='為什麼選擇 apetto', more=(FEATURES, '看完整細節'), cls='tight', page_dir=d, lang=lang) if feats else ''}
 {section('商品指南', guide_cards(d, lang), sub='挑選、測量與保養的小知識', more=(GUIDES, '更多指南'), cls='tight', page_dir=d, lang=lang) if load_guides() else ''}
 {fit.home_promo(d, lang)}
 {section('推薦商品', product_grid(latest, d, lang, tag='new'), more=('search.html', '查看全部'), sid='latest-products', cls='tight', page_dir=d, lang=lang) if latest else ''}
@@ -1132,7 +1146,10 @@ def render_guide(data, g, lang):
     extra = ""
     if g.get("link"):
         label = esc(guide_text(g, lang, "link_text") or "查看連結")
-        extra = f'<p class="guide-cta"><a class="btn brand" href="{link(d, g["link"].lstrip("/"), lang)}">{label}</a></p>'
+        if re.match(r"^[a-z][a-z0-9+.-]*:", g["link"], re.I):      # external URL: new tab
+            extra = f'<p class="guide-cta"><a class="btn brand" href="{esc(g["link"])}" target="_blank" rel="noopener">{label}</a></p>'
+        else:
+            extra = f'<p class="guide-cta"><a class="btn brand" href="{link(d, g["link"].lstrip("/"), lang)}">{label}</a></p>'
     body = (f'<div class="wrap"><ol class="breadcrumb">{crumbs}</ol><article class="article guide"><div class="ph"><span class="eyebrow">商品指南</span>'
             f'<h1>{esc(title)}</h1><p>{esc(summary)}</p></div>{guide_body_html(guide_text(g, lang, "body"))}{extra}</article></div>'
             f'{section("更多指南", guide_cards(d, lang, skip=g["key"]), cls="tight", page_dir=d, lang=lang)}')
@@ -1142,30 +1159,24 @@ def render_guide(data, g, lang):
 # ----------------------------------------------------------------- 機能與設計細節 (features.html): the original site's feature copy
 def render_features(data, visible, lang):
     d = ""
-    rows = [
-        ("f_water", "耐水壓 10000mmH2O", "耐水壓 10000mmH2O 持久防水，水滴在衣服上會輕易滑落，提供舒適的防水防護", "極致防水，奔跑不受限。"),
-        ("rain", "3M 反光條", "3M Scotchlite™ 反光條，在昏暗環境下，毛孩子需要被看見，增加駕駛對毛孩子的能見度", "領頂採用 3M 反光條，提升狗狗夜晚行走安全"),
-        ("f_leash", "穿著也能上牽繩", "領圍開口 5 公分，穿上 apetto 仍然可以上牽繩", "散步去 !"),
-        ("f_snap", "快速穿脫", "前腳包覆設計搭配前扣式鈕扣，快速穿脫", "三點式前鈕扣，穿脫方便"),
-        ("cat3", "不要炸毛 !", "內層 MIT 抗靜電刷毛布料，帶給寵物最舒服的親膚感受", "MIT 抗靜電刷毛布料，毛小孩寒流不用怕"),
-        ("f_name", "寫上名字", "衣服是誰的? 寫上名字，是毛孩子專屬的衣服", "寫上毛孩專屬的名字，準備出門盡情奔跑"),
-    ]
+    site = load_site()
     rows_html = ""
-    for i, (img, h, p1, p2) in enumerate(rows):
-        rows_html += (f'<div class="story{" flip" if i % 2 else ""} rv"><div class="story-img"><img src="{asset(d, IMG[img])}" alt="" loading="lazy"></div>'
-                      f'<div><span class="eyebrow">{esc(p2)}</span><h2>{esc(h)}</h2><p>{esc(p1)}</p></div></div>')
+    for i, f in enumerate(site["features"]["items"]):
+        tag = f'<span class="eyebrow">{esc(f["tag"])}</span>' if f.get("tag") else ""
+        rows_html += (f'<div class="story{" flip" if i % 2 else ""} rv"><div class="story-img"><img src="{asset(d, f["image"])}" alt="" loading="lazy"></div>'
+                      f'<div>{tag}<h2>{esc(f.get("title", ""))}</h2><p>{esc(f.get("text", ""))}</p></div></div>')
     series = f"""<div class="cards2 rv">
   <div><h3>大汪系列</h3><p>專為中、大型毛孩子設計。</p><p>頂級防風、防水布料，具有包覆、防水與穿脫便利的多重優點。</p><a class="btn" href="{link(d, sb.category_page(1), lang)}">看雨衣</a></div>
   <div><h3>小汪系列</h3><p>小毛孩子的首選。</p><p><span>前項三點鈕扣、前腳雙袖設計，</span><span>更全面的防水保護。</span></p><p>領頂 3M 反光條，增加夜間行走的安全性。</p><a class="btn" href="{link(d, sb.category_page(2), lang)}">看保暖外套</a></div>
  </div>"""
     body = f"""<div class="wrap">
 <ol class="breadcrumb"><li><a href="{link(d, 'index.html', lang)}">首頁</a></li><li><span>機能與設計細節</span></li></ol>
-<div class="ph"><h1>機能與設計細節</h1><p>每一個細節，都為了雨天也能自在奔跑。</p></div>
+<div class="ph"><h1>機能與設計細節</h1><p>{esc(site["features"]["intro"])}</p></div>
 </div>
 <section class="sec tight"><div class="wrap features">{rows_html}</div></section>
 <section class="sec tight"><div class="wrap"><div class="sec-head rv"><div><h2>兩個系列，一樣講究</h2></div></div>{series}</div></section>
 {fit.home_promo(d, lang)}"""
-    return page(data, FEATURES, lang, f"機能與設計細節 | {BRAND}", body, "每一個細節，都為了雨天也能自在奔跑。", og_image=IMG["rain"], current=FEATURES)
+    return page(data, FEATURES, lang, f"機能與設計細節 | {BRAND}", body, site["features"]["intro"], og_image=IMG["rain"], current=FEATURES)
 
 
 # ----------------------------------------------------------------- news (admin-managed _data/news.json)
@@ -1266,9 +1277,19 @@ def i18n_table(data):
         for lang, o in (n.get("i18n") or {}).items():
             if (o or {}).get("title") and n.get("title"):
                 table.setdefault(re.sub(r"\s+", " ", n["title"]).strip(), {})[lang] = o["title"]
+    def put(obj, fields):
+        for lang, o in (obj.get("i18n") or {}).items():
+            for f in fields:
+                zh, tr = (obj.get(f) or "").strip(), ((o or {}).get(f) or "").strip()
+                if zh and tr:
+                    table.setdefault(re.sub(r"\s+", " ", zh), {})[lang] = tr
     for g in data["categories"] + groups_of(data):
-        if g.get("blurb"):
-            table.setdefault(g["blurb"], {})
+        put(g, ("name", "blurb"))
+    site = load_site()
+    put(site["hero"], ("title", "lead"))
+    put(site["features"], ("intro",))
+    for f in site["features"]["items"]:
+        put(f, ("title", "text", "tag"))
     return table
 
 

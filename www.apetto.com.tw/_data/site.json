@@ -1,0 +1,73 @@
+{
+ "hero": {
+  "title": "為每一段毛孩生活，做好準備。",
+  "lead": "從天候防護到日常外出，探索 apetto 為毛孩打造的機能與舒適設計。",
+  "i18n": {}
+ },
+ "features": {
+  "intro": "每一個細節，都為了雨天也能自在奔跑。",
+  "i18n": {},
+  "items": [
+   {
+    "key": "water",
+    "image": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/02/05/bd9fc68d2a8955f173b21fcc8aae271a.jpg",
+    "title": "耐水壓 10000mmH2O",
+    "text": "耐水壓 10000mmH2O 持久防水，水滴在衣服上會輕易滑落，提供舒適的防水防護",
+    "tag": "極致防水，奔跑不受限。",
+    "home": true,
+    "visible": true,
+    "i18n": {}
+   },
+   {
+    "key": "reflect",
+    "image": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/01/20/84765377d689a07961bcf145562ffd35.jpg",
+    "title": "3M 反光條",
+    "text": "3M Scotchlite™ 反光條，在昏暗環境下，毛孩子需要被看見，增加駕駛對毛孩子的能見度",
+    "tag": "領頂採用 3M 反光條，提升狗狗夜晚行走安全",
+    "home": false,
+    "visible": true,
+    "i18n": {}
+   },
+   {
+    "key": "leash",
+    "image": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/1f9e72ac7a5d7e832966283819693d54.jpg",
+    "title": "穿著也能上牽繩",
+    "text": "領圍開口 5 公分，穿上 apetto 仍然可以上牽繩",
+    "tag": "散步去 !",
+    "home": true,
+    "visible": true,
+    "i18n": {}
+   },
+   {
+    "key": "snap",
+    "image": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/02/05/c787b7d57fbf0fa0941b63be70fac92f.PNG",
+    "title": "快速穿脫",
+    "text": "前腳包覆設計搭配前扣式鈕扣，快速穿脫",
+    "tag": "三點式前鈕扣，穿脫方便",
+    "home": true,
+    "visible": true,
+    "i18n": {}
+   },
+   {
+    "key": "fleece",
+    "image": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/02/05/314005a881b4008f09fb07335e50ed44.jpg",
+    "title": "不要炸毛 !",
+    "text": "內層 MIT 抗靜電刷毛布料，帶給寵物最舒服的親膚感受",
+    "tag": "MIT 抗靜電刷毛布料，毛小孩寒流不用怕",
+    "home": false,
+    "visible": true,
+    "i18n": {}
+   },
+   {
+    "key": "name",
+    "image": "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2022/02/05/f1d2de57fe93927106c6a19350ea87b8.PNG",
+    "title": "寫上名字",
+    "text": "衣服是誰的? 寫上名字，是毛孩子專屬的衣服",
+    "tag": "寫上毛孩專屬的名字，準備出門盡情奔跑",
+    "home": true,
+    "visible": true,
+    "i18n": {}
+   }
+  ]
+ }
+}
