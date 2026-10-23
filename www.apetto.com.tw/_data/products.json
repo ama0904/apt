@@ -4,43 +4,271 @@
    "id": 1,
    "name": "雨衣",
    "group": "apparel",
-   "blurb": "防水防風，耐水壓 10000mmH2O，雨天散步不受限"
+   "blurb": "防水防風，耐水壓 10000mmH2O，雨天散步不受限",
+   "types": [
+    {
+     "key": "rain-std",
+     "name": "一般雨衣",
+     "i18n": {
+      "en": {
+       "name": "Standard raincoats"
+      },
+      "ja": {
+       "name": "スタンダードレインコート"
+      },
+      "de": {
+       "name": "Standard-Regenmäntel"
+      }
+     }
+    },
+    {
+     "key": "rain-warm",
+     "name": "保暖雨衣（含毛絨）",
+     "i18n": {
+      "en": {
+       "name": "Warm raincoats (fleece-lined)"
+      },
+      "ja": {
+       "name": "防寒レインコート（裏起毛）"
+      },
+      "de": {
+       "name": "Warme Regenmäntel (mit Fleece)"
+      }
+     }
+    }
+   ],
+   "i18n": {
+    "en": {
+     "name": "Rainwear"
+    }
+   }
   },
   {
    "id": 2,
    "name": "保暖外套",
    "group": "apparel",
-   "blurb": "MIT 抗靜電刷毛內裡，濕冷寒流也暖呼呼"
+   "blurb": "MIT 抗靜電刷毛內裡，濕冷寒流也暖呼呼",
+   "types": [
+    {
+     "key": "coat",
+     "name": "大衣",
+     "i18n": {
+      "en": {
+       "name": "Coat"
+      },
+      "ja": {
+       "name": "コート"
+      },
+      "de": {
+       "name": "Mantel"
+      }
+     }
+    },
+    {
+     "key": "jacket",
+     "name": "夾克",
+     "i18n": {
+      "en": {
+       "name": "Jacket"
+      },
+      "ja": {
+       "name": "ジャケット"
+      },
+      "de": {
+       "name": "Jacke"
+      }
+     }
+    }
+   ],
+   "i18n": {
+    "en": {
+     "name": "Warm Jackets"
+    }
+   }
   },
   {
    "id": 3,
    "name": "浴袍",
    "group": "apparel",
-   "blurb": "洗澡、玩水後快速吸水，不再滿屋子甩水"
+   "blurb": "洗澡、玩水後快速吸水，不再滿屋子甩水",
+   "types": [
+    {
+     "key": "hoodie",
+     "name": "連帽",
+     "i18n": {
+      "en": {
+       "name": "Hoodie"
+      },
+      "ja": {
+       "name": "フード付き"
+      },
+      "de": {
+       "name": "Mit Kapuze"
+      }
+     }
+    },
+    {
+     "key": "high-neck",
+     "name": "高領",
+     "i18n": {
+      "en": {
+       "name": "High-neck"
+      },
+      "ja": {
+       "name": "ハイネック"
+      },
+      "de": {
+       "name": "Stehkragen"
+      }
+     }
+    }
+   ],
+   "i18n": {
+    "en": {
+     "name": "Bathrobes"
+    }
+   }
   },
   {
    "id": 4,
    "name": "牽繩與頸圈",
    "group": "outdoor",
-   "blurb": "每天出門都要用的，要好看也要耐用"
+   "blurb": "每天出門都要用的，要好看也要耐用",
+   "types": [
+    {
+     "key": "leather",
+     "name": "皮革",
+     "i18n": {
+      "en": {
+       "name": "Leather"
+      },
+      "ja": {
+       "name": "レザー"
+      },
+      "de": {
+       "name": "Leder"
+      }
+     }
+    },
+    {
+     "key": "nylon",
+     "name": "尼龍",
+     "i18n": {
+      "en": {
+       "name": "Nylon"
+      },
+      "ja": {
+       "name": "ナイロン"
+      },
+      "de": {
+       "name": "Nylon"
+      }
+     }
+    }
+   ],
+   "i18n": {
+    "en": {
+     "name": "Leashes & Collars"
+    }
+   }
   },
   {
    "id": 5,
    "name": "領巾",
    "group": "outdoor",
-   "blurb": "一條領巾，造型立刻不一樣"
+   "blurb": "一條領巾，造型立刻不一樣",
+   "types": [],
+   "i18n": {
+    "en": {
+     "name": "Bandanas"
+    }
+   }
   },
   {
    "id": 6,
    "name": "寵物鞋",
    "group": "outdoor",
-   "blurb": "燙地、雨天、碎石路，保護肉墊"
+   "blurb": "燙地、雨天、碎石路，保護肉墊",
+   "types": [
+    {
+     "key": "running",
+     "name": "跑鞋",
+     "i18n": {
+      "en": {
+       "name": "Running Shoes"
+      },
+      "ja": {
+       "name": "ランニングシューズ"
+      },
+      "de": {
+       "name": "Laufschuhe"
+      }
+     }
+    }
+   ],
+   "i18n": {
+    "en": {
+     "name": "Dog Shoes"
+    }
+   }
   },
   {
    "id": 7,
    "name": "舒適墊",
    "group": "living",
-   "blurb": "回家後，給毛孩一個放鬆的角落"
+   "blurb": "回家後，給毛孩一個放鬆的角落",
+   "types": [
+    {
+     "key": "pad-a",
+     "name": "款式 A",
+     "i18n": {
+      "en": {
+       "name": "Style A"
+      },
+      "ja": {
+       "name": "スタイル A"
+      },
+      "de": {
+       "name": "Modell A"
+      }
+     }
+    },
+    {
+     "key": "pad-b",
+     "name": "款式 B",
+     "i18n": {
+      "en": {
+       "name": "Style B"
+      },
+      "ja": {
+       "name": "スタイル B"
+      },
+      "de": {
+       "name": "Modell B"
+      }
+     }
+    },
+    {
+     "key": "pad-c",
+     "name": "款式 C",
+     "i18n": {
+      "en": {
+       "name": "Style C"
+      },
+      "ja": {
+       "name": "スタイル C"
+      },
+      "de": {
+       "name": "Modell C"
+      }
+     }
+    }
+   ],
+   "i18n": {
+    "en": {
+     "name": "Comfort Pads"
+    }
+   }
   }
  ],
  "sections": [
@@ -99,7 +327,10 @@
     }
    ],
    "visible": true,
-   "source": "original"
+   "source": "original",
+   "types": [
+    "rain-std"
+   ]
   },
   {
    "id": 11,
@@ -160,7 +391,10 @@
     }
    ],
    "visible": true,
-   "source": "original"
+   "source": "original",
+   "types": [
+    "jacket"
+   ]
   },
   {
    "id": 12,
@@ -223,7 +457,10 @@
     }
    ],
    "visible": true,
-   "source": "original"
+   "source": "original",
+   "types": [
+    "jacket"
+   ]
   },
   {
    "id": 13,
@@ -270,15 +507,17 @@
     }
    ],
    "visible": true,
-   "source": "original"
+   "source": "original",
+   "types": [
+    "jacket"
+   ]
   },
   {
    "id": 14,
    "name": "小汪保暖防水斗篷 萊姆綠",
    "price": 1490,
    "categories": [
-    1,
-    2
+    1
    ],
    "sections": [
     "latest"
@@ -337,15 +576,17 @@
     }
    ],
    "visible": true,
-   "source": "original"
+   "source": "original",
+   "types": [
+    "rain-warm"
+   ]
   },
   {
    "id": 15,
    "name": "小汪保暖防水斗篷 莓果桃",
    "price": 1490,
    "categories": [
-    1,
-    2
+    1
    ],
    "sections": [
     "latest"
@@ -384,7 +625,10 @@
     }
    ],
    "visible": true,
-   "source": "original"
+   "source": "original",
+   "types": [
+    "rain-warm"
+   ]
   },
   {
    "id": 16,
@@ -434,7 +678,10 @@
     }
    ],
    "visible": true,
-   "source": "original"
+   "source": "original",
+   "types": [
+    "rain-std"
+   ]
   },
   {
    "id": 6,
@@ -485,7 +732,10 @@
     }
    ],
    "visible": true,
-   "source": "original"
+   "source": "original",
+   "types": [
+    "rain-std"
+   ]
   },
   {
    "id": 7,
@@ -544,7 +794,10 @@
     }
    ],
    "visible": true,
-   "source": "original"
+   "source": "original",
+   "types": [
+    "rain-std"
+   ]
   },
   {
    "id": 8,
@@ -595,7 +848,10 @@
     }
    ],
    "visible": true,
-   "source": "original"
+   "source": "original",
+   "types": [
+    "rain-std"
+   ]
   },
   {
    "id": 9,
@@ -643,24 +899,42 @@
     }
    ],
    "visible": true,
-   "source": "original"
+   "source": "original",
+   "types": [
+    "rain-std"
+   ]
   }
  ],
  "groups": [
   {
    "key": "apparel",
    "name": "機能服飾",
-   "blurb": "雨衣、保暖外套與浴袍，應對每一種天氣"
+   "blurb": "雨衣、保暖外套與浴袍，應對每一種天氣",
+   "i18n": {
+    "en": {
+     "name": "Functional Apparel"
+    }
+   }
   },
   {
    "key": "outdoor",
    "name": "外出配件",
-   "blurb": "牽繩與頸圈、領巾、寵物鞋，出門的好夥伴"
+   "blurb": "牽繩與頸圈、領巾、寵物鞋，出門的好夥伴",
+   "i18n": {
+    "en": {
+     "name": "Outdoor Accessories"
+    }
+   }
   },
   {
    "key": "living",
    "name": "舒適生活",
-   "blurb": "舒適墊，回家後的放鬆時光"
+   "blurb": "舒適墊，回家後的放鬆時光",
+   "i18n": {
+    "en": {
+     "name": "Comfort & Living"
+    }
+   }
   }
  ]
 }

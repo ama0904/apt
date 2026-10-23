@@ -54,7 +54,7 @@ try:
     checks["home has news"] = hp.select_one("#home-news .news-list a") is not None
     checks["home hides hidden"] = f"product_id={hidden_id}.html" not in str(hp)
     cat = BeautifulSoup((S / "product/category&path=1.html").read_text(encoding="utf-8"), "lxml")
-    checks["cat1 has new"] = f"product_id={pid}.html" in str(cat.select_one(".product-grid"))
+    checks["cat1 has new"] = any(f"product_id={pid}.html" in str(g) for g in cat.select(".product-grid"))
     checks["cat1 thumb path"] = f"../_data/uploads/p{pid}_main-627.jpg" in str(cat)
     checks["hidden page removed"] = not (S / f"product/product&product_id={hidden_id}.html").exists()
     checks["sitemap has new"] = f"product_id={pid}" in (S / "sitemap.xml").read_text(encoding="utf-8")

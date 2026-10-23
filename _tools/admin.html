@@ -51,6 +51,12 @@
   .content-view b { display:block; font-size:18px; margin-bottom:4px; } .content-view p { margin:4px 0 0; color:var(--mute); }
   td.ord { color:var(--mute); font-size:13px; }
   .checks .grp-label { width:100%; font-size:12.5px; color:var(--mute); margin-top:4px; }
+  .checks .cat-line { width:100%; display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; }
+  .checks .cat-line .subs { display:flex; flex-wrap:wrap; gap:4px 12px; padding-left:22px; width:100%; }
+  .checks .cat-line .subs label { font-size:13px; color:var(--mute); }
+  .lst-row { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)) auto; gap:6px; align-items:center; margin-bottom:6px; }
+  .lst-row .acts { display:flex; gap:4px; } .lst-head { font-size:12px; color:var(--mute); margin-bottom:4px; }
+  @media (max-width:700px) { .lst-row { grid-template-columns:1fr 1fr; } .lst-row .acts { grid-column:1 / -1; } .lst-head { display:none; } }
   input[type=date] { width:100%; font:inherit; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; }
   .toolbar .count { color:var(--muted); font-size:14px; }
   button { font:inherit; border:1px solid var(--line); background:#fff; color:var(--text); padding:7px 12px; border-radius:8px; cursor:pointer; }
@@ -511,6 +517,12 @@
 const $ = s => document.querySelector(s);
 const UI_LANG = localStorage.getItem('apetto_admin_lang') || ((navigator.language || '').toLowerCase().startsWith('de') ? 'de' : 'zh');
 const DE = {
+  "中文名稱": "Chinesischer Name",
+  "中文": "Chinesisch",
+  "＋ 新增子分類": "＋ Unterkategorie hinzufügen",
+  "子分類（第三層）": "Unterkategorien (3. Ebene)",
+  "例如雨衣底下的「一般雨衣」「保暖雨衣」。新增商品時可以勾選；沒有商品的子分類會顯示「即將推出」。": "z. B. „Standard-Regenmäntel“ und „Warme Regenmäntel“ unter Regenmäntel. Beim Produkt auswählbar; leere Unterkategorien zeigen „Demnächst“.",
+  "子分類：": "Unterkategorien: ",
   "段落樣式": "Absatzformat",
   "內文": "Text",
   "大標題": "Große Überschrift",
@@ -939,9 +951,11 @@ async function action(act, p) {
 
 /* ---------------------------------------------------------------- form */
 function buildChecks() {
-  const chk = c => `<label><input type="checkbox" name="categories" value="${c.id}"> ${escHtml(tName(c.name))}</label>`, gs = S.data.groups || [];
+  const chk = c => `<span class="cat-line"><label><input type="checkbox" name="categories" value="${c.id}"> ${escHtml(tName(c.name))}</label>${(c.types || []).length ? `<span class="subs">${c.types.map(ty => `<label><input type="checkbox" name="types" value="${escHtml(ty.key)}" data-cat="${c.id}"> ${escHtml(trName(ty))}</label>`).join('')}</span>` : ''}</span>`, gs = S.data.groups || [];
   $('#cat-checks').innerHTML = gs.map(g => { const cs = S.data.categories.filter(c => c.group === g.key); return cs.length ? `<span class="grp-label">${escHtml(tName(g.name))}</span>` + cs.map(chk).join('') : ''; }).join('')
     + S.data.categories.filter(c => !gs.some(g => g.key === c.group)).map(chk).join('');
+  // ticking a sub-category ticks its category too
+  $('#cat-checks').querySelectorAll('input[name=types]').forEach(x => x.onchange = () => { if (x.checked) { const c = $('#cat-checks').querySelector(`input[name=categories][value="${x.dataset.cat}"]`); if (c) c.checked = true; } });
   $('#sec-checks').innerHTML = sections().map(s => `<label><input type="checkbox" name="sections" value="${s.key}"> ${escHtml(tName(s.name))}</label>`).join('');
 }
 const TR_LANGS = [['en', 'English'], ['ja', '日本語'], ['de', 'Deutsch']];
@@ -1135,6 +1149,7 @@ function openForm(p) {
     });
     f.visible.checked = p.visible !== false;
     f.querySelectorAll('input[name=categories]').forEach(c => c.checked = (p.categories || []).includes(Number(c.value)));
+    f.querySelectorAll('input[name=types]').forEach(c => c.checked = (p.types || []).includes(c.value));
     f.querySelectorAll('input[name=sections]').forEach(c => c.checked = (p.sections || []).includes(c.value));
   } else {
     f.querySelectorAll('input[name=sections]').forEach(c => c.checked = c.value === 'latest');
@@ -1315,6 +1330,7 @@ $('#form').onsubmit = async (ev) => {
       feature_html: featureToHtml(fd.get('feat_title'), fd.get('feat_line')),
       options: readOptions(),
       categories: fd.getAll('categories').map(Number),
+      types: fd.getAll('types').filter(k => S.data.categories.some(c => fd.getAll('categories').map(Number).includes(c.id) && (c.types || []).some(ty => ty.key === k))),
       sections: fd.getAll('sections'),
       visible: !!fd.get('visible'),
     });
@@ -1714,6 +1730,31 @@ async function readContent() {
   if (S.data && !Array.isArray(S.data.groups)) S.data.groups = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
 }
 const contentImg = p => p ? rawUrl(p) : '';
+const trName = o => (UI_LANG !== 'zh' && o.i18n && o.i18n[UI_LANG] && o.i18n[UI_LANG].name) || tName(o.name);
+/* repeating rows (sub-categories): 中文 / English / 日本語 / Deutsch per row, reorder and remove */
+function listRowHtml(it) {
+  const tr = k => escHtml(((it.i18n || {})[k] || {}).name || '');
+  return `<div class="lst-row" data-key="${escHtml(it.key || '')}"><input type="text" data-l="zh" value="${escHtml(it.name || '')}" placeholder="${t('中文名稱')}">
+    <input type="text" data-l="en" value="${tr('en')}" placeholder="English"><input type="text" data-l="ja" value="${tr('ja')}" placeholder="日本語"><input type="text" data-l="de" value="${tr('de')}" placeholder="Deutsch">
+    <span class="acts"><button type="button" class="small" data-a="up" title="${t('往前')}">↑</button><button type="button" class="small" data-a="down" title="${t('往後')}">↓</button><button type="button" class="small danger" data-a="del" title="${t('刪除')}">✕</button></span></div>`;
+}
+function mountList(box, items) {
+  box.innerHTML = `<div class="lst-head">${t('中文')} · English · 日本語 · Deutsch</div><div class="lst-rows">${(items || []).map(listRowHtml).join('')}</div><button type="button" class="small" data-a="add">${t('＋ 新增子分類')}</button>`;
+  box.onclick = e => {
+    const b = e.target.closest('button[data-a]'); if (!b) return; const row = b.closest('.lst-row'), rows = box.querySelector('.lst-rows');
+    if (b.dataset.a === 'add') { rows.insertAdjacentHTML('beforeend', listRowHtml({})); rows.lastElementChild.querySelector('input').focus(); }
+    if (b.dataset.a === 'del') row.remove();
+    if (b.dataset.a === 'up' && row.previousElementSibling) row.after(row.previousElementSibling);
+    if (b.dataset.a === 'down' && row.nextElementSibling) row.before(row.nextElementSibling);
+  };
+}
+function readList(box) {
+  return [...box.querySelectorAll('.lst-row')].map((r, i) => {
+    const v = l => r.querySelector(`[data-l=${l}]`).value.trim(), name = v('zh'); if (!name) return null;
+    const i18n = {}; ['en', 'ja', 'de'].forEach(l => { if (v(l)) i18n[l] = { name: v(l) }; });
+    return { key: r.dataset.key || ('t' + Date.now().toString(36) + i), name, i18n };
+  }).filter(Boolean);
+}
 const ownContentUpload = p => /^assets\/content\/feat_[a-z0-9]+_[a-z0-9]+\.jpg$/.test(p || '');
 const trOf = (o, k) => (UI_LANG !== 'zh' && o.i18n && o.i18n[UI_LANG] && o.i18n[UI_LANG][k]) || o[k] || '';
 const badge = (on, a, b) => on ? `<span class="badge on">${t(a)}</span>` : `<span class="badge off">${t(b)}</span>`;
@@ -1734,6 +1775,7 @@ const catCount = id => S.data.products.filter(p => (p.categories || []).includes
 function renderContent() {
   if (!S.data) return;
   const h = SITE.hero, fi = SITE.features;
+
   $('#hero-view').innerHTML = `<b>${escHtml(trOf(h, 'title') || '—')}</b><p>${escHtml(trOf(h, 'lead'))}</p><p>${t('機能頁副標：')}${escHtml(trOf(fi, 'intro') || '—')}</p>`;
   // groups
   const G = S.data.groups, gr = $('#grp-rows'); gr.innerHTML = '';
@@ -1749,7 +1791,8 @@ function renderContent() {
   $('#cat-count').textContent = t('共 {n} 個', { n: C.length });
   C.forEach((c, i) => {
     const g = G.find(x => x.key === c.group), n = catCount(c.id);
-    cr.appendChild(contentRow([i + 1, `<a href="${siteUrl()}product/category&path=${c.id}.html" target="_blank"><b>${escHtml(tName(c.name))}</b></a>${c.blurb ? `<div class="muted">${escHtml(trOf(c, 'blurb'))}</div>` : ''}`,
+    const subs = (c.types || []).map(ty => { const k = S.data.products.filter(p => (p.types || []).includes(ty.key)).length; return `${escHtml(trName(ty))} (${k})`; }).join('、');
+    cr.appendChild(contentRow([i + 1, `<a href="${siteUrl()}product/category&path=${c.id}.html" target="_blank"><b>${escHtml(trName(c))}</b></a>${c.blurb ? `<div class="muted">${escHtml(trOf(c, 'blurb'))}</div>` : ''}${subs ? `<div class="muted">${t('子分類：')}${subs}</div>` : ''}`,
       g ? escHtml(tName(g.name)) : `<span class="muted">${t('（未分群組）')}</span>`, n ? t('{n} 件商品', { n }) : `<span class="badge off">${t('即將推出')}</span>`],
       i, C.length, ['edit', 'up', 'down', 'del'], false, act => categoryAction(act, c, i)));
   });
@@ -1796,6 +1839,7 @@ function openEditor(o) {
     const lab = `<label class="f">${t(fl.label)}${fl.required ? ' *' : ''}</label>`, hint = fl.hint ? `<div class="hint">${t(fl.hint)}</div>` : '', ph = fl.placeholder ? ` placeholder="${escHtml(t(fl.placeholder))}"` : '';
     const full = fl.full === false ? '' : ' class="full"';
     if (fl.type === 'rich') return `<div class="full">${lab}<textarea name="f_${fl.k}" data-rich></textarea>${hint}</div>`;
+    if (fl.type === 'list') return `<div class="full">${lab}${hint}<div class="lst" data-list="${fl.k}"></div></div>`;
     if (fl.type === 'textarea') return `<div${full}>${lab}<textarea name="f_${fl.k}" class="tall" style="font-family:inherit;font-size:14px"${ph}></textarea>${hint}</div>`;
     if (fl.type === 'select') return `<div${full}>${lab}<select name="f_${fl.k}">${fl.options.map(([val, txt]) => `<option value="${escHtml(val)}">${escHtml(txt)}</option>`).join('')}</select>${hint}</div>`;
     if (fl.type === 'check') return `<div class="full"><label class="checks"><input type="checkbox" name="f_${fl.k}" value="1"> ${t(fl.label)}</label>${hint}</div>`;
@@ -1805,6 +1849,7 @@ function openEditor(o) {
   o.fields.forEach(fl => {
     const el = f[`f_${fl.k}`];
     if (fl.type === 'check') el.checked = fl.k in v ? v[fl.k] !== false : !!fl.default;
+    else if (fl.type === 'list') mountList(f.querySelector(`[data-list="${fl.k}"]`), v[fl.k]);
     else if (fl.type === 'image') { const pv = $('#epv'); if (v[fl.k]) { pv.src = contentImg(v[fl.k]); pv.style.display = ''; } el.onchange = () => { const file = el.files[0]; if (file) { pv.src = URL.createObjectURL(file); pv.style.display = ''; } }; }
     else el.value = v[fl.k] == null ? '' : String(v[fl.k]);
   });
@@ -1831,7 +1876,8 @@ $('#eform').onsubmit = async ev => {
     const vals = {}; let file = null;
     for (const fl of o.fields) {
       const el = f[`f_${fl.k}`];
-      if (fl.type === 'check') vals[fl.k] = el.checked;
+      if (fl.type === 'list') vals[fl.k] = readList(f.querySelector(`[data-list="${fl.k}"]`));
+      else if (fl.type === 'check') vals[fl.k] = el.checked;
       else if (fl.type === 'image') { file = el.files[0] || null; if (file && !/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error(t('圖片請用 JPG、PNG 或 WEBP')); if (fl.required && !file && !(o.values || {})[fl.k]) throw new Error(t('請選一張圖片')); }
       else { vals[fl.k] = (el.value || '').trim(); if (fl.required && !vals[fl.k]) throw new Error(t('「{f}」不能空白', { f: t(fl.label) })); }
     }
@@ -1892,12 +1938,16 @@ const categoryForm = c => openEditor({
   title: c ? '編輯分類' : '新增分類',
   fields: [{ k: 'name', label: '分類名稱', required: true, placeholder: '例如：雨衣' },
            { k: 'group', label: '所屬群組', type: 'select', options: S.data.groups.map(g => [g.key, tName(g.name)]) },
-           { k: 'blurb', label: '一句話介紹', placeholder: '例如：防水防風，雨天散步不受限' }],
+           { k: 'blurb', label: '一句話介紹', placeholder: '例如：防水防風，雨天散步不受限' },
+           { k: 'types', label: '子分類（第三層）', type: 'list', hint: '例如雨衣底下的「一般雨衣」「保暖雨衣」。新增商品時可以勾選；沒有商品的子分類會顯示「即將推出」。' }],
   tr: [{ k: 'name', label: '分類名稱' }, { k: 'blurb', label: '一句話介紹' }],
-  values: c || { group: (S.data.groups[0] || {}).key },
+  values: c || { group: (S.data.groups[0] || {}).key, types: [] },
   async save(v, i18n) {
     const x = c ? S.data.categories.find(y => y.id === c.id) : { id: Math.max(0, ...S.data.categories.map(y => y.id)) + 1 };
-    Object.assign(x, { name: v.name, group: v.group, blurb: v.blurb, i18n }); if (!c) S.data.categories.push(x);
+    Object.assign(x, { name: v.name, group: v.group, blurb: v.blurb, types: v.types, i18n }); if (!c) S.data.categories.push(x);
+    // products keep only sub-categories that still exist
+    const keys = new Set(S.data.categories.flatMap(y => (y.types || []).map(ty => ty.key)));
+    S.data.products.forEach(p => { if (p.types) p.types = p.types.filter(k => keys.has(k)); });
     await saveProducts(`${c ? '更新' : '新增'}商品分類 ${v.name}`);
   },
 });

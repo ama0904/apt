@@ -64,6 +64,21 @@ def cats_in(data, gkey):
 
 def cat_count(c, visible):
     return len([p for p in visible if c["id"] in p.get("categories", [])])
+
+
+def types_of(c):
+    return [t for t in (c.get("types") or []) if t.get("key") and t.get("name")]
+
+
+def type_items(visible, c, t):
+    return [p for p in visible if c["id"] in p.get("categories", []) and t["key"] in (p.get("types") or [])]
+
+
+def untyped_items(visible, c):
+    keys = {t["key"] for t in types_of(c)}
+    return [p for p in visible if c["id"] in p.get("categories", []) and not keys.intersection(p.get("types") or [])]
+
+
 BRAND = "apetto 寵物機能衣"
 HOME_TITLE = "apetto | 高機能寵物時裝：專業防水防風、專為毛孩設計的機能衣服"
 HOME_DESC = ("apetto 專業製衣團隊專注研發高機能寵物時裝。嚴選防水與防風布料，結合俐落的結構剪裁與極致實用性。"
@@ -108,6 +123,7 @@ UI = {
     "一條領巾，造型立刻不一樣": {"en": "One bandana and the whole look changes", "ja": "バンダナ1枚で、印象ががらりと変わる", "de": "Ein Halstuch, und der ganze Look ist anders"},
     "燙地、雨天、碎石路，保護肉墊": {"en": "Hot pavement, rain, gravel: protection for the paw pads", "ja": "熱い地面、雨、砂利道から肉球を守る", "de": "Heißer Asphalt, Regen, Schotter: Schutz für die Ballen"},
     "回家後，給毛孩一個放鬆的角落": {"en": "A cosy corner to unwind in after the walk", "ja": "帰ってきたら、くつろげる場所を", "de": "Nach dem Spaziergang eine Ecke zum Entspannen"},
+    "其他": {"en": "Other", "ja": "その他", "de": "Weitere"},
     "兩個系列，一樣講究": {"en": "Two series, the same attention to detail", "ja": "2つのシリーズ、同じこだわり", "de": "Zwei Serien, dieselbe Sorgfalt"},
     "依用途挑選 apetto 的機能服飾、外出配件與舒適生活用品。": {
         "en": "Browse apetto's functional apparel, outdoor accessories and comfort items by what you need.",
@@ -673,6 +689,13 @@ CSS += """
 .rich-text h2,.rich-text h3,.rich-text h4{margin:.8em 0 .4em}.article ol{list-style:decimal;padding-left:22px}.article ul{list-style:disc;padding-left:22px}
 .article blockquote,.rich-text blockquote{margin:1em 0;padding:.4em 0 .4em 1em;border-left:3px solid var(--brand);color:var(--ink2)}
 """
+CSS += """
+/* sub-category blocks */
+.type-sec{margin-bottom:28px;scroll-margin-top:140px}.type-sec:last-child{margin-bottom:0}
+.type-sec h4{font-size:17px;margin:0 0 12px}
+.type-sec .soon{padding:14px 18px}
+@media (max-width:980px){.type-sec{scroll-margin-top:80px}}
+"""
 CSS = CSS + fit.CSS
 ASSET_VER = {"css": digest(CSS), "js": digest(JS), "fit": digest(fit.JS)}
 
@@ -809,6 +832,9 @@ def render_product(data, visible, p, lang, overrides):
     crumbs = f'<li><a href="{link(d, "index.html", lang)}">首頁</a></li><li><a href="{link(d, SHOP, lang)}">商品分類</a></li>'
     if cat:
         crumbs += f'<li><a href="{link(d, sb.category_page(cat["id"]), lang)}">{esc(cat["name"])}</a></li>'
+        ptype = next((t for t in types_of(cat) if t["key"] in (p.get("types") or [])), None)
+        if ptype:
+            crumbs += f'<li><a href="{link(d, sb.category_page(cat["id"]), lang)}#type-{esc(ptype["key"])}">{esc(ptype["name"])}</a></li>'
     crumbs += f"<li><span>{esc(name)}</span></li>"
     ld = {"@context": "https://schema.org", "@type": "Product", "productID": str(p["id"]), "name": name, "description": desc_text,
           "image": [PUBLIC + p["image"]["full"]] + [PUBLIC + g["full"] for g in p.get("gallery", [])],
@@ -1117,31 +1143,60 @@ def group_tiles(data, visible, d, lang):
     return tiles
 
 
+def type_sections(data, visible, c, d, lang, limit=None):
+    """Products of one category, one block per sub-category (empty ones say 即將推出)."""
+    out = ""
+    for t in types_of(c):
+        items = type_items(visible, c, t)
+        body = product_grid(items[:limit] if limit else items, d, lang) if items else '<div class="soon"><span class="tag">即將推出</span><p>這個分類的商品即將推出，先看看其他系列。</p></div>'
+        out += f'<div class="type-sec" id="type-{esc(t["key"])}"><h4>{esc(t["name"])}</h4>{body}</div>'
+    rest = untyped_items(visible, c)
+    if rest:
+        out += f'<div class="type-sec">{"<h4>其他</h4>" if types_of(c) else ""}{product_grid(rest, d, lang)}</div>'
+    if not out:
+        out = '<div class="soon"><span class="tag">即將推出</span><p>這個分類的商品即將推出，先看看其他系列。</p></div>'
+    return out
+
+
 def render_shop(data, visible, lang):
     d = ""
     blocks = ""
     for g in groups_of(data):
         cats_html = ""
         for c in cats_in(data, g["key"]):
-            items = [p for p in visible if c["id"] in p.get("categories", [])]
-            if items:
-                grid = product_grid(items, d, lang)
-                more = f'<a class="more" href="{link(d, sb.category_page(c["id"]), lang)}">查看全部<span aria-hidden="true"> →</span></a>'
-            else:
-                grid = f'<div class="soon"><span class="tag">即將推出</span><p>這個分類的商品即將推出，先看看其他系列。</p></div>'
-                more = ""
+            more = (f'<a class="more" href="{link(d, sb.category_page(c["id"]), lang)}">查看全部<span aria-hidden="true"> →</span></a>'
+                    if cat_count(c, visible) else "")
             cats_html += (f'<div class="shop-cat" id="cat-{c["id"]}"><div class="shop-cat-head"><div><h3>{esc(c["name"])}</h3>'
-                          f'{("<p>" + esc(c.get("blurb", "")) + "</p>") if c.get("blurb") else ""}</div>{more}</div>{grid}</div>')
+                          f'{("<p>" + esc(c.get("blurb", "")) + "</p>") if c.get("blurb") else ""}</div>{more}</div>{type_sections(data, visible, c, d, lang)}</div>')
         blocks += (f'<section class="sec tight shop-group" id="{g["key"]}"><div class="wrap"><div class="sec-head rv"><div><span class="eyebrow">商品分類</span>'
                    f'<h2>{esc(g["name"])}</h2><p>{esc(g.get("blurb", ""))}</p></div></div><div class="rv">{cats_html}</div></div></section>')
-    jump = "".join(f'<a href="#{g["key"]}">{esc(g["name"])}</a>' for g in groups_of(data))
     body = f"""<div class="wrap">
 <ol class="breadcrumb"><li><a href="{link(d, 'index.html', lang)}">首頁</a></li><li><span>商品分類</span></li></ol>
 <div class="ph"><h1>商品分類</h1><p>依用途挑選</p></div>
-<div class="chips">{jump}<a href="{link(d, 'search.html', lang)}">全系列</a><a href="{link(d, 'bestsellers.html', lang)}">暢銷商品</a></div>
+<div class="chips">{"".join(f'<a href="#{g["key"]}">{esc(g["name"])}</a>' for g in groups_of(data))}<a href="{link(d, 'search.html', lang)}">全系列</a><a href="{link(d, 'bestsellers.html', lang)}">暢銷商品</a></div>
 </div>
 {blocks}"""
     return page(data, SHOP, lang, f"商品分類 | {BRAND}", body, "依用途挑選 apetto 的機能服飾、外出配件與舒適生活用品。", current=SHOP)
+
+
+def render_category(data, visible, c, lang):
+    """A category page: sub-category chips, then one product block per sub-category."""
+    site_rel = sb.category_page(c["id"])
+    d = rel_dir(site_rel)
+    g = next((x for x in groups_of(data) if x["key"] == c.get("group")), None)
+    chips = "".join(f'<a href="#type-{esc(t["key"])}">{esc(t["name"])}</a>' for t in types_of(c))
+    crumbs = (f'<li><a href="{link(d, "index.html", lang)}">首頁</a></li><li><a href="{link(d, SHOP, lang)}">商品分類</a></li>'
+              + (f'<li><a href="{link(d, SHOP, lang)}#{g["key"]}">{esc(g["name"])}</a></li>' if g else "") + f'<li><span>{esc(c["name"])}</span></li>')
+    n = cat_count(c, visible)
+    body = f"""<div class="wrap">
+<ol class="breadcrumb">{crumbs}</ol>
+<div class="ph"><h1>{esc(c["name"])}</h1>{f'<p>{esc(c["blurb"])}</p>' if c.get("blurb") else ''}</div>
+{f'<div class="chips">{chips}</div>' if chips else '<div style="height:18px"></div>'}
+<div class="pagination"><p class="results">共 {n} 件商品</p></div>
+{type_sections(data, visible, c, d, lang)}
+<div style="height:48px"></div>
+</div>"""
+    return page(data, site_rel, lang, f"{c['name']} | {BRAND}", body, c.get("blurb") or c["name"], current=SHOP)
 
 
 # ----------------------------------------------------------------- 商品指南 (_data/guides.json -> guides.html, guide/<key>.html)
@@ -1363,6 +1418,9 @@ def i18n_table(data):
                     table.setdefault(re.sub(r"\s+", " ", zh), {})[lang] = tr
     for g in data["categories"] + groups_of(data):
         put(g, ("name", "blurb"))
+    for c in data["categories"]:
+        for t in types_of(c):
+            put(t, ("name",))
     site = load_site()
     put(site["hero"], ("title", "lead"))
     put(site["features"], ("intro",))
@@ -1385,8 +1443,7 @@ def build_all(data, visible):
         write_page(render_home(data, visible, lang), "index.html", lang, table)
         for c in data["categories"]:
             items = [p for p in visible if c["id"] in p.get("categories", [])]
-            write_page(render_listing(data, sb.category_page(c["id"]), lang, c["name"], items, sub=c.get("blurb", ""), current=c["id"]),
-                       sb.category_page(c["id"]), lang, table)
+            write_page(render_category(data, visible, c, lang), sb.category_page(c["id"]), lang, table)
         write_page(render_shop(data, visible, lang), SHOP, lang, table)
         write_page(render_features(data, visible, lang), FEATURES, lang, table)
         write_page(render_guides_list(data, lang), GUIDES, lang, table)
