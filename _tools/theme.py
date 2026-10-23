@@ -351,6 +351,12 @@ body.menu-open .bars i:nth-child(1){transform:translateY(6px) rotate(45deg)}body
 .lang-row{display:none}
 .mobile-menu{display:none}
 @media (max-width:1180px){.nav a{font-size:15px;padding:8px 10px}}
+/* wide screens: logo, menu and languages on one row */
+@media (min-width:1060px){
+ .hd-in{grid-template-columns:auto 1fr auto;grid-template-areas:"logo nav lang";padding:10px 0}
+ .hd-in>.nav{padding:0;flex-wrap:nowrap}.logo img{height:48px}
+ .hd-in>.lang{padding:3px}.hd-in>.lang a{min-width:0;height:34px;padding:0 11px;font-size:14px}
+}
 @media (max-width:980px){
  .nav,.srch,.hd-in>.lang{display:none}.burger{display:grid;place-items:center;order:-1;margin-left:-11px}
  .hd-in{display:flex;align-items:center;min-height:64px;gap:12px;padding-top:0}.hd-in>.logo{margin:0 auto;padding-right:36px}.logo img{height:50px}
