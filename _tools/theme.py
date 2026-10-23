@@ -79,6 +79,7 @@ def untyped_items(visible, c):
     return [p for p in visible if c["id"] in p.get("categories", []) and not keys.intersection(p.get("types") or [])]
 
 
+VERSION = "v1.0.1"
 BRAND = "apetto 寵物機能衣"
 HOME_TITLE = "apetto | 高機能寵物時裝：專業防水防風、專為毛孩設計的機能衣服"
 HOME_DESC = ("apetto 專業製衣團隊專注研發高機能寵物時裝。嚴選防水與防風布料，結合俐落的結構剪裁與極致實用性。"
@@ -636,7 +637,7 @@ def footer(data, site_rel, lang):
     <div class="social"><a href="{INSTAGRAM}" target="_blank" rel="noopener">Instagram</a><a href="{PINKOI}" target="_blank" rel="noopener">Pinkoi</a></div></div>
    <div class="contact"><h4>聯絡我們</h4><ul><li><a href="mailto:info@hweider.url.tw">客服信箱：info@hweider.url.tw</a></li><li><a href="tel:+886289915001">連絡電話: 02-89915001</a></li><li>服務時間：週一~週五 10:00-12:00、14:00-18:00</li><li>LINE @apetto</li></ul></div>
   </div>
-  <div class="ft-bottom"><nav class="ft-links">{small}</nav><span>Copyright ©2026 apetto 機能寵物衣</span></div>
+  <div class="ft-bottom"><nav class="ft-links">{small}</nav><span>Copyright ©2026 apetto 機能寵物衣 · <span class="ver">{VERSION}</span></span></div>
  </div>
 </footer>"""
 
