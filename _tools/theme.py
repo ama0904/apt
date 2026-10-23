@@ -31,8 +31,24 @@ IMG = {
     "f_snap": CDN + "2022/02/05/c787b7d57fbf0fa0941b63be70fac92f.PNG",
     "f_name": CDN + "2022/02/05/f1d2de57fe93927106c6a19350ea87b8.PNG",
 }
-CAT_IMG = {1: "cat1", 2: "cat2", 3: "cat3"}
-CAT_BLURB = {1: "專為小型犬設計，穿脫簡易、外出便利", 2: "專為中、大型毛孩子設計", 3: "MIT 抗靜電刷毛布料，毛小孩寒流不用怕"}
+# product groups (商品分類 in the strategy deck): each category in products.json carries a "group" key
+GROUP_IMG = {"apparel": "cat1", "outdoor": "cat2", "living": "cat3"}
+DEFAULT_GROUPS = [{"key": "apparel", "name": "機能服飾", "blurb": "雨衣、保暖外套與浴袍，應對每一種天氣"},
+                  {"key": "outdoor", "name": "外出配件", "blurb": "牽繩與頸圈、領巾、寵物鞋，出門的好夥伴"},
+                  {"key": "living", "name": "舒適生活", "blurb": "舒適墊，回家後的放鬆時光"}]
+SHOP, GUIDES, FEATURES, ABOUT = "shop.html", "guides.html", "features.html", "pages/4.html"
+
+
+def groups_of(data):
+    return data.get("groups") or DEFAULT_GROUPS
+
+
+def cats_in(data, gkey):
+    return [c for c in data["categories"] if c.get("group") == gkey]
+
+
+def cat_count(c, visible):
+    return len([p for p in visible if c["id"] in p.get("categories", [])])
 BRAND = "apetto 寵物機能衣"
 HOME_TITLE = "apetto | 高機能寵物時裝：專業防水防風、專為毛孩設計的機能衣服"
 HOME_DESC = ("apetto 專業製衣團隊專注研發高機能寵物時裝。嚴選防水與防風布料，結合俐落的結構剪裁與極致實用性。"
@@ -46,6 +62,48 @@ FONTS = ("https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800"
 # UI strings of the theme (the content strings live in _data/i18n.json)
 UI = {
     "瀏覽全系列": {"en": "Shop the collection", "ja": "全ラインナップを見る", "de": "Zur Kollektion"},
+    # navigation (Website Strategy deck)
+    "商品分類": {"en": "Shop All", "ja": "ショップ", "de": "Shop"},
+    "商品指南": {"en": "Guides", "ja": "ガイド", "de": "Ratgeber"},
+    "機能與設計細節": {"en": "Features & Design Details", "ja": "機能とデザインのディテール", "de": "Funktionen & Details"},
+    "品牌故事": {"en": "Our Story", "ja": "ブランドストーリー", "de": "Unsere Geschichte"},
+    "依用途挑選": {"en": "Pick by what you need", "ja": "用途で選ぶ", "de": "Nach Einsatz wählen"},
+    "瀏覽分類": {"en": "Browse", "ja": "カテゴリーを見る", "de": "Kategorie ansehen"},
+    "即將推出": {"en": "Coming soon", "ja": "近日発売", "de": "Demnächst"},
+    "這個分類的商品即將推出，先看看其他系列。": {
+        "en": "Products in this category are coming soon. Have a look at the other series meanwhile.",
+        "ja": "このカテゴリーの商品は近日公開予定です。ほかのシリーズをご覧ください。",
+        "de": "Produkte in dieser Kategorie kommen bald. Schauen Sie sich inzwischen die anderen Serien an."},
+    "挑選、測量與保養的小知識": {"en": "Tips on choosing, measuring and caring", "ja": "選び方・測り方・お手入れのコツ", "de": "Tipps zu Auswahl, Maßnehmen und Pflege"},
+    "閱讀指南": {"en": "Read the guide", "ja": "ガイドを読む", "de": "Ratgeber lesen"},
+    "更多指南": {"en": "More guides", "ja": "ほかのガイド", "de": "Weitere Ratgeber"},
+    "看完整細節": {"en": "See all the details", "ja": "詳しく見る", "de": "Alle Details"},
+    "每一個細節，都為了雨天也能自在奔跑。": {"en": "Every detail is there so your dog can run free, even in the rain.",
+                                     "ja": "雨の日でも自由に走れるように、細部まで。", "de": "Jedes Detail, damit Ihr Hund auch im Regen frei laufen kann."},
+    "看雨衣": {"en": "Shop raincoats", "ja": "レインコートを見る", "de": "Regenmäntel ansehen"},
+    "看保暖外套": {"en": "Shop warm jackets", "ja": "防寒ジャケットを見る", "de": "Wärmejacken ansehen"},
+    "指南": {"en": "Guide", "ja": "ガイド", "de": "Ratgeber"},
+    "雨衣、保暖外套與浴袍，應對每一種天氣": {"en": "Raincoats, warm jackets and bathrobes for every kind of weather", "ja": "レインコート、防寒ジャケット、バスローブ。どんな天気にも", "de": "Regenmäntel, Wärmejacken und Bademäntel für jedes Wetter"},
+    "牽繩與頸圈、領巾、寵物鞋，出門的好夥伴": {"en": "Leashes, collars, bandanas and shoes: good company on every outing", "ja": "リード＆首輪、バンダナ、ドッグシューズ。お出かけの相棒", "de": "Leinen, Halsbänder, Halstücher und Schuhe: Begleiter für jeden Ausflug"},
+    "舒適墊，回家後的放鬆時光": {"en": "Comfort mats for the downtime after the walk", "ja": "快適マットで、帰ってからのくつろぎ時間を", "de": "Komfortmatten für die Ruhe nach dem Spaziergang"},
+    "防水防風，耐水壓 10000mmH2O，雨天散步不受限": {"en": "Waterproof and windproof, rated to 10,000 mmH2O. Rainy walks, no limits.", "ja": "防水・防風、耐水圧 10,000mmH2O。雨の日の散歩も自由に", "de": "Wasser- und winddicht, Wassersäule 10.000 mm. Regenspaziergänge ohne Grenzen."},
+    "MIT 抗靜電刷毛內裡，濕冷寒流也暖呼呼": {"en": "Anti-static fleece lining made in Taiwan keeps the cold out", "ja": "台湾製の帯電防止フリース裏地で、湿った寒さもぽかぽか", "de": "Antistatisches Fleece-Futter aus Taiwan hält die nasskalte Luft draußen"},
+    "洗澡、玩水後快速吸水，不再滿屋子甩水": {"en": "Soaks up water fast after a bath or a swim, so the house stays dry", "ja": "お風呂や水遊びのあとにさっと吸水。家じゅう水しぶきにならない", "de": "Saugt nach Bad oder Schwimmen schnell auf, damit die Wohnung trocken bleibt"},
+    "每天出門都要用的，要好看也要耐用": {"en": "Used every single day, so it has to look good and last", "ja": "毎日使うものだから、見た目も丈夫さも", "de": "Jeden Tag im Einsatz, also schön und langlebig"},
+    "一條領巾，造型立刻不一樣": {"en": "One bandana and the whole look changes", "ja": "バンダナ1枚で、印象ががらりと変わる", "de": "Ein Halstuch, und der ganze Look ist anders"},
+    "燙地、雨天、碎石路，保護肉墊": {"en": "Hot pavement, rain, gravel: protection for the paw pads", "ja": "熱い地面、雨、砂利道から肉球を守る", "de": "Heißer Asphalt, Regen, Schotter: Schutz für die Ballen"},
+    "回家後，給毛孩一個放鬆的角落": {"en": "A cosy corner to unwind in after the walk", "ja": "帰ってきたら、くつろげる場所を", "de": "Nach dem Spaziergang eine Ecke zum Entspannen"},
+    "兩個系列，一樣講究": {"en": "Two series, the same attention to detail", "ja": "2つのシリーズ、同じこだわり", "de": "Zwei Serien, dieselbe Sorgfalt"},
+    "依用途挑選 apetto 的機能服飾、外出配件與舒適生活用品。": {
+        "en": "Browse apetto's functional apparel, outdoor accessories and comfort items by what you need.",
+        "ja": "apetto の機能ウェア、お出かけアクセサリー、おうちで快適アイテムを用途から探せます。",
+        "de": "apettos Funktionsbekleidung, Zubehör für draußen und Wohlfühlartikel nach Einsatz durchstöbern."},
+    "為每一段毛孩生活，做好準備。": {"en": "Ready for Every Moment in Your Pet’s Life.",
+                             "ja": "愛犬との毎日の、どんな瞬間にも備えて。", "de": "Bereit für jeden Moment im Leben Ihres Hundes."},
+    "從天候防護到日常外出，探索 apetto 為毛孩打造的機能與舒適設計。": {
+        "en": "From weather protection to everyday adventures, discover apetto’s thoughtful designs that bring together function, comfort, and style for your furry companions.",
+        "ja": "天候からの保護から日常のお出かけまで。apetto が愛犬のために考えた、機能と快適さを備えたデザインをご覧ください。",
+        "de": "Vom Wetterschutz bis zum Alltagsabenteuer: Entdecken Sie apettos durchdachte Designs, die Funktion, Komfort und Stil für Ihren Vierbeiner vereinen."},
     "看暢銷商品": {"en": "See bestsellers", "ja": "人気商品を見る", "de": "Bestseller ansehen"},
     "探索系列": {"en": "Explore", "ja": "シリーズを見る", "de": "Entdecken"},
     "為什麼選擇 apetto": {"en": "Why apetto", "ja": "apetto が選ばれる理由", "de": "Warum apetto"},
@@ -479,9 +537,11 @@ ICON_ARROW = ('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
 
 
 # ----------------------------------------------------------------- shell
+NAV = [("index.html", "首頁"), (SHOP, "商品分類"), (GUIDES, "商品指南"), (FEATURES, "機能與設計細節"), (fit.PAGE, "試衣間"), (ABOUT, "品牌故事")]
+
+
 def nav_links(data, page_dir, lang, current=""):
-    items = [(sb.category_page(c["id"]), c["name"]) for c in data["categories"]]
-    items += [("search.html", "全系列"), ("bestsellers.html", "暢銷商品"), (fit.PAGE, "試衣間"), ("pages/5.html", "購物流程"), ("information/news.html", "最新消息"), ("pages/4.html", "關於我們")]
+    items = list(NAV)
     out = []
     for site_path, label in items:
         cls = ' class="cur"' if site_path == current else ""
@@ -513,14 +573,15 @@ def header(data, site_rel, lang, current=""):
 </header>
 <div class="mobile-menu" role="dialog" aria-label="選單"><div class="mm-panel">
   <div class="mm-top"><a href="{link(d, 'index.html', lang)}" aria-label="apetto"><img src="{asset(d, LOGO)}" alt="apetto"></a><button class="mm-close" aria-label="關閉">✕</button></div>
-  <nav class="mm-nav"><a href="{link(d, 'index.html', lang)}"{cur(current == 'index.html')}>首頁</a>{nav_links(data, d, lang, current)}</nav>
+  <nav class="mm-nav">{nav_links(data, d, lang, current)}</nav>
   <div class="mm-social"><a href="{INSTAGRAM}" target="_blank" rel="noopener">Instagram</a><a href="{PINKOI}" target="_blank" rel="noopener">Pinkoi</a></div>
 </div></div>"""
 
 
 def footer(data, site_rel, lang):
     d = rel_dir(site_rel)
-    links = [("pages/4.html", "關於我們"), ("pages/5.html", "購物流程"), (fit.PAGE, "AI 試衣間"), ("information/news.html", "最新消息")]
+    links = [(SHOP, "商品分類"), ("search.html", "全系列"), ("bestsellers.html", "暢銷商品"), (GUIDES, "商品指南"), (fit.PAGE, "AI 試衣間"),
+             ("pages/5.html", "購物流程"), ("information/news.html", "最新消息"), (ABOUT, "品牌故事")]
     small = "".join(f'<a href="{link(d, sp, lang)}">{esc(t)}</a>' for sp, t in links)
     return f"""<footer class="ft">
  <div class="wrap">
@@ -568,6 +629,29 @@ def page(data, site_rel, lang, title, body, desc="", og_image=None, current="", 
 </html>"""
 
 
+CSS += """
+/* ---- strategy-deck additions: group tiles, shop page, guides, features ---- */
+.tile .img{display:block}
+.tile .subs{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tile .subs a{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;border:1.5px solid var(--line2);background:#fff;font-size:13.5px;font-weight:600;color:var(--ink2)}
+.tile .subs a:hover{border-color:var(--ink);color:var(--ink)}.tile .subs a i{font-style:normal;font-size:11px;color:var(--mute);font-weight:600}
+.shop-group{scroll-margin-top:140px}.shop-group .sec-head p{margin-top:6px}
+.shop-cat{margin-bottom:40px}.shop-cat:last-child{margin-bottom:0}
+.shop-cat-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}.shop-cat-head h3{font-size:22px}.shop-cat-head p{margin:4px 0 0;color:var(--mute);font-size:15px}
+.shop-cat-head .more{white-space:nowrap;font-weight:700;color:var(--ink);border-bottom:2px solid var(--brand);padding-bottom:2px}
+.soon{display:flex;align-items:center;gap:14px;background:var(--sand);border-radius:var(--radius);padding:20px 22px;color:var(--ink2)}
+.soon .tag{background:var(--ink);color:#fff;font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;letter-spacing:.04em;white-space:nowrap}.soon p{margin:0}
+.gcards{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.gcard{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px 22px 20px;transition:transform .2s,box-shadow .2s;color:var(--ink)}
+.gcard:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(0,0,0,.08)}
+.gcard .num{font-size:12.5px;font-weight:800;letter-spacing:.1em;color:var(--brand-ink);margin-bottom:12px}
+.gcard h3{font-size:19px;margin-bottom:8px}.gcard p{margin:0 0 18px;color:var(--mute);font-size:14.5px;line-height:1.6;flex:1}
+.gcard .go{font-weight:700;color:var(--ink);border-bottom:2px solid var(--brand);align-self:flex-start;padding-bottom:2px}
+.article.guide .ph p{font-size:18px}.article.guide h2{font-size:22px;margin:34px 0 10px}.article.guide ul{padding-left:22px}.article.guide li{margin:6px 0}
+.article.guide .guide-cta{margin-top:32px}.article.guide .guide-cta .btn{color:#fff}.article.guide ul{list-style:disc}
+.features .story{margin-bottom:56px}.features .story:last-child{margin-bottom:0}
+@media (max-width:980px){.gcards{grid-template-columns:1fr;gap:14px}.shop-cat-head{flex-direction:column;align-items:flex-start;gap:6px}.features .story{margin-bottom:36px}.shop-group{scroll-margin-top:80px}}
+"""
 CSS = CSS + fit.CSS
 ASSET_VER = {"css": digest(CSS), "js": digest(JS), "fit": digest(fit.JS)}
 
@@ -606,14 +690,7 @@ def render_home(data, visible, lang):
     d = ""
     best = [p for p in visible if "bestseller" in p.get("sections", [])]
     latest = [p for p in visible if "latest" in p.get("sections", [])]
-    tiles = ""
-    for c in data["categories"]:
-        img = IMG.get(CAT_IMG.get(c["id"], ""), "")
-        img_html = f'<img src="{asset(d, img)}" alt="{esc(c["name"])}" loading="lazy">' if img else ""
-        n = len([p for p in visible if c["id"] in p.get("categories", [])])
-        tiles += (f'<a class="tile" href="{link(d, sb.category_page(c["id"]), lang)}"><div class="img">{img_html}</div>'
-                  f'<div class="body"><h3>{esc(c["name"])}</h3><p>{esc(CAT_BLURB.get(c["id"], ""))}</p>'
-                  f'<span class="go">探索系列<span aria-hidden="true"> →</span></span></div></a>')
+    tiles = group_tiles(data, visible, d, lang)
     feats = [("f_water", "耐水壓 10000mmH2O", "頂級防水防風布料，水滴輕易滑落，台灣多雨濕冷也不怕。"),
              ("f_leash", "穿著也能上牽繩", "領圍開口設計，穿上 apetto 仍然可以扣上牽繩。"),
              ("f_snap", "快速穿脫", "前扣式鈕扣與腹部插扣，扣上就能出門。"),
@@ -623,14 +700,16 @@ def render_home(data, visible, lang):
     feats_html = "".join(f'<div class="feat"><div class="img"><img src="{asset(d, IMG[k])}" alt="" loading="lazy"></div>'
                          f'<div class="body"><h3>{esc(t)}</h3><p>{esc(s)}</p></div></div>' for k, t, s in feats)
     body = f"""<section class="hero"><div class="wrap hero-in">
- <div class="rv in"><span class="eyebrow">{esc(BRAND)}</span><h1>阻擋風雨，擁抱無憂的舒適時光</h1>
-  <p class="lead">專為毛孩設計的高機能雨衣與保暖夾克。防水、防風、穿脫快速，陪你走過每一個下雨的日子。</p>
+ <div class="rv in"><span class="eyebrow">{esc(BRAND)}</span><h1>為每一段毛孩生活，做好準備。</h1>
+  <p class="lead">從天候防護到日常外出，探索 apetto 為毛孩打造的機能與舒適設計。</p>
+  <div class="cta"><a class="btn brand" href="{link(d, SHOP, lang)}">商品分類</a><a class="btn" href="{link(d, fit.PAGE, lang)}">試衣間</a></div>
   <div class="hero-badges"><span class="badge"><i></i>耐水壓 10000mmH2O</span><span class="badge"><i></i>3M 反光條</span><span class="badge"><i></i>台灣設計製造</span></div>
  </div>
  <div class="hero-img rv in"><img src="{asset(d, IMG['hero'])}" alt="大汪系列" fetchpriority="high"></div>
 </div></section>
-{section('三大系列', f'<div class="tiles">{tiles}</div>', sub='依毛孩體型與季節挑選', cls='tight', page_dir=d, lang=lang)}
-{section('為什麼選擇 apetto', f'<div class="feats">{feats_html}</div>', sub='機能細節', cls='tight', page_dir=d, lang=lang)}
+{section('商品分類', f'<div class="tiles">{tiles}</div>', sub='依用途挑選', more=(SHOP, '查看全部'), cls='tight', page_dir=d, lang=lang)}
+{section('機能與設計細節', f'<div class="feats">{feats_html}</div>', sub='為什麼選擇 apetto', more=(FEATURES, '看完整細節'), cls='tight', page_dir=d, lang=lang)}
+{section('商品指南', guide_cards(d, lang), sub='挑選、測量與保養的小知識', more=(GUIDES, '更多指南'), cls='tight', page_dir=d, lang=lang) if load_guides() else ''}
 {fit.home_promo(d, lang)}
 {section('推薦商品', product_grid(latest, d, lang, tag='new'), more=('search.html', '查看全部'), sid='latest-products', cls='tight', page_dir=d, lang=lang) if latest else ''}
 {section('最新消息', news_html, more=('information/news.html', '查看全部'), sid='home-news', cls='tight', page_dir=d, lang=lang) if news_html else ''}
@@ -640,8 +719,9 @@ def render_home(data, visible, lang):
 
 def category_chips(data, page_dir, lang, current):
     chips = f'<a href="{link(page_dir, "search.html", lang)}"{cur(current == "all")}>全系列</a>'
-    for c in data["categories"]:
-        chips += f'<a href="{link(page_dir, sb.category_page(c["id"]), lang)}"{cur(current == c["id"])}>{esc(c["name"])}</a>'
+    for g in groups_of(data):
+        for c in cats_in(data, g["key"]):
+            chips += f'<a href="{link(page_dir, sb.category_page(c["id"]), lang)}"{cur(current == c["id"])}>{esc(c["name"])}</a>'
     chips += f'<a href="{link(page_dir, "bestsellers.html", lang)}"{cur(current == "best")}>暢銷商品</a>'
     return f'<div class="chips">{chips}</div>'
 
@@ -652,7 +732,7 @@ def render_listing(data, site_rel, lang, title, items, sub="", current="all", se
     box = (f'<form class="bigsearch" action="{sb.lang_variant("search.html", lang)}" role="search"><input type="search" name="q" placeholder="輸入關鍵字，例如「斗篷」或「保暖」" aria-label="搜尋商品" autocomplete="off">'
            f'<button type="submit" aria-label="搜尋">{ICON_SEARCH}</button></form>') if search else ""
     body = f"""<div class="wrap">
-<ol class="breadcrumb"><li><a href="{link(d, 'index.html', lang)}">首頁</a></li><li><span>{esc(title)}</span></li></ol>
+<ol class="breadcrumb"><li><a href="{link(d, 'index.html', lang)}">首頁</a></li>{f'<li><a href="{link(d, SHOP, lang)}">商品分類</a></li>' if isinstance(current, int) else ''}<li><span>{esc(title)}</span></li></ol>
 <div class="ph"><h1>{esc(title)}</h1>{f'<p>{esc(sub)}</p>' if sub else ''}</div>
 {box}
 {category_chips(data, d, lang, current)}
@@ -660,8 +740,7 @@ def render_listing(data, site_rel, lang, title, items, sub="", current="all", se
 {product_grid(items, d, lang)}
 <div style="height:48px"></div>
 </div>"""
-    nav_cur = site_rel if current in ("best",) else (sb.category_page(current) if isinstance(current, int) else "")
-    return page(data, site_rel, lang, f"{title} | {BRAND}", body, sub or title, current=nav_cur)
+    return page(data, site_rel, lang, f"{title} | {BRAND}", body, sub or title, current=SHOP if isinstance(current, int) else "")
 
 
 def gallery_html(p, d):
@@ -707,7 +786,7 @@ def render_product(data, visible, p, lang, overrides):
     else:
         buy = f'<p class="showcase-note">本站為商品介紹，購買請至台灣官方商店。 <a href="{esc(online_url)}" target="_blank" rel="noopener">前往官方商店<span aria-hidden="true"> →</span></a></p>'
     related = [q for q in visible if q["id"] != p["id"] and (not cat or cat["id"] in q.get("categories", []))][:4]
-    crumbs = f'<li><a href="{link(d, "index.html", lang)}">首頁</a></li>'
+    crumbs = f'<li><a href="{link(d, "index.html", lang)}">首頁</a></li><li><a href="{link(d, SHOP, lang)}">商品分類</a></li>'
     if cat:
         crumbs += f'<li><a href="{link(d, sb.category_page(cat["id"]), lang)}">{esc(cat["name"])}</a></li>'
     crumbs += f"<li><span>{esc(name)}</span></li>"
@@ -734,11 +813,11 @@ def render_product(data, visible, p, lang, overrides):
 {section('相關商品', product_grid(related, d, lang), cls='tight', page_dir=d, lang=lang) if related else ''}"""
     extra = f'<script type="application/ld+json">{json.dumps(ld, ensure_ascii=False)}</script>\n'
     return page(data, site_rel, lang, f"{name} | {BRAND}", body, desc_text, og_image=p["image"]["full"],
-                current=sb.category_page(cat["id"]) if cat else "", body_class="" if lang == "zh" else "showcase", extra_head=extra)
+                current=SHOP, body_class="" if lang == "zh" else "showcase", extra_head=extra)
 
 
 # ----------------------------------------------------------------- info pages (about / terms / news / announcements)
-INFO_TITLES = {"pages/4.html": "關於我們", "pages/5.html": "購物流程", "information/news.html": "最新消息", "information/notice.html": "最新消息"}
+INFO_TITLES = {"pages/4.html": "品牌故事", "pages/5.html": "購物流程", "information/news.html": "最新消息", "information/notice.html": "最新消息"}
 INFO_PARENT = {"information/news&news_id=1.html": "information/news.html", "information/notice&notice_id=1.html": "information/news.html"}
 
 
@@ -903,7 +982,7 @@ def render_about(data, rel, lang, crumbs):
  </div>
  <p class="about-foot">apetto © 匯得興業有限公司</p>
 </div></section>"""
-    return page(data, rel, lang, f"關於我們 | {BRAND}", body, "關於 apetto", og_image=IMG["story"], current=rel)
+    return page(data, rel, lang, f"品牌故事 | {BRAND}", body, "關於 apetto", og_image=IMG["story"], current=rel)
 
 
 ICON_CART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11h11l2-7H6.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>'
@@ -935,6 +1014,158 @@ def render_terms(data, rel, lang, crumbs):
   <p>例假日與國定假日無法進行出貨，請您特別留意。</p></div></div>
 </section></div>"""
     return page(data, rel, lang, f"購物流程 | {BRAND}", body, "購物流程", current=rel)
+
+
+# ----------------------------------------------------------------- 商品分類 (shop.html) + group tiles
+def group_tiles(data, visible, d, lang):
+    tiles = ""
+    for g in groups_of(data):
+        img = IMG.get(GROUP_IMG.get(g["key"], ""), "")
+        img_html = f'<img src="{asset(d, img)}" alt="{esc(g["name"])}" loading="lazy">' if img else ""
+        subs = "".join(f'<a href="{link(d, sb.category_page(c["id"]), lang)}">{esc(c["name"])}{"" if cat_count(c, visible) else "<i>即將推出</i>"}</a>'
+                       for c in cats_in(data, g["key"]))
+        tiles += (f'<div class="tile"><a class="img" href="{link(d, SHOP, lang)}#{g["key"]}">{img_html}</a>'
+                  f'<div class="body"><h3>{esc(g["name"])}</h3><p>{esc(g.get("blurb", ""))}</p><div class="subs">{subs}</div></div></div>')
+    return tiles
+
+
+def render_shop(data, visible, lang):
+    d = ""
+    blocks = ""
+    for g in groups_of(data):
+        cats_html = ""
+        for c in cats_in(data, g["key"]):
+            items = [p for p in visible if c["id"] in p.get("categories", [])]
+            if items:
+                grid = product_grid(items, d, lang)
+                more = f'<a class="more" href="{link(d, sb.category_page(c["id"]), lang)}">查看全部<span aria-hidden="true"> →</span></a>'
+            else:
+                grid = f'<div class="soon"><span class="tag">即將推出</span><p>這個分類的商品即將推出，先看看其他系列。</p></div>'
+                more = ""
+            cats_html += (f'<div class="shop-cat" id="cat-{c["id"]}"><div class="shop-cat-head"><div><h3>{esc(c["name"])}</h3>'
+                          f'{("<p>" + esc(c.get("blurb", "")) + "</p>") if c.get("blurb") else ""}</div>{more}</div>{grid}</div>')
+        blocks += (f'<section class="sec tight shop-group" id="{g["key"]}"><div class="wrap"><div class="sec-head rv"><div><span class="eyebrow">商品分類</span>'
+                   f'<h2>{esc(g["name"])}</h2><p>{esc(g.get("blurb", ""))}</p></div></div><div class="rv">{cats_html}</div></div></section>')
+    jump = "".join(f'<a href="#{g["key"]}">{esc(g["name"])}</a>' for g in groups_of(data))
+    body = f"""<div class="wrap">
+<ol class="breadcrumb"><li><a href="{link(d, 'index.html', lang)}">首頁</a></li><li><span>商品分類</span></li></ol>
+<div class="ph"><h1>商品分類</h1><p>依用途挑選</p></div>
+<div class="chips">{jump}<a href="{link(d, 'search.html', lang)}">全系列</a><a href="{link(d, 'bestsellers.html', lang)}">暢銷商品</a></div>
+</div>
+{blocks}"""
+    return page(data, SHOP, lang, f"商品分類 | {BRAND}", body, "依用途挑選 apetto 的機能服飾、外出配件與舒適生活用品。", current=SHOP)
+
+
+# ----------------------------------------------------------------- 商品指南 (_data/guides.json -> guides.html, guide/<key>.html)
+GUIDES_FILE = sb.DATA_DIR / "guides.json"
+
+
+def load_guides():
+    items = json.loads(GUIDES_FILE.read_text(encoding="utf-8")).get("items", []) if GUIDES_FILE.exists() else []
+    return [g for g in items if g.get("visible", True)]
+
+
+def guide_page(g):
+    return f"guide/{g['key']}.html"
+
+
+def guide_text(g, lang, field):
+    o = (g.get("i18n") or {}).get(lang) or {}
+    return (o.get(field) or "").strip() or (g.get(field) or "")
+
+
+def guide_body_html(text):
+    """'## heading', '- bullet' and plain paragraphs -> article HTML."""
+    out, ul = [], []
+
+    def flush():
+        nonlocal ul
+        if ul:
+            out.append("<ul>" + "".join(f"<li>{esc(x)}</li>" for x in ul) + "</ul>")
+            ul = []
+    for line in (text or "").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        if line.startswith("## "):
+            flush()
+            out.append(f"<h2>{esc(line[3:])}</h2>")
+        elif line.startswith("- "):
+            ul.append(line[2:])
+        else:
+            flush()
+            out.append(f"<p>{esc(line)}</p>")
+    flush()
+    return "\n".join(out)
+
+
+def guide_cards(d, lang, skip=None):
+    cards = ""
+    for i, g in enumerate(load_guides()):
+        if skip and g["key"] == skip:
+            continue
+        cards += (f'<a class="gcard" href="{link(d, guide_page(g), lang)}"><span class="num"><span>指南</span> {i + 1:02d}</span>'
+                  f'<h3>{esc(guide_text(g, lang, "title"))}</h3><p>{esc(guide_text(g, lang, "summary"))}</p>'
+                  f'<span class="go">閱讀指南<span aria-hidden="true"> →</span></span></a>')
+    return f'<div class="gcards">{cards}</div>'
+
+
+def render_guides_list(data, lang):
+    d = ""
+    body = f"""<div class="wrap">
+<ol class="breadcrumb"><li><a href="{link(d, 'index.html', lang)}">首頁</a></li><li><span>商品指南</span></li></ol>
+<div class="ph"><h1>商品指南</h1><p>挑選、測量與保養的小知識</p></div>
+<div style="height:24px"></div>
+{guide_cards(d, lang)}
+<div style="height:48px"></div>
+</div>"""
+    return page(data, GUIDES, lang, f"商品指南 | {BRAND}", body, "挑選、測量與保養的小知識", current=GUIDES)
+
+
+def render_guide(data, g, lang):
+    rel = guide_page(g)
+    d = rel_dir(rel)
+    title = guide_text(g, lang, "title")
+    summary = guide_text(g, lang, "summary")
+    crumbs = (f'<li><a href="{link(d, "index.html", lang)}">首頁</a></li><li><a href="{link(d, GUIDES, lang)}">商品指南</a></li>'
+              f'<li><span>{esc(title)}</span></li>')
+    extra = ""
+    if g.get("link"):
+        label = esc(guide_text(g, lang, "link_text") or "查看連結")
+        extra = f'<p class="guide-cta"><a class="btn brand" href="{link(d, g["link"].lstrip("/"), lang)}">{label}</a></p>'
+    body = (f'<div class="wrap"><ol class="breadcrumb">{crumbs}</ol><article class="article guide"><div class="ph"><span class="eyebrow">商品指南</span>'
+            f'<h1>{esc(title)}</h1><p>{esc(summary)}</p></div>{guide_body_html(guide_text(g, lang, "body"))}{extra}</article></div>'
+            f'{section("更多指南", guide_cards(d, lang, skip=g["key"]), cls="tight", page_dir=d, lang=lang)}')
+    return page(data, rel, lang, f"{title} | {BRAND}", body, summary, current=GUIDES)
+
+
+# ----------------------------------------------------------------- 機能與設計細節 (features.html): the original site's feature copy
+def render_features(data, visible, lang):
+    d = ""
+    rows = [
+        ("f_water", "耐水壓 10000mmH2O", "耐水壓 10000mmH2O 持久防水，水滴在衣服上會輕易滑落，提供舒適的防水防護", "極致防水，奔跑不受限。"),
+        ("rain", "3M 反光條", "3M Scotchlite™ 反光條，在昏暗環境下，毛孩子需要被看見，增加駕駛對毛孩子的能見度", "領頂採用 3M 反光條，提升狗狗夜晚行走安全"),
+        ("f_leash", "穿著也能上牽繩", "領圍開口 5 公分，穿上 apetto 仍然可以上牽繩", "散步去 !"),
+        ("f_snap", "快速穿脫", "前腳包覆設計搭配前扣式鈕扣，快速穿脫", "三點式前鈕扣，穿脫方便"),
+        ("cat3", "不要炸毛 !", "內層 MIT 抗靜電刷毛布料，帶給寵物最舒服的親膚感受", "MIT 抗靜電刷毛布料，毛小孩寒流不用怕"),
+        ("f_name", "寫上名字", "衣服是誰的? 寫上名字，是毛孩子專屬的衣服", "寫上毛孩專屬的名字，準備出門盡情奔跑"),
+    ]
+    rows_html = ""
+    for i, (img, h, p1, p2) in enumerate(rows):
+        rows_html += (f'<div class="story{" flip" if i % 2 else ""} rv"><div class="story-img"><img src="{asset(d, IMG[img])}" alt="" loading="lazy"></div>'
+                      f'<div><span class="eyebrow">{esc(p2)}</span><h2>{esc(h)}</h2><p>{esc(p1)}</p></div></div>')
+    series = f"""<div class="cards2 rv">
+  <div><h3>大汪系列</h3><p>專為中、大型毛孩子設計。</p><p>頂級防風、防水布料，具有包覆、防水與穿脫便利的多重優點。</p><a class="btn" href="{link(d, sb.category_page(1), lang)}">看雨衣</a></div>
+  <div><h3>小汪系列</h3><p>小毛孩子的首選。</p><p><span>前項三點鈕扣、前腳雙袖設計，</span><span>更全面的防水保護。</span></p><p>領頂 3M 反光條，增加夜間行走的安全性。</p><a class="btn" href="{link(d, sb.category_page(2), lang)}">看保暖外套</a></div>
+ </div>"""
+    body = f"""<div class="wrap">
+<ol class="breadcrumb"><li><a href="{link(d, 'index.html', lang)}">首頁</a></li><li><span>機能與設計細節</span></li></ol>
+<div class="ph"><h1>機能與設計細節</h1><p>每一個細節，都為了雨天也能自在奔跑。</p></div>
+</div>
+<section class="sec tight"><div class="wrap features">{rows_html}</div></section>
+<section class="sec tight"><div class="wrap"><div class="sec-head rv"><div><h2>兩個系列，一樣講究</h2></div></div>{series}</div></section>
+{fit.home_promo(d, lang)}"""
+    return page(data, FEATURES, lang, f"機能與設計細節 | {BRAND}", body, "每一個細節，都為了雨天也能自在奔跑。", og_image=IMG["rain"], current=FEATURES)
 
 
 # ----------------------------------------------------------------- news (admin-managed _data/news.json)
@@ -1031,10 +1262,13 @@ def i18n_table(data):
     table = sb.load_i18n(data)
     for k, v in UI.items():
         table.setdefault(k, {}).update({kk: vv for kk, vv in v.items() if kk not in table.get(k, {})})
-    for n in load_news():
+    for n in load_news() + load_guides():
         for lang, o in (n.get("i18n") or {}).items():
             if (o or {}).get("title") and n.get("title"):
                 table.setdefault(re.sub(r"\s+", " ", n["title"]).strip(), {})[lang] = o["title"]
+    for g in data["categories"] + groups_of(data):
+        if g.get("blurb"):
+            table.setdefault(g["blurb"], {})
     return table
 
 
@@ -1052,8 +1286,13 @@ def build_all(data, visible):
         write_page(render_home(data, visible, lang), "index.html", lang, table)
         for c in data["categories"]:
             items = [p for p in visible if c["id"] in p.get("categories", [])]
-            write_page(render_listing(data, sb.category_page(c["id"]), lang, c["name"], items, sub=CAT_BLURB.get(c["id"], ""), current=c["id"]),
+            write_page(render_listing(data, sb.category_page(c["id"]), lang, c["name"], items, sub=c.get("blurb", ""), current=c["id"]),
                        sb.category_page(c["id"]), lang, table)
+        write_page(render_shop(data, visible, lang), SHOP, lang, table)
+        write_page(render_features(data, visible, lang), FEATURES, lang, table)
+        write_page(render_guides_list(data, lang), GUIDES, lang, table)
+        for g in load_guides():
+            write_page(render_guide(data, g, lang), guide_page(g), lang, table)
         write_page(render_listing(data, "search.html", lang, "全系列", visible, current="all", search=True), "search.html", lang, table)
         best = [p for p in visible if "bestseller" in p.get("sections", [])]
         write_page(render_listing(data, "bestsellers.html", lang, "暢銷商品", best, current="best"), "bestsellers.html", lang, table)
@@ -1071,6 +1310,10 @@ def build_all(data, visible):
             if n.get("alias"):
                 write_page(render_news_article(data, n, lang, n["alias"]), n["alias"], lang, table)
         write_page(render_404(data, lang), "404.html", lang, table)
+    keepg = {sb.lang_variant(guide_page(g), c) for g in load_guides() for c in LANG_CODES}
+    for f in (sb.SITE / "guide").glob("*.html"):
+        if f.relative_to(sb.SITE).as_posix() not in keepg:
+            f.unlink()
     keep = {sb.lang_variant(p, c) for n in load_news() for p in [news_page(n)] + ([n["alias"]] if n.get("alias") else []) for c in LANG_CODES}
     for f in list((sb.SITE / "information").glob("news&news_id=*.html")) + list((sb.SITE / "information").glob("notice&notice_id=*.html")):
         if f.relative_to(sb.SITE).as_posix() not in keep:

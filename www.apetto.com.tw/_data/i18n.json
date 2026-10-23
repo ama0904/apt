@@ -1198,5 +1198,55 @@
   "en": "High-performance pet apparel: waterproof, windproof functional wear designed for dogs",
   "ja": "高機能ペットウェア：防水・防風、わんちゃんのために設計された機能服",
   "de": "Funktionale Hundebekleidung: wasserdicht, winddicht und speziell für Fellnasen entworfen"
+ },
+ "機能服飾": {
+  "en": "Functional apparel",
+  "ja": "機能ウェア",
+  "de": "Funktionsbekleidung"
+ },
+ "外出配件": {
+  "en": "Outdoor accessories",
+  "ja": "お出かけアクセサリー",
+  "de": "Zubehör für draußen"
+ },
+ "舒適生活": {
+  "en": "Comfort at home",
+  "ja": "おうちで快適",
+  "de": "Wohlfühlen zu Hause"
+ },
+ "雨衣": {
+  "en": "Raincoats",
+  "ja": "レインコート",
+  "de": "Regenmäntel"
+ },
+ "保暖外套": {
+  "en": "Warm jackets",
+  "ja": "防寒ジャケット",
+  "de": "Wärmejacken"
+ },
+ "浴袍": {
+  "en": "Bathrobes",
+  "ja": "バスローブ",
+  "de": "Bademäntel"
+ },
+ "牽繩與頸圈": {
+  "en": "Leashes & collars",
+  "ja": "リード＆首輪",
+  "de": "Leinen & Halsbänder"
+ },
+ "領巾": {
+  "en": "Bandanas",
+  "ja": "バンダナ",
+  "de": "Halstücher"
+ },
+ "寵物鞋": {
+  "en": "Dog shoes",
+  "ja": "ドッグシューズ",
+  "de": "Hundeschuhe"
+ },
+ "舒適墊": {
+  "en": "Comfort mats",
+  "ja": "快適マット",
+  "de": "Komfortmatten"
  }
 }

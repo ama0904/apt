@@ -2,15 +2,45 @@
  "categories": [
   {
    "id": 1,
-   "name": "小狗專區"
+   "name": "雨衣",
+   "group": "apparel",
+   "blurb": "防水防風，耐水壓 10000mmH2O，雨天散步不受限"
   },
   {
    "id": 2,
-   "name": "大狗專區"
+   "name": "保暖外套",
+   "group": "apparel",
+   "blurb": "MIT 抗靜電刷毛內裡，濕冷寒流也暖呼呼"
   },
   {
    "id": 3,
-   "name": "保暖首選"
+   "name": "浴袍",
+   "group": "apparel",
+   "blurb": "洗澡、玩水後快速吸水，不再滿屋子甩水"
+  },
+  {
+   "id": 4,
+   "name": "牽繩與頸圈",
+   "group": "outdoor",
+   "blurb": "每天出門都要用的，要好看也要耐用"
+  },
+  {
+   "id": 5,
+   "name": "領巾",
+   "group": "outdoor",
+   "blurb": "一條領巾，造型立刻不一樣"
+  },
+  {
+   "id": 6,
+   "name": "寵物鞋",
+   "group": "outdoor",
+   "blurb": "燙地、雨天、碎石路，保護肉墊"
+  },
+  {
+   "id": 7,
+   "name": "舒適墊",
+   "group": "living",
+   "blurb": "回家後，給毛孩一個放鬆的角落"
   }
  ],
  "sections": [
@@ -76,8 +106,7 @@
    "name": "大汪保暖夾克 冰川藍",
    "price": 1980,
    "categories": [
-    2,
-    3
+    2
    ],
    "sections": [],
    "summary": "",
@@ -138,8 +167,7 @@
    "name": "大汪保暖夾克 芬達桔",
    "price": 1980,
    "categories": [
-    2,
-    3
+    2
    ],
    "sections": [
     "latest"
@@ -202,8 +230,7 @@
    "name": "大汪保暖夾克 萊姆綠",
    "price": 1980,
    "categories": [
-    2,
-    3
+    2
    ],
    "sections": [
     "latest"
@@ -251,7 +278,7 @@
    "price": 1490,
    "categories": [
     1,
-    3
+    2
    ],
    "sections": [
     "latest"
@@ -318,7 +345,7 @@
    "price": 1490,
    "categories": [
     1,
-    3
+    2
    ],
    "sections": [
     "latest"
@@ -414,7 +441,7 @@
    "name": "大汪雨衣 檸檬螢光黃",
    "price": 1490,
    "categories": [
-    2
+    1
    ],
    "sections": [],
    "summary": "",
@@ -465,7 +492,7 @@
    "name": "大汪雨衣 太空灰",
    "price": 1490,
    "categories": [
-    2
+    1
    ],
    "sections": [
     "bestseller"
@@ -524,7 +551,7 @@
    "name": "大汪雨衣 普魯士藍",
    "price": 1490,
    "categories": [
-    2
+    1
    ],
    "sections": [
     "bestseller"
@@ -617,6 +644,23 @@
    ],
    "visible": true,
    "source": "original"
+  }
+ ],
+ "groups": [
+  {
+   "key": "apparel",
+   "name": "機能服飾",
+   "blurb": "雨衣、保暖外套與浴袍，應對每一種天氣"
+  },
+  {
+   "key": "outdoor",
+   "name": "外出配件",
+   "blurb": "牽繩與頸圈、領巾、寵物鞋，出門的好夥伴"
+  },
+  {
+   "key": "living",
+   "name": "舒適生活",
+   "blurb": "舒適墊，回家後的放鬆時光"
   }
  ]
 }

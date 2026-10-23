@@ -1,0 +1,110 @@
+{
+ "items": [
+  {
+   "key": "choose-raincoat",
+   "visible": true,
+   "title": "雨衣怎麼選？",
+   "summary": "依體型、天氣與活動量，三步驟選出合身的雨衣。",
+   "body": "## 先看體型，再看款式\n- 小型犬（背長約 25～40 公分）：選「小汪」系列。斗篷式前扣設計，穿脫快，前腳有袖子，防水範圍更完整。\n- 中大型犬（背長約 45～65 公分）：選「大汪」系列。前套式搭配腹部插扣，一扣就能出門。\n## 依天氣選機能\n- 只擋雨：防水斗篷或雨衣就夠，布料耐水壓 10000mmH2O，水滴直接滑落。\n- 又濕又冷：選保暖款，內層是 MIT 抗靜電刷毛布料，寒流來也不怕。\n## 活動量大的毛孩\n- 常跑草地、河堤：選有 3M 反光條的款式，傍晚也看得見。\n- 需要牽繩：所有款式領圍都有開口，穿著也能扣上牽繩。\n## 不確定尺寸？\n量好背長、領圍、腹圍，到試衣間輸入就能看到建議尺寸，還能先看看毛孩穿上的樣子。",
+   "link": "fitstudio.html",
+   "link_text": "到試衣間試穿",
+   "i18n": {
+    "en": {
+     "title": "How to choose the right raincoat?",
+     "summary": "Three steps to a coat that fits: body size, weather and how active your dog is.",
+     "body": "## Size first, then style\n- Small dogs (back length about 25 to 40 cm): choose the Small Dog series. The cape-style front snaps go on fast, and the front sleeves keep more of your dog dry.\n- Medium and large dogs (back length about 45 to 65 cm): choose the Big Dog series. Pull it over, fasten the belly buckle, and you are out the door.\n## Pick the function for the weather\n- Rain only: a waterproof cape or raincoat is enough. The fabric is rated to 10,000 mmH2O, so drops simply roll off.\n- Wet and cold: pick a warm model. The lining is anti-static brushed fleece made in Taiwan, ready for cold snaps.\n## Active dogs\n- Grass, riverbanks, evening runs: choose a model with 3M reflective strips so your dog stays visible at dusk.\n- On a leash: every model has a collar opening, so the leash clips on with the coat on.\n## Not sure about the size?\nMeasure the back length, neck and chest girth, enter them in the fitting room and you will see the suggested size, plus a preview of your dog wearing it.",
+     "link_text": "Try it on in the fitting room"
+    },
+    "ja": {
+     "title": "レインコートの選び方",
+     "summary": "体格・天気・運動量の3ステップで、ぴったりの一着を。",
+     "body": "## まずは体格、それからデザイン\n- 小型犬（背丈 約25〜40cm）：「小型犬」シリーズを。前面スナップのケープ型で着脱が早く、前足の袖で防水範囲も広がります。\n- 中・大型犬（背丈 約45〜65cm）：「大型犬」シリーズを。かぶせて腹部のバックルを留めるだけでお出かけできます。\n## 天気で機能を選ぶ\n- 雨だけ防ぎたい：防水ケープやレインコートで十分。耐水圧 10,000mmH2O の生地で、水滴はそのまま転がり落ちます。\n- 雨で寒い日：防寒タイプを。裏地は台湾製の帯電防止フリースで、寒波の日も安心です。\n## よく動く子には\n- 芝生や河川敷をよく走る：3M 反射テープ付きのモデルなら、夕方でもよく見えます。\n- リードを使う：すべてのモデルの襟元に開口部があり、着たままリードを付けられます。\n## サイズに迷ったら\n背丈・首回り・胴回りを測って試着室に入力すると、おすすめサイズと着せたイメージが確認できます。",
+     "link_text": "試着室で試してみる"
+    },
+    "de": {
+     "title": "Welcher Regenmantel passt?",
+     "summary": "In drei Schritten zum passenden Mantel: Körpergröße, Wetter und Aktivität.",
+     "body": "## Erst die Größe, dann das Modell\n- Kleine Hunde (Rückenlänge etwa 25 bis 40 cm): die Kleine-Hunde-Serie. Das Cape mit Druckknöpfen vorn ist schnell angezogen, die Vorderärmel halten mehr trocken.\n- Mittlere und große Hunde (Rückenlänge etwa 45 bis 65 cm): die Große-Hunde-Serie. Überziehen, Bauchschnalle schließen, losgehen.\n## Funktion nach Wetter wählen\n- Nur Regen: Ein wasserdichtes Cape oder ein Regenmantel genügt. Der Stoff hat eine Wassersäule von 10.000 mm, Tropfen perlen einfach ab.\n- Nass und kalt: Ein warmes Modell. Das Futter ist antistatisches Fleece aus Taiwan, bereit für Kälteeinbrüche.\n## Für aktive Hunde\n- Wiese, Flussufer, Abendrunden: Ein Modell mit 3M-Reflexstreifen, damit Ihr Hund in der Dämmerung sichtbar bleibt.\n- An der Leine: Jedes Modell hat eine Kragenöffnung, die Leine lässt sich mit Mantel einhaken.\n## Unsicher bei der Größe?\nRückenlänge, Hals- und Bauchumfang messen, in der Anprobe eingeben, und Sie sehen die empfohlene Größe samt Vorschau Ihres Hundes im Mantel.",
+     "link_text": "In der Anprobe testen"
+    }
+   }
+  },
+  {
+   "key": "measure",
+   "visible": true,
+   "title": "如何測量狗狗尺寸？",
+   "summary": "背長、領圍、腹圍三個數字，就能選對尺寸。",
+   "body": "## 準備\n- 一條軟尺，沒有的話先用繩子比好長度再量。\n- 讓毛孩自然站立，不要趴著或坐著量。\n## 三個尺寸\n- 背長：從脖子根部（約前腳正上方）量到尾巴根部。這是最重要的數字。\n- 領圍：脖子最粗的地方繞一圈，留一指寬的空隙。\n- 腹圍：前腳後方胸腔最寬處繞一圈。\n## 怎麼對照尺寸表\n- 小汪系列：建議選比背長短 5～7 公分的尺寸。例如背長 32 公分，S 號合身、M 號寬鬆。\n- 大汪系列：建議選比背長短約 10 公分的尺寸。例如背長 52 公分，M 號合身、L 號寬鬆。\n- 兩個尺寸之間猶豫時，毛比較厚或體型圓潤的選大一號。\n## 小提醒\n商品素材不同，尺寸可能有 1～3 公分誤差；每個商品頁都有該款的尺寸表。",
+   "link": "fitstudio.html",
+   "link_text": "到試衣間算尺寸",
+   "i18n": {
+    "en": {
+     "title": "How to measure your dog?",
+     "summary": "Three numbers, back length, neck and chest, are all you need to pick the right size.",
+     "body": "## Get ready\n- A soft tape measure. No tape? Mark the length on a piece of string and measure that.\n- Have your dog stand naturally. Do not measure lying down or sitting.\n## The three measurements\n- Back length: from the base of the neck (roughly above the front legs) to the base of the tail. This is the number that matters most.\n- Neck girth: around the thickest part of the neck, leaving a finger's width of slack.\n- Chest girth: around the widest part of the ribcage, just behind the front legs.\n## Reading the size chart\n- Small Dog series: choose a size 5 to 7 cm shorter than the back length. For a 32 cm back, S fits snugly and M is relaxed.\n- Big Dog series: choose a size about 10 cm shorter than the back length. For a 52 cm back, M fits snugly and L is relaxed.\n- Between two sizes? Thick coats and round builds go one size up.\n## Good to know\nMeasurements may vary by 1 to 3 cm depending on the material. Every product page has the size chart for that model.",
+     "link_text": "Get the size in the fitting room"
+    },
+    "ja": {
+     "title": "愛犬のサイズの測り方",
+     "summary": "背丈・首回り・胴回りの3つの数字で、サイズ選びは決まります。",
+     "body": "## 準備するもの\n- 柔らかいメジャー。なければ紐で長さを取ってから測ります。\n- 自然に立った姿勢で。伏せや座った状態では測らないでください。\n## 3つのサイズ\n- 背丈：首の付け根（前足の真上あたり）から尻尾の付け根まで。いちばん大切な数字です。\n- 首回り：首のいちばん太いところを一周。指1本分のゆとりを残します。\n- 胴回り：前足のすぐ後ろ、胸のいちばん広いところを一周。\n## サイズ表の見方\n- 小型犬シリーズ：背丈より 5〜7cm 短いサイズがおすすめ。背丈 32cm なら S はぴったり、M はゆったり。\n- 大型犬シリーズ：背丈より約 10cm 短いサイズがおすすめ。背丈 52cm なら M はぴったり、L はゆったり。\n- 2つのサイズで迷ったら、毛が厚い子や丸い体型の子はワンサイズ上を。\n## ご注意\n素材によって 1〜3cm の誤差が出ることがあります。各商品ページにそのモデルのサイズ表があります。",
+     "link_text": "試着室でサイズを計算"
+    },
+    "de": {
+     "title": "Wie messe ich meinen Hund?",
+     "summary": "Drei Zahlen, Rückenlänge, Hals- und Bauchumfang, genügen für die richtige Größe.",
+     "body": "## Vorbereitung\n- Ein weiches Maßband. Keins da? Länge mit einer Schnur abnehmen und diese messen.\n- Der Hund steht natürlich. Nicht im Liegen oder Sitzen messen.\n## Die drei Maße\n- Rückenlänge: vom Halsansatz (etwa über den Vorderbeinen) bis zum Rutenansatz. Das wichtigste Maß.\n- Halsumfang: an der dicksten Stelle des Halses, mit einem Finger breit Spiel.\n- Bauchumfang: an der breitesten Stelle des Brustkorbs, direkt hinter den Vorderbeinen.\n## Die Größentabelle lesen\n- Kleine-Hunde-Serie: eine Größe wählen, die 5 bis 7 cm kürzer ist als die Rückenlänge. Bei 32 cm Rücken sitzt S eng, M locker.\n- Große-Hunde-Serie: etwa 10 cm kürzer als die Rückenlänge. Bei 52 cm Rücken sitzt M eng, L locker.\n- Zwischen zwei Größen? Dichtes Fell und runde Statur: eine Größe größer.\n## Gut zu wissen\nJe nach Material kann das Maß um 1 bis 3 cm abweichen. Jede Produktseite zeigt die Größentabelle des Modells.",
+     "link_text": "Größe in der Anprobe berechnen"
+    }
+   }
+  },
+  {
+   "key": "choose-shoes",
+   "visible": true,
+   "title": "如何挑選狗狗鞋子？",
+   "summary": "什麼時候需要鞋子、怎麼量腳、怎麼讓毛孩習慣。",
+   "body": "## 什麼時候需要穿鞋\n- 夏天的柏油路與人行道很燙，手背貼地 5 秒覺得燙，毛孩就需要保護。\n- 下雨天、碎石路、積雪或灑了融雪劑的路面，鞋子能保護肉墊。\n- 肉墊受傷或術後，鞋子能避免舔咬與二次傷害。\n## 怎麼量腳\n- 讓毛孩站在白紙上，把腳掌輕輕壓一下，描出輪廓。\n- 量最寬處的寬度與含趾甲的長度，以前腳為準，前腳通常比後腳大。\n- 對照尺寸表時取大不取小，鞋子太緊比太鬆更不舒服。\n## 挑選重點\n- 鞋底要防滑、有彈性，太硬會影響走路。\n- 鞋口的魔鬼氈或束帶要能調整，固定在腳踝上方才不會甩掉。\n- 透氣與防水看用途：夏天重透氣，雨天重防水。\n## 讓毛孩習慣\n先在家穿 5～10 分鐘，搭配零食與遊戲，幾天後再延長時間，多數毛孩一週內就能自然走路。\napetto 的寵物鞋正在準備中，上架後會在「商品分類」裡看到。",
+   "i18n": {
+    "en": {
+     "title": "How to choose the right shoes?",
+     "summary": "When your dog needs shoes, how to measure the paws and how to get them used to it.",
+     "body": "## When shoes make sense\n- Summer asphalt and pavements get hot. If the back of your hand cannot stay on the ground for 5 seconds, your dog needs protection.\n- Rain, gravel, snow or salted roads: shoes protect the paw pads.\n- After a pad injury or surgery, shoes stop licking and further damage.\n## Measuring the paws\n- Have your dog stand on a sheet of paper, press the paw down gently and trace the outline.\n- Measure the widest point and the length including the nails. Use the front paws, which are usually larger than the back ones.\n- Between sizes, go up, not down. Shoes that are too tight are worse than slightly loose ones.\n## What to look for\n- A non-slip sole with some flex. Too stiff and your dog will not walk naturally.\n- An adjustable strap or hook-and-loop closure that fastens above the ankle, so the shoe stays on.\n- Breathable or waterproof depending on use: airflow in summer, waterproofing in the rain.\n## Getting used to them\nStart with 5 to 10 minutes at home, with treats and play, and extend over a few days. Most dogs walk naturally within a week.\napetto dog shoes are in the works. Once they launch you will find them under Shop All."
+    },
+    "ja": {
+     "title": "ドッグシューズの選び方",
+     "summary": "靴が必要なとき、足の測り方、慣らし方。",
+     "body": "## 靴が必要なとき\n- 夏のアスファルトや歩道はとても熱くなります。手の甲を地面に5秒当てて熱いと感じたら、保護が必要です。\n- 雨の日、砂利道、雪や融雪剤のまかれた道では、靴が肉球を守ります。\n- 肉球のけがや手術のあとは、舐めや二次的なけがを防げます。\n## 足の測り方\n- 白い紙の上に立たせ、足を軽く押さえて輪郭をなぞります。\n- いちばん広い部分の幅と、爪を含めた長さを測ります。前足のほうが大きいことが多いので前足を基準に。\n- サイズ表で迷ったら大きいほうを。きつすぎる靴はゆるい靴より不快です。\n## 選ぶポイント\n- 靴底は滑りにくく、しなやかなもの。硬すぎると歩き方に影響します。\n- 履き口のマジックテープやストラップは調整でき、足首の上で留まるものを。\n- 通気性と防水性は用途で。夏は通気性、雨の日は防水性を重視。\n## 慣らし方\nまず家の中で 5〜10 分、おやつや遊びと一緒に。数日かけて時間を延ばせば、多くの子は1週間ほどで自然に歩けます。\napetto のドッグシューズは準備中です。発売後は「ショップ」に掲載します。"
+    },
+    "de": {
+     "title": "Welche Hundeschuhe passen?",
+     "summary": "Wann Schuhe sinnvoll sind, wie man die Pfoten misst und wie sich der Hund daran gewöhnt.",
+     "body": "## Wann Schuhe sinnvoll sind\n- Asphalt und Gehwege werden im Sommer heiß. Hält Ihr Handrücken keine 5 Sekunden auf dem Boden aus, braucht Ihr Hund Schutz.\n- Regen, Schotter, Schnee oder gestreute Wege: Schuhe schützen die Ballen.\n- Nach einer Ballenverletzung oder Operation verhindern Schuhe Lecken und weitere Schäden.\n## Pfoten messen\n- Der Hund steht auf einem Blatt Papier, Pfote sanft andrücken und den Umriss nachzeichnen.\n- Breiteste Stelle und Länge inklusive Krallen messen. Die Vorderpfoten nehmen, sie sind meist größer.\n- Zwischen zwei Größen die größere wählen. Zu enge Schuhe sind schlimmer als etwas lockere.\n## Worauf achten\n- Rutschfeste, flexible Sohle. Zu steif, und der Hund läuft nicht natürlich.\n- Verstellbarer Klett- oder Riemenverschluss, der oberhalb des Knöchels sitzt, damit der Schuh nicht abgeht.\n- Atmungsaktiv oder wasserdicht je nach Einsatz: Luft im Sommer, Nässeschutz im Regen.\n## Daran gewöhnen\nZu Hause mit 5 bis 10 Minuten beginnen, mit Leckerli und Spiel, und über einige Tage steigern. Die meisten Hunde laufen innerhalb einer Woche normal.\napetto-Hundeschuhe sind in Vorbereitung. Nach dem Start finden Sie sie im Shop."
+    }
+   }
+  },
+  {
+   "key": "care",
+   "visible": true,
+   "title": "如何清潔與保養？",
+   "summary": "正確清洗，防水與保暖效果才能用得久。",
+   "body": "## 每次穿完\n- 用濕布擦掉泥巴與草屑，掛在通風處晾乾，不要悶在袋子裡。\n- 反光條用清水擦拭即可，不要用力刷。\n## 清洗\n- 手洗或放洗衣袋用輕柔模式，水溫 30 度以下，使用中性洗劑。\n- 不要用漂白水、柔軟精或含螢光劑的洗劑，會破壞布料的防潑水層。\n- 扣好所有鈕扣與插扣再洗，避免勾到。\n## 晾乾與收納\n- 陰涼處平放或掛起晾乾，不要烘乾、不要熨燙、不要曝曬。\n- 完全乾燥後再收納，放在乾燥處；換季前先洗乾淨。\n## 保暖款\n- 刷毛內裡翻面洗，可以減少起毛球。\n- 刷毛變扁時，晾乾後用手輕輕撥鬆即可。\n## 防潑水變弱了？\n用久了水珠不再滑落時，可以用市售的防潑水噴劑（選適用尼龍、聚酯纖維的）均勻噴在外層，陰乾即可恢復。",
+   "i18n": {
+    "en": {
+     "title": "Care & maintenance",
+     "summary": "Wash it right and the waterproofing and warmth will last.",
+     "body": "## After every walk\n- Wipe off mud and grass with a damp cloth and hang it somewhere airy to dry. Do not leave it bunched in a bag.\n- Wipe reflective strips with plain water. Do not scrub.\n## Washing\n- Hand wash, or use a laundry bag on a gentle cycle, at 30 °C or below with a mild detergent.\n- No bleach, fabric softener or detergents with optical brighteners. They break down the water-repellent finish.\n- Close all snaps and buckles before washing so nothing catches.\n## Drying and storage\n- Lay flat or hang to dry in the shade. No tumble dryer, no iron, no direct sun.\n- Store only when fully dry, in a dry place. Wash before putting it away for the season.\n## Warm models\n- Turn fleece-lined pieces inside out to wash. It reduces pilling.\n- If the fleece flattens, fluff it gently by hand once dry.\n## Water no longer beading up?\nOver time drops stop rolling off. Spray the outer layer evenly with a water-repellent spray made for nylon and polyester, let it dry in the shade, and it is as good as new."
+    },
+    "ja": {
+     "title": "お手入れと保管の方法",
+     "summary": "正しく洗えば、防水性も保温性も長持ちします。",
+     "body": "## 着たあとは毎回\n- 泥や草を濡れた布で拭き取り、風通しのよい場所に掛けて乾かします。袋に入れたままにしないでください。\n- 反射テープは水で拭くだけで十分。強くこすらないでください。\n## 洗い方\n- 手洗い、または洗濯ネットに入れて弱水流で。水温は 30 度以下、中性洗剤を使います。\n- 漂白剤、柔軟剤、蛍光増白剤入りの洗剤は使わないでください。撥水加工を傷めます。\n- スナップやバックルをすべて留めてから洗うと、引っかかりを防げます。\n## 乾かし方と保管\n- 日陰で平干しまたは吊り干し。乾燥機、アイロン、直射日光は避けてください。\n- 完全に乾いてから、乾燥した場所に保管。衣替えの前に洗っておきましょう。\n## 防寒タイプ\n- フリース裏地は裏返して洗うと毛玉が減ります。\n- フリースがぺたんとしたら、乾いてから手で軽くほぐしてください。\n## 撥水が弱くなったら\n水滴が転がらなくなってきたら、ナイロン・ポリエステル用の市販の撥水スプレーを外側に均一にかけ、日陰で乾かせば回復します。"
+    },
+    "de": {
+     "title": "Pflege & Reinigung",
+     "summary": "Richtig gewaschen bleiben Nässeschutz und Wärme lange erhalten.",
+     "body": "## Nach jedem Spaziergang\n- Schlamm und Gras mit einem feuchten Tuch abwischen und luftig zum Trocknen aufhängen. Nicht zusammengeknüllt in der Tasche lassen.\n- Reflexstreifen nur mit klarem Wasser abwischen, nicht schrubben.\n## Waschen\n- Handwäsche oder im Wäschenetz im Schonprogramm, höchstens 30 °C, mit mildem Waschmittel.\n- Keine Bleiche, kein Weichspüler, keine Waschmittel mit optischen Aufhellern. Sie zerstören die wasserabweisende Ausrüstung.\n- Vor dem Waschen alle Druckknöpfe und Schnallen schließen, damit nichts hängen bleibt.\n## Trocknen und Aufbewahren\n- Im Schatten liegend oder hängend trocknen. Kein Trockner, kein Bügeleisen, keine pralle Sonne.\n- Erst ganz trocken und an einem trockenen Ort verstauen. Vor dem Saisonwechsel waschen.\n## Warme Modelle\n- Fleece-gefütterte Teile auf links waschen, das verringert Knötchen.\n- Ist das Fleece platt gedrückt, nach dem Trocknen mit der Hand sanft auflockern.\n## Perlt das Wasser nicht mehr ab?\nMit der Zeit rollen Tropfen nicht mehr ab. Die Außenseite gleichmäßig mit einem Imprägnierspray für Nylon und Polyester einsprühen, im Schatten trocknen lassen, fertig."
+    }
+   }
+  }
+ ]
+}
