@@ -125,7 +125,6 @@ UI = {
     "燙地、雨天、碎石路，保護肉墊": {"en": "Hot pavement, rain, gravel: protection for the paw pads", "ja": "熱い地面、雨、砂利道から肉球を守る", "de": "Heißer Asphalt, Regen, Schotter: Schutz für die Ballen"},
     "回家後，給毛孩一個放鬆的角落": {"en": "A cosy corner to unwind in after the walk", "ja": "帰ってきたら、くつろげる場所を", "de": "Nach dem Spaziergang eine Ecke zum Entspannen"},
     "其他": {"en": "Other", "ja": "その他", "de": "Weitere"},
-    "兩個系列，一樣講究": {"en": "Two series, the same attention to detail", "ja": "2つのシリーズ、同じこだわり", "de": "Zwei Serien, dieselbe Sorgfalt"},
     "依用途挑選 apetto 的機能服飾、外出配件與舒適生活用品。": {
         "en": "Browse apetto's functional apparel, outdoor accessories and comfort items by what you need.",
         "ja": "apetto の機能ウェア、お出かけアクセサリー、おうちで快適アイテムを用途から探せます。",
@@ -771,7 +770,7 @@ def render_home(data, visible, lang):
   <div class="cta"><a class="btn brand" href="{link(d, SHOP, lang)}">商品分類</a><a class="btn" href="{link(d, fit.PAGE, lang)}">試衣間</a></div>
   <div class="hero-badges"><span class="badge"><i></i>耐水壓 10000mmH2O</span><span class="badge"><i></i>3M 反光條</span><span class="badge"><i></i>台灣設計製造</span></div>
  </div>
- <div class="hero-img rv in"><img src="{asset(d, IMG['hero'])}" alt="大汪系列" fetchpriority="high"></div>
+ <div class="hero-img rv in"><img src="{asset(d, IMG['hero'])}" alt="apetto" fetchpriority="high"></div>
 </div></section>
 {section('推薦商品', product_grid(latest, d, lang, tag='new'), more=(SHOP, '查看全部'), sid='latest-products', cls='tight', page_dir=d, lang=lang) if latest else ''}
 {fit.home_promo(d, lang)}
@@ -1318,16 +1317,11 @@ def render_features(data, visible, lang):
         tag = f'<span class="eyebrow">{esc(f["tag"])}</span>' if f.get("tag") else ""
         rows_html += (f'<div class="story{" flip" if i % 2 else ""} rv"><div class="story-img"><img src="{asset(d, f["image"])}" alt="" loading="lazy"></div>'
                       f'<div>{tag}<h2>{esc(f.get("title", ""))}</h2><div class="rich-text">{rich_or_plain(item_text(f, lang, "text"), d, lang)}</div></div></div>')
-    series = f"""<div class="cards2 rv">
-  <div><h3>大汪系列</h3><p>專為中、大型毛孩子設計。</p><p>頂級防風、防水布料，具有包覆、防水與穿脫便利的多重優點。</p><a class="btn" href="{link(d, sb.category_page(1), lang)}">看雨衣</a></div>
-  <div><h3>小汪系列</h3><p>小毛孩子的首選。</p><p><span>前項三點鈕扣、前腳雙袖設計，</span><span>更全面的防水保護。</span></p><p>領頂 3M 反光條，增加夜間行走的安全性。</p><a class="btn" href="{link(d, sb.category_page(2), lang)}">看保暖外套</a></div>
- </div>"""
     body = f"""<div class="wrap">
 <ol class="breadcrumb"><li><a href="{link(d, 'index.html', lang)}">首頁</a></li><li><span>機能與設計細節</span></li></ol>
 <div class="ph"><h1>機能與設計細節</h1><p>{esc(site["features"]["intro"])}</p></div>
 </div>
 <section class="sec tight"><div class="wrap features">{rows_html}</div></section>
-<section class="sec tight"><div class="wrap"><div class="sec-head rv"><div><h2>兩個系列，一樣講究</h2></div></div>{series}</div></section>
 {fit.home_promo(d, lang)}"""
     return page(data, FEATURES, lang, f"機能與設計細節 | {BRAND}", body, site["features"]["intro"], og_image=IMG["rain"], current=FEATURES)
 
