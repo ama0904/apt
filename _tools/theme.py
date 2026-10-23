@@ -739,17 +739,12 @@ def section(title, body, sub="", more=None, sid="", cls="", page_dir="", lang="z
 
 # ----------------------------------------------------------------- pages
 def render_home(data, visible, lang):
+    """Home: hero, recommended products, the fitting room, latest news. Everything else lives on its own page."""
     d = ""
-    best = [p for p in visible if "bestseller" in p.get("sections", [])]
     latest = [p for p in visible if "latest" in p.get("sections", [])]
-    tiles = group_tiles(data, visible, d, lang)
     site = load_site()
-    items = site["features"]["items"]
-    feats = ([f for f in items if f.get("home")] or items)[:4]
-    news_html = "".join(f'<a href="{link(d, news_page(n), lang)}"><time>{esc(n.get("date", ""))}</time><b>{esc(news_text(n, lang, "title"))}</b></a>' for n in load_news()[:6])
+    news_html = "".join(f'<a href="{link(d, news_page(n), lang)}"><time>{esc(n.get("date", ""))}</time><b>{esc(news_text(n, lang, "title"))}</b></a>' for n in load_news()[:4])
     news_html = f'<div class="news-list home">{news_html}</div>' if news_html else ""
-    feats_html = "".join(f'<div class="feat"><div class="img"><img src="{asset(d, f["image"])}" alt="" loading="lazy"></div>'
-                         f'<div class="body"><h3>{esc(f.get("title", ""))}</h3><p>{esc(plain_of(item_text(f, lang, "text")))}</p></div></div>' for f in feats)
     body = f"""<section class="hero"><div class="wrap hero-in">
  <div class="rv in"><span class="eyebrow">{esc(BRAND)}</span><h1>{esc(site["hero"]["title"])}</h1>
   <p class="lead">{esc(site["hero"]["lead"])}</p>
@@ -758,13 +753,10 @@ def render_home(data, visible, lang):
  </div>
  <div class="hero-img rv in"><img src="{asset(d, IMG['hero'])}" alt="大汪系列" fetchpriority="high"></div>
 </div></section>
-{section('商品分類', f'<div class="tiles">{tiles}</div>', sub='依用途挑選', more=(SHOP, '查看全部'), cls='tight', page_dir=d, lang=lang)}
-{section('機能與設計細節', f'<div class="feats">{feats_html}</div>', sub='為什麼選擇 apetto', more=(FEATURES, '看完整細節'), cls='tight', page_dir=d, lang=lang) if feats else ''}
-{section('商品指南', guide_cards(d, lang), sub='挑選、測量與保養的小知識', more=(GUIDES, '更多指南'), cls='tight', page_dir=d, lang=lang) if load_guides() else ''}
+{section('推薦商品', product_grid(latest, d, lang, tag='new'), more=(SHOP, '查看全部'), sid='latest-products', cls='tight', page_dir=d, lang=lang) if latest else ''}
 {fit.home_promo(d, lang)}
-{section('推薦商品', product_grid(latest, d, lang, tag='new'), more=('search.html', '查看全部'), sid='latest-products', cls='tight', page_dir=d, lang=lang) if latest else ''}
 {section('最新消息', news_html, more=('information/news.html', '查看全部'), sid='home-news', cls='tight', page_dir=d, lang=lang) if news_html else ''}
-<section class="sec tight"><div class="wrap"><div class="band rv"><div><h2>極致防水，奔跑不受限。</h2><p><span>有專業的製衣團隊，為毛小孩設計出高機能且時尚的衣服，具有防水、防風功能，</span><span>讓毛小孩們在下雨天也可以盡情奔跑</span></p></div><a class="btn" href="{link(d, 'search.html', lang)}">瀏覽全系列</a></div></div></section>"""
+<div style="height:24px"></div>"""
     return page(data, "index.html", lang, HOME_TITLE, body, HOME_DESC, og_image=IMG["hero"], current="index.html")
 
 
@@ -1143,18 +1135,6 @@ def item_text(obj, lang, field):
 
 
 # ----------------------------------------------------------------- 商品分類 (shop.html) + group tiles
-def group_tiles(data, visible, d, lang):
-    tiles = ""
-    for g in groups_of(data):
-        img = IMG.get(GROUP_IMG.get(g["key"], ""), "")
-        img_html = f'<img src="{asset(d, img)}" alt="{esc(g["name"])}" loading="lazy">' if img else ""
-        subs = "".join(f'<a href="{link(d, sb.category_page(c["id"]), lang)}">{esc(c["name"])}{"" if cat_count(c, visible) else "<i>即將推出</i>"}</a>'
-                       for c in cats_in(data, g["key"]))
-        tiles += (f'<div class="tile"><a class="img" href="{link(d, SHOP, lang)}#{g["key"]}">{img_html}</a>'
-                  f'<div class="body"><h3>{esc(g["name"])}</h3><p>{esc(g.get("blurb", ""))}</p><div class="subs">{subs}</div></div></div>')
-    return tiles
-
-
 def type_sections(data, visible, c, d, lang, limit=None):
     """Products of one category, one block per sub-category (empty ones say 即將推出)."""
     out = ""

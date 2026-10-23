@@ -352,14 +352,14 @@
     <table class="fit-table"><thead><tr><th style="width:64px">順序</th><th>分類</th><th class="hide-sm">群組</th><th>商品數</th><th style="width:300px">操作</th></tr></thead><tbody id="cat-rows"></tbody></table>
 
     <h2 class="sec-title">商品指南</h2>
-    <p class="hint" style="margin:-6px 0 12px">「商品指南」頁的文章，首頁也會列出。</p>
+    <p class="hint" style="margin:-6px 0 12px">「商品指南」頁的文章。</p>
     <div class="toolbar"><button class="primary" id="btn-guide-add">＋ 新增指南</button><span class="count" id="guide-count"></span></div>
     <table class="fit-table"><thead><tr><th style="width:64px">順序</th><th>標題</th><th class="hide-sm">網址</th><th>狀態</th><th style="width:300px">操作</th></tr></thead><tbody id="guide-rows"></tbody></table>
 
     <h2 class="sec-title">機能與設計細節</h2>
-    <p class="hint" style="margin:-6px 0 12px">「機能與設計細節」頁的每一段（圖片＋文字）。勾「放在首頁」的會出現在首頁，最多 4 個。</p>
+    <p class="hint" style="margin:-6px 0 12px">「機能與設計細節」頁的每一段（圖片＋文字）。</p>
     <div class="toolbar"><button class="primary" id="btn-feat-add">＋ 新增細節</button><span class="count" id="feat-count"></span></div>
-    <table class="fit-table"><thead><tr><th style="width:64px">圖片</th><th>標題</th><th class="hide-sm">首頁</th><th>狀態</th><th style="width:300px">操作</th></tr></thead><tbody id="feat-rows"></tbody></table>
+    <table class="fit-table"><thead><tr><th style="width:64px">圖片</th><th>標題</th><th class="hide-sm">說明</th><th>狀態</th><th style="width:300px">操作</th></tr></thead><tbody id="feat-rows"></tbody></table>
     </div>
 
     <div class="pane" data-pane="history">
@@ -529,6 +529,7 @@
 const $ = s => document.querySelector(s);
 const UI_LANG = localStorage.getItem('apetto_admin_lang') || ((navigator.language || '').toLowerCase().startsWith('de') ? 'de' : 'zh');
 const DE = {
+  "共 {n} 段，顯示中 {m} 段": "{n} Abschnitte, {m} sichtbar",
   "預設顏色": "Standardfarbe",
   "自訂": "Eigene",
   "黑色": "Schwarz",
@@ -1833,6 +1834,7 @@ function readList(box) {
   }).filter(Boolean);
 }
 const ownContentUpload = p => /^assets\/content\/feat_[a-z0-9]+_[a-z0-9]+\.jpg$/.test(p || '');
+const plainText = h => (new DOMParser().parseFromString(h || '', 'text/html').body.textContent || '').replace(/\s+/g, ' ').trim();
 const trOf = (o, k) => (UI_LANG !== 'zh' && o.i18n && o.i18n[UI_LANG] && o.i18n[UI_LANG][k]) || o[k] || '';
 const badge = (on, a, b) => on ? `<span class="badge on">${t(a)}</span>` : `<span class="badge off">${t(b)}</span>`;
 
@@ -1883,10 +1885,10 @@ function renderContent() {
   });
   // features
   const FI = fi.items, fr = $('#feat-rows'); fr.innerHTML = '';
-  $('#feat-count').textContent = t('共 {n} 段，首頁顯示 {m} 段', { n: FI.length, m: Math.min(4, FI.filter(x => x.home && x.visible !== false).length) });
+  $('#feat-count').textContent = t('共 {n} 段，顯示中 {m} 段', { n: FI.length, m: FI.filter(x => x.visible !== false).length });
   FI.forEach((f, i) => {
     fr.appendChild(contentRow([`<img src="${escHtml(contentImg(f.image))}" alt="" loading="lazy">`, `<b>${escHtml(trOf(f, 'title'))}</b>${f.tag ? `<div class="muted">${escHtml(trOf(f, 'tag'))}</div>` : ''}`,
-      f.home ? t('放在首頁') : '<span class="muted">—</span>', badge(f.visible !== false, '顯示中', '已隱藏')],
+      escHtml(plainText(trOf(f, 'text'))).slice(0, 40) || '<span class="muted">—</span>', badge(f.visible !== false, '顯示中', '已隱藏')],
       i, FI.length, ['edit', 'up', 'down', 'toggle', 'del'], f.visible === false, act => featureAction(act, f, i)));
   });
 }
@@ -2076,12 +2078,12 @@ const featureForm = f => openEditor({
   fields: [{ k: 'image', label: '圖片', type: 'image', required: true, hint: '橫式照片最好看（會裁成 4:3）；大圖會自動縮到 1600px。' },
            { k: 'title', label: '標題', required: true, placeholder: '例如：耐水壓 10000mmH2O' }, { k: 'tag', label: '標題上方的小字（選填）', placeholder: '例如：極致防水，奔跑不受限。' },
            { k: 'text', label: '說明', type: 'rich' },
-           { k: 'home', label: '放在首頁（最多 4 個）', type: 'check' }, { k: 'visible', label: '顯示在前台', type: 'check', default: true }],
+           { k: 'visible', label: '顯示在前台', type: 'check', default: true }],
   tr: [{ k: 'title', label: '標題' }, { k: 'tag', label: '標題上方的小字（選填）' }, { k: 'text', label: '說明', type: 'rich' }],
   values: f || { visible: true },
   async save(v, i18n, file) {
     const FI = SITE.features.items, x = f ? FI.find(y => y.key === f.key) : { key: 'f' + Date.now().toString(36) };
-    Object.assign(x, { title: v.title, tag: v.tag, text: v.text, home: v.home, visible: v.visible, i18n });
+    Object.assign(x, { title: v.title, tag: v.tag, text: v.text, visible: v.visible, i18n });
     const extra = [];
     if (file) {
       eProgress(t('上傳圖片…'));
