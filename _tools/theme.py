@@ -574,13 +574,13 @@ document.querySelectorAll('.type-tabs').forEach(function(bar){var grid=document.
  var h=decodeURIComponent((location.hash||'').replace(/^#type-/,''));if(h&&bar.querySelector('[data-type="'+h+'"]'))pick(h);});
 /* Chinese: mark word boundaries (the browser's own dictionary segmenter) so lines break between words, never inside one */
 if(window.Intl&&Intl.Segmenter&&/^zh/i.test(document.documentElement.lang)){
- var seg=new Intl.Segmenter('zh-Hant',{granularity:'word'}),HAN=/[㐀-鿿]/,NOSTART=/^[，、。！？；：）」』】〉》…,.!?;:)\]]/,NOEND=/[（「『【〈《(\[]$/;
+ var seg=new Intl.Segmenter('zh-Hant',{granularity:'word'}),HAN=/[㐀-鿿]/,NOSTART=/^[，、。！？；：）」』】〉》…,.!?;:)\]>›]/,NOEND=/[（「『【〈《(\[<‹]$/;
  document.querySelectorAll('main h1,main h2,main h3,main h4,main p,main li,main .steps div,main .grid-box .name,main .fit-coat span,main .cat-card .sub').forEach(function(el){
   if(el.classList.contains('wb')||el.closest('.rte,textarea'))return;
   var tw=document.createTreeWalker(el,NodeFilter.SHOW_TEXT),nodes=[],n;while((n=tw.nextNode()))nodes.push(n);
   nodes.forEach(function(t){if(!HAN.test(t.data))return;var parts=[],it=seg.segment(t.data)[Symbol.iterator](),r;while(!(r=it.next()).done)parts.push(r.value.segment);
    if(parts.length<2)return;var f=document.createDocumentFragment();
-   parts.forEach(function(x,i){if(i&&!NOSTART.test(x)&&!NOEND.test(parts[i-1]))f.appendChild(document.createElement('wbr'));f.appendChild(document.createTextNode(x));});
+   parts.forEach(function(x,i){var glue=i&&(NOSTART.test(x)||NOEND.test(parts[i-1]));if(i&&!glue)f.appendChild(document.createElement('wbr'));f.appendChild(document.createTextNode((glue?'⁠':'')+x));});
    t.parentNode.replaceChild(f,t);});
   el.classList.add('wb');});
 }
@@ -753,8 +753,9 @@ CSS += """
    ja: the browser's phrase detection. Headings and short text are balanced so no line ends up with one or two characters. */
 :lang(zh) :is(.btn,.chips a,.chips button,.nav a,.mm-nav a,.lang a,.grid-box .name,.product-heading-title,.cat-card h3,.cat-card .sub,.tag,.badge,.news-list b,.ft-links a,.breadcrumb li,label,summary,.fit-coat .nm,.fit-coat .sub){word-break:keep-all;overflow-wrap:anywhere}
 :lang(ja) :is(h1,h2,h3,h4,p,li,.btn,.chips a,.chips button,.nav a,.mm-nav a,.grid-box .name,.product-heading-title,.cat-card .sub,.eyebrow,.tag,.badge,.news-list b,.steps div,.ship h3,label,summary,.fit-coat .nm,.fit-coat .sub){word-break:auto-phrase}
-:is(h4,.lead,.ph p,.cat-card p,.gcard p,.feat p,.soon p,.quote p,.fit-promo p,.cards3 p,.grid-box .name,.news-list b,.eyebrow,.steps div,.ship h3,.product-heading-title){text-wrap:balance}
-:is(.article p,.article li,.rich p,.rich li,.rich-text p,.rich-text li,.story p,.notebox p,.fit-coat span){text-wrap:balance}
+:is(h4,.lead,.ph p,.cat-card p,.gcard p,.feat p,.soon p,.quote p,.fit-promo p,.grid-box .name,.news-list b,.eyebrow,.steps div,.ship h3,.product-heading-title){text-wrap:balance}
+:is(.article p,.article li,.rich p,.rich li,.rich-text p,.rich-text li,.story p,.notebox p){text-wrap:pretty}
+.fit-coat span{text-wrap:balance}
 :lang(ja){line-break:strict}
 """
 CSS = CSS + fit.CSS
@@ -1241,7 +1242,7 @@ def render_shop(data, visible, lang):
                     f'<small>{meta}</small></a></li>')
         gl = link(d, group_page(g), lang)
         pic = f'<a class="img" href="{gl}" tabindex="-1" aria-hidden="true"><img src="{asset(d, img)}" alt="" loading="lazy"></a>' if img else ""
-        cards += (f'<section class="grp-card" id="{g["key"]}">{pic}<div class="bd"><h2><a href="{gl}">{esc(g["name"])}<span aria-hidden="true"> →</span></a></h2>'
+        cards += (f'<section class="grp-card" id="{g["key"]}">{pic}<div class="bd"><h2><a href="{gl}">{esc(g["name"])}</a></h2>'
                   f'{("<p>" + esc(g.get("blurb", "")) + "</p>") if g.get("blurb") else ""}</div><ul>{lis}</ul></section>')
     body = f"""<div class="wrap">
 <ol class="breadcrumb"><li><a href="{link(d, 'index.html', lang)}">首頁</a></li><li><span>商品分類</span></li></ol>
