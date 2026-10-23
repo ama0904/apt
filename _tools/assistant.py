@@ -178,6 +178,12 @@ TOPICS = [
            "en": "Follow the [care guide]({care}): hand wash or a gentle cycle in a laundry bag, 30°C or below, mild detergent, no bleach or softener; wash fleece-lined models inside out to reduce pilling. The site has no shrink or fade test data, so ask us if you're unsure.",
            "ja": "[お手入れ方法]({care}) のとおり、手洗いか洗濯ネットで弱水流、30℃以下、中性洗剤で。漂白剤・柔軟剤は使わず、防寒タイプは裏返すと毛玉が減ります。縮みや色落ちのデータはサイトにないので、気になる場合はお問い合わせください。",
            "de": "Nach der [Pflegeanleitung]({care}): Handwäsche oder Schonwaschgang im Wäschenetz, höchstens 30 °C, mildes Waschmittel, kein Bleich- oder Weichspüler; Fleece-Modelle auf links waschen. Daten zu Einlaufen oder Ausbleichen gibt es nicht, frag uns im Zweifel."}},
+    {"id": "fit-privacy", "k": ["照片會保存", "照片會不會被保存", "照片隱私", "上傳的照片", "照片會被", "照片存", "刪除照片", "photo stored", "my photo", "photos saved", "写真の保存", "foto gespeichert"],
+     "ex": ["試衣間照片會不會被保存", "我上傳的狗照片你們會留著嗎", "are my photos kept", "アップした写真はどうなりますか"],
+     "a": {"zh": "試衣間上傳的照片和產生的試穿圖，會保存在 apetto 的系統裡，用來改善服務，不會公開在網站上。想刪除照片或有其他疑問，請聯絡客服：\n{contact}",
+           "en": "Photos you upload to the Fitting Studio and the generated images are kept in apetto's own system to improve the service; they are not published on the website. To have a photo deleted, contact us:\n{contact}",
+           "ja": "試着室でアップロードした写真と生成画像は apetto のシステム内に保存され、サービス改善に使われます。サイトで公開されることはありません。削除のご希望はこちらへ：\n{contact}",
+           "de": "Hochgeladene Fotos und erzeugte Bilder der Anprobe werden in apettos eigenem System gespeichert, um den Dienst zu verbessern, und nicht auf der Website veröffentlicht. Zum Löschen melde dich bei uns:\n{contact}"}},
     {"id": "vet", "k": ["生病", "獸醫", "飼料", "嘔吐", "拉肚子", "預防針", "皮膚病", "vet", "sick", "vomit", "diarrhea", "dog food", "獣医", "病気", "tierarzt", "krank"],
      "ex": ["狗狗可以吃巧克力嗎", "狗一直咳嗽怎麼辦", "my dog is sick", "what should my dog eat", "犬が吐きました", "mein hund ist krank"],
      "a": {"zh": "毛孩健康和飲食的問題我不是專業的，建議諮詢獸醫喔 🐾 我能幫忙的是衣服的尺寸、款式和購物問題。",
@@ -189,6 +195,11 @@ TOPICS = [
 
 # Small talk. "x": the whole message must be one of these (after trimming punctuation); "k": contained anywhere.
 # Several answers per language: one is picked at random.
+PENDING = {"zh": "這個問題我還沒有確定的答案，怕說錯，幫你轉給真人比較準確 🙏\n{contact}",
+           "en": "I don't have a confirmed answer to that yet and don't want to guess, so please check with a person 🙏\n{contact}",
+           "ja": "その質問にはまだ確かな答えがないので、スタッフにご確認ください 🙏\n{contact}",
+           "de": "Darauf habe ich noch keine sichere Antwort; bitte frag direkt bei uns nach 🙏\n{contact}"}
+
 CHAT = [
     {"id": "chat-how", "k": ["你好嗎", "最近好嗎", "how are you", "how's it going", "元気", "wie geht"], "x": [],
      "ex": ["你今天過得如何", "how are you doing today", "お元気ですか", "wie geht es dir"],
@@ -221,6 +232,10 @@ CHAT = [
     {"id": "chat-laugh", "k": [], "x": ["哈哈", "哈哈哈", "哈", "lol", "haha", "hahaha", "笑", "www", "草", "hehe"],
      "ex": [],
      "a": {"zh": ["😄 還有什麼想問的嗎？", "哈哈 🐾 想幫毛孩看看哪一件？"], "en": ["😄 Anything else I can help with?"], "ja": ["😄 ほかに何かありますか？"], "de": ["😄 Kann ich sonst noch helfen?"]}},
+    {"id": "chat-hungry", "k": ["肚子餓", "好餓", "餓了", "餓死", "想吃東西", "i'm hungry", "so hungry", "お腹すいた", "hunger"], "x": ["餓", "hungry"],
+     "ex": ["我肚子好餓", "I'm starving"],
+     "a": {"zh": ["快去吃點東西吧 🍙 順便也幫毛孩準備點心？吃飽再來找我聊～", "肚子餓就先去吃飯吧！我會在這裡等你 🐾"],
+           "en": ["Go grab a bite 🍙 Maybe a treat for your pup too? I'll be here."], "ja": ["何か食べてきてくださいね 🍙"], "de": ["Dann schnell was essen 🍙 Ich bin hier."]}},
     {"id": "chat-test", "k": [], "x": ["測試", "測試一下", "test", "testing", "テスト", "hallo test", "在嗎", "有人嗎", "anyone there", "hello?"],
      "ex": [],
      "a": {"zh": ["收到！我在這裡 🐾 想問尺寸、款式、運費都可以。", "在的！有什麼可以幫你？"], "en": ["I'm here 🐾 Ask me about sizes, coats or shipping."],
@@ -420,6 +435,13 @@ def build(data, visible, lang_codes):
             if tp["id"] not in own:
                 kb["faq"].append({"id": tp["id"], "q": tp["k"], "a": tp["a"].get(lang) or tp["a"]["en"], "u": ""})
                 kb["sem"]["ex"] += [[ex, "faq:" + tp["id"]] for ex in tp["ex"]]
+        for f in custom.get("faq", []):
+            a = f.get("a") or {}
+            answered = (a.get("zh") if isinstance(a, dict) else a) or ""
+            if answered.strip() or f.get("id") in own or any(tp["id"] == f.get("id") for tp in TOPICS) or not str(f.get("hint", "")).startswith("目前回答：無"):
+                continue
+            kb["faq"].append({"id": f.get("id", ""), "q": [w for w in (f.get("k") or []) if w], "a": PENDING.get(lang, PENDING["en"]), "u": "", "pending": 1})
+            kb["sem"]["ex"] += [[ex, "faq:" + f.get("id", "")] for ex in (f.get("ex") or []) + [f.get("title", "")] if ex]
         for tp in CHAT:
             kb["faq"].append({"id": tp["id"], "q": tp["k"], "x": tp["x"], "a": tp["a"].get(lang) or tp["a"]["en"], "u": "", "chat": 1})
             kb["sem"]["ex"] += [[ex, "faq:" + tp["id"]] for ex in tp["ex"]]
@@ -715,7 +737,7 @@ var KB=null,IDX=null,kbP=null,K=null;
 function loadKB(){if(!kbP)kbP=fetch(BASE+'assets/assistant/kb.'+LANG+'.json',{cache:'no-cache'}).then(function(r){return r.json();}).then(function(j){KB=j;buildIdx();
  var pm=location.pathname.match(/product_id=(\d+)/)||decodeURIComponent(location.href).match(/product_id=(\d+)/);if(pm&&prodById(pm[1]))ST.prod=pm[1];  // on a product page, "this one" means that product
  return j;});return kbP;}
-function buildIdx(){var docs=KB.docs.slice();KB.faq.forEach(function(f){if(!f.chat)docs.push({t:'',x:Array.isArray(f.a)?f.a.join(' '):f.a,u:f.u,faq:f});});
+function buildIdx(){var docs=KB.docs.slice();KB.faq.forEach(function(f){if(!f.chat&&!f.pending)docs.push({t:'',x:Array.isArray(f.a)?f.a.join(' '):f.a,u:f.u,faq:f});});
  var df={},N=docs.length,len=0;docs.forEach(function(d){var tk=toks(d.t+' '+d.t+' '+d.x+(d.faq?' '+d.faq.q.join(' ')+' '+d.faq.q.join(' '):''));d.tf={};tk.forEach(function(t){d.tf[t]=(d.tf[t]||0)+1;});d.len=tk.length;len+=tk.length;Object.keys(d.tf).forEach(function(t){df[t]=(df[t]||0)+1;});});
  IDX={docs:docs,df:df,N:N,avg:len/Math.max(1,N)};}
 var SYN=[[/(客製|訂製|刺繡|印名字|名字)/,' 寫上名字 名字 name'],[/(晚上|夜間|夜晚|天黑|看得到|看不到|安全|night|dark|visible)/,' 反光條 反光 3m reflective'],
@@ -779,7 +801,8 @@ function answer(q){
  var bare=s.replace(/[\s!！?？.。,，~～…]+/g,'');
  var dn=q.match(/(?:我家|我的)(?:狗狗|狗|毛孩|寶貝|小孩)?(?:叫做|叫|名字是|名字叫)\s*([\u4e00-\u9fffA-Za-z]{1,8})/)||q.match(/my dog(?:'s name)? is (?:called |named )?([A-Z][a-z]{1,12})/)||q.match(/my dog is called ([A-Za-z]{2,12})/i);
  if(dn&&!/^(什麼|啥|多大|幾歲)/.test(dn[1])){ST.dog=dn[1];K='chat-dogname';return A(fmt(pick(T.dogName),{name:dn[1]}),{chips:T.chipsBreed});}
- for(var i=0;i<KB.faq.length;i++){var f=KB.faq[i];if(f.q.some(function(w){return kwHit(s,w);})||(f.x||[]).some(function(w){return bare===norm(w).replace(/[\s!！?？.。,，~～…]+/g,'');})){K=f.chat?f.id:'faq';return A(faqText(f),{chips:f.chat?T.chips0.slice(0,3):T.chipsAfter});}}
+ var hasIntent=R.size.test(s)||R.reco.test(s)||!!breedOf(q);
+ for(var i=0;i<KB.faq.length;i++){var f=KB.faq[i];if(f.pending&&hasIntent)continue;if(f.q.some(function(w){return kwHit(s,w);})||(f.x||[]).some(function(w){return bare===norm(w).replace(/[\s!！?？.。,，~～…]+/g,'');})){K=f.chat?f.id:f.pending?'pending':'faq';return A(faqText(f),{chips:f.chat?T.chips0.slice(0,3):T.chipsAfter});}}
  if(R.who.test(s))return K='who',A(T.who,{chips:T.chips0.slice(0,3)});
  if(R.contact.test(s)&&!R.store.test(s))return K='contact',A(T.contact,{chips:T.chipsAfter});
  if(R.greet.test(s)&&s.length<14)return K='greet',A(pick(T.greet),{chips:T.chips0});
@@ -807,7 +830,7 @@ function answer(q){
   ST.back=back;ST.breed=br||null;ST.want=null;
   var narrow=pp.any?{ser:pp.ser,warm:pp.warm}:(curLine()&&R.thisOne.test(s)?{lk:curLine()}:null);return K='size',sizeAnswer(back,m.chest||ST.chest,src,narrow);}
  if(m.kg&&!m.back){ST.want='back';return K='kg',A(fmt(T.kg,{kg:m.kg,series:m.kg<=9?T.serSmall:T.serBig}),{chips:[T.chips0[0]]});}
- if(wantsSize&&!R.ship.test(s)){if(ST.back&&(pp.any||curLine()))return K='size',sizeAnswer(ST.back,ST.chest,'',pp.any?{ser:pp.ser,warm:pp.warm}:{lk:curLine()});var again=ST.want==='back';ST.want='back';return A(again?T.askBack2:T.askBack,{chips:T.chipsBreed});}
+ if(wantsSize&&!R.ship.test(s)&&!(pp.any&&!ST.back&&!R.chart.test(s)&&!/(尺寸|幾號|size|サイズ|größe)/.test(s))){if(ST.back&&(pp.any||curLine()))return K='size',sizeAnswer(ST.back,ST.chest,'',pp.any?{ser:pp.ser,warm:pp.warm}:{lk:curLine()});var again=ST.want==='back';ST.want='back';return A(again?T.askBack2:T.askBack,{chips:T.chipsBreed});}
  if(R.weather.test(s))return K='weather',A(T.weather,{chips:T.chips0.slice(0,2)});
  if(R.compare.test(s)&&(R.warm.test(s)||R.rain.test(s)||R.small.test(s)||R.big.test(s)))return K='compare',A(T.compare,{cards:lines().map(function(l){return l.ps[0].id;}),chips:[T.chips0[0]].concat(T.chipsSize.slice(0,2))});
  if(R.ship.test(s))return K='ship',A(T.ship,{chips:T.chipsShip});
@@ -854,7 +877,7 @@ function refine(q,a,mr){if(!mr||mr.v!==KB.v||!KB.sem)return a;var th=mr.th||{},w
  var ex=(mr.ex||[]).filter(function(e){return KB.sem.ex[e.i];}),top=ex[0];
  if(top){var key=KB.sem.ex[top.i][1],other=ex.filter(function(e){return KB.sem.ex[e.i][1]!==key;})[0],margin=other?top.s-other.s:1,canon=KB.sem.q[key];
   var tf=/^faq:/.test(key)?KB.faq.filter(function(f){return f.id===key.slice(4);})[0]:null;
-  if(tf&&top.s>=(th.ex||.8)&&margin>=(th.margin||.02)&&(weak||top.s>=(th.strong||.9))&&a.kind!=='faq'&&!/^chat/.test(a.kind||'')){var t=A(faqText(tf),{chips:T.chipsAfter});t.kind=tf.chat?tf.id:'faq';t.via='sem';t.score=+top.s.toFixed(3);t.semKey=key;return t;}
+  if(tf&&top.s>=(th.ex||.8)&&margin>=(th.margin||.02)&&(weak||top.s>=(th.strong||.9))&&a.kind!=='faq'&&!/^chat/.test(a.kind||'')){var t=A(faqText(tf),{chips:T.chipsAfter});t.kind=tf.chat?tf.id:tf.pending?'pending':'faq';t.via='sem';t.score=+top.s.toFixed(3);t.semKey=key;return t;}
   if(canon&&top.s>=(th.ex||.8)&&margin>=(th.margin||.02)&&(weak||top.s>=(th.strong||.9))){
    var keep=JSON.stringify(ST),b=answer(canon);b.kind=K;
    if(weak||b.kind!==a.kind){b.via='sem';b.score=+top.s.toFixed(3);b.semKey=key;return b;}

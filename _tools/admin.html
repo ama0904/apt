@@ -737,7 +737,7 @@ const DE = {
   '尚未設定試衣間後台金鑰。': 'Kein Admin-Schlüssel für die Anprobe hinterlegt.', '去設定': 'Einstellungen', '載入中…': 'Lädt…',
   '試衣間後台金鑰不正確（{code}）': 'Admin-Schlüssel der Anprobe ungültig ({code})', '伺服器要求金鑰（{code}）；若伺服器已信任本站網域，請稍後再試。': 'Der Server verlangt einen Schlüssel ({code}); wenn er diese Domain bereits zulässt, bitte später erneut versuchen.', '連不上試衣間伺服器（可能離線中）。': 'Anprobe-Server nicht erreichbar (vielleicht offline).',
   '這段期間沒有試穿紀錄。': 'Keine Anproben in diesem Zeitraum.', '小幫手紀錄': 'Assistent-Fragen', '只看沒答好的': 'Nur unbeantwortete', '問題數': 'Fragen', '對話數': 'Gespräche', '答得出來': 'Beantwortet', '靠語意模型答出': 'Per Sprachmodell', '沒答好': 'Unbeantwortet', '最常沒答好的問題': 'Häufigste unbeantwortete Fragen', '語意': 'Modell', '語意模型分數': 'Modell-Score',
-  '小幫手問答': 'Assistent-Antworten', '待回答': 'Offen', '已回答': 'Beantwortet', '＋ 新增問題': '＋ Neue Frage', '待回答 {a} 題 · 已回答 {b} 題': '{a} offen · {b} beantwortet', '關鍵字': 'Stichwörter', '都回答完了 🎉': 'Alles beantwortet 🎉', '沒有項目': 'Keine Einträge',
+  '待店家回答': 'Wartet auf Antwort des Shops', '小幫手問答': 'Assistent-Antworten', '待回答': 'Offen', '已回答': 'Beantwortet', '＋ 新增問題': '＋ Neue Frage', '待回答 {a} 題 · 已回答 {b} 題': '{a} offen · {b} beantwortet', '關鍵字': 'Stichwörter', '都回答完了 🎉': 'Alles beantwortet 🎉', '沒有項目': 'Keine Einträge',
   '回答問題': 'Frage beantworten', '新增問題': 'Neue Frage', '問題': 'Frage', '回答（中文）': 'Antwort (Chinesisch)', '回答': 'Antwort', '其他問法': 'Andere Formulierungen', '相關頁面（選填）': 'Zugehörige Seite (optional)', '小幫手現在的回答：': 'Aktuelle Antwort des Assistenten: ',
   '留空就是先不回答，小幫手會照原本的方式處理。': 'Leer lassen = noch keine Antwort; der Assistent antwortet wie bisher.', '用逗號分隔，例如：折扣, 優惠碼, discount。客人的問題裡出現任一個就會回這題，太短太常見的字（例如「好」）不要放。': 'Durch Kommas getrennt. Kommt eines davon in der Frage vor, wird diese Antwort gegeben. Keine sehr kurzen, häufigen Wörter.',
   '一行一句，客人可能怎麼問。伺服器的語意模型會參考。': 'Eine Formulierung pro Zeile; das Sprachmodell auf dem Server nutzt sie.', '回答後面會附「看完整內容」連結。': 'Unter der Antwort erscheint ein Link „Weiterlesen“.', '請至少填一個關鍵字或其他問法，小幫手才認得這題': 'Bitte mindestens ein Stichwort oder eine Formulierung angeben',
@@ -1727,10 +1727,10 @@ $('#fit-range').onchange = loadFit;
 $('#btn-fit-reload').onclick = loadFit;
 
 /* ---------------------------------------------------------------- helper questions (apetto 小幫手), stored by the bridge in the private repo: helper/YYYY-MM.json */
-const HL_KIND = { unknown: '沒答出來', doc: '網站段落', faq: '自訂答案', size: '尺寸', sizeAvail: '尺寸選項', askBack: '問背長', askBack2: '問背長', kg: '體重', measure: '怎麼量',
+const HL_KIND = { pending: '待店家回答', unknown: '沒答出來', doc: '網站段落', faq: '自訂答案', size: '尺寸', sizeAvail: '尺寸選項', askBack: '問背長', askBack2: '問背長', kg: '體重', measure: '怎麼量',
   ship: '運費', time: '到貨時間', pay: '付款', ret: '退換貨', buy: '怎麼買', price: '價格', priceAll: '價格', colors: '顏色', colorHit: '顏色', reco: '推薦', recoAsk: '推薦',
   compare: '款式比較', fit: '試衣間', contact: '聯絡', store: '門市', about: '品牌', who: '小幫手', greet: '打招呼', thanks: '道謝', bye: '道別', weather: '天氣', soon: '即將推出', error: '錯誤' };
-const hlMiss = e => e.kind === 'unknown' || e.kind === 'doc' || e.kind === 'error';
+const hlMiss = e => e.kind === 'unknown' || e.kind === 'doc' || e.kind === 'error' || e.kind === 'pending';
 let HL_ENTRIES = [];
 async function loadHelper() {
   const msg = $('#hl-msg'); msg.textContent = t('載入中…');
