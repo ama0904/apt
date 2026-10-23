@@ -297,8 +297,9 @@ function setErr(m){err.textContent=m||'';err.classList.toggle('show',!!m);}
 function setStatus(st){online=st;status.className='fit-status '+(st===null?'':st?'on':'off');
  status.lastElementChild.textContent=st===null?cfg.ui.connecting:st?cfg.ui.online:cfg.ui.offline;update();}
 function update(){go.disabled=!(dog&&coat&&!running);}
-function health(){var c=new AbortController();var tm=setTimeout(function(){c.abort();},8000);
- fetch(cfg.api+'/api/health',{signal:c.signal,cache:'no-store'}).then(function(r){setStatus(r.ok);}).catch(function(){setStatus(false);}).then(function(){clearTimeout(tm);});}
+function health(again){var c=new AbortController();var tm=setTimeout(function(){c.abort();},20000);
+ // a busy server can answer slowly: wait up to 20 s and try once more before showing "offline"
+ fetch(cfg.api+'/api/health',{signal:c.signal,cache:'no-store'}).then(function(r){setStatus(r.ok);}).catch(function(){if(again)setStatus(false);else setTimeout(function(){health(true);},3000);}).then(function(){clearTimeout(tm);});}
 health();setInterval(health,45000);
 document.addEventListener('visibilitychange',function(){if(!document.hidden)health();});
 /* photo */
