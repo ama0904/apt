@@ -572,6 +572,18 @@ document.querySelectorAll('.type-tabs').forEach(function(bar){var grid=document.
  bar.addEventListener('click',function(e){var x=e.target.closest('button');if(!x)return;pick(x.dataset.type);
   try{history.replaceState(null,'',x.dataset.type?'#type-'+x.dataset.type:location.pathname+location.search);}catch(err){}});
  var h=decodeURIComponent((location.hash||'').replace(/^#type-/,''));if(h&&bar.querySelector('[data-type="'+h+'"]'))pick(h);});
+/* Chinese: mark word boundaries (the browser's own dictionary segmenter) so lines break between words, never inside one */
+if(window.Intl&&Intl.Segmenter&&/^zh/i.test(document.documentElement.lang)){
+ var seg=new Intl.Segmenter('zh-Hant',{granularity:'word'}),HAN=/[㐀-鿿]/,NOSTART=/^[，、。！？；：）」』】〉》…,.!?;:)\]]/,NOEND=/[（「『【〈《(\[]$/;
+ document.querySelectorAll('main h1,main h2,main h3,main h4,main p,main li,main .steps div,main .grid-box .name,main .fit-coat span,main .cat-card .sub').forEach(function(el){
+  if(el.classList.contains('wb')||el.closest('.rte,textarea'))return;
+  var tw=document.createTreeWalker(el,NodeFilter.SHOW_TEXT),nodes=[],n;while((n=tw.nextNode()))nodes.push(n);
+  nodes.forEach(function(t){if(!HAN.test(t.data))return;var parts=[],it=seg.segment(t.data)[Symbol.iterator](),r;while(!(r=it.next()).done)parts.push(r.value.segment);
+   if(parts.length<2)return;var f=document.createDocumentFragment();
+   parts.forEach(function(x,i){if(i&&!NOSTART.test(x)&&!NOEND.test(parts[i-1]))f.appendChild(document.createElement('wbr'));f.appendChild(document.createTextNode(x));});
+   t.parentNode.replaceChild(f,t);});
+  el.classList.add('wb');});
+}
 })();"""
 
 ICON_SEARCH = ('<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">'
@@ -713,7 +725,9 @@ CSS += """
 .cat-card .img{aspect-ratio:16/10;background:var(--sand);overflow:hidden}.cat-card .img img{width:100%;height:100%;object-fit:cover}
 .cat-card .ph-empty{display:flex;align-items:center;justify-content:center;width:100%;height:100%}.cat-card .ph-empty img{width:56px;height:auto;opacity:.22;filter:grayscale(1)}
 .cat-card .body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
-.cat-card h3{font-size:18px}.cat-card p{margin:0;font-size:14px;color:var(--mute);line-height:1.5}
+.cat-card h3{font-size:19px}.cat-card p{margin:0;font-size:14px;color:var(--mute);line-height:1.5}
+.cat-card .subs{display:flex;flex-wrap:wrap;gap:6px}
+.cat-card .sub{display:inline-flex;align-items:center;height:28px;padding:0 11px;border-radius:999px;background:var(--brand-soft);color:var(--brand-ink);font-size:13.5px;font-weight:700}
 .cat-card .n{margin-top:auto;font-size:13.5px;font-weight:600;color:var(--ink2)}
 .cat-card .tag{margin-top:auto;align-self:flex-start;background:var(--ink);color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px}
 .chips button{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--line2);background:#fff;font-weight:600;font-size:15px;color:var(--ink2);cursor:pointer}
@@ -722,6 +736,18 @@ CSS += """
 .chips button.empty{color:var(--mute)}
 .grid-box[hidden],.product-grid[hidden]{display:none}
 @media (max-width:980px){.cat-cards{grid-template-columns:repeat(2,1fr);gap:12px}.cat-card .body{padding:12px 12px 14px}.cat-card h3{font-size:16px}.shop-group{scroll-margin-top:80px}}
+"""
+CSS += """
+/* words marked by the script above: break only between them (a word wider than the line still wraps) */
+:lang(zh) .wb,:lang(zh) .wb *{word-break:keep-all;overflow-wrap:anywhere}
+/* CJK line breaking.
+   zh: names, buttons and labels never split inside a word (they break at spaces / punctuation; a run that is wider than the line still wraps).
+   ja: the browser's phrase detection. Headings and short text are balanced so no line ends up with one or two characters. */
+:lang(zh) :is(.btn,.chips a,.chips button,.nav a,.mm-nav a,.lang a,.grid-box .name,.product-heading-title,.cat-card h3,.cat-card .sub,.tag,.badge,.news-list b,.ft-links a,.breadcrumb li,label,summary,.fit-coat .nm,.fit-coat .sub){word-break:keep-all;overflow-wrap:anywhere}
+:lang(ja) :is(h1,h2,h3,h4,p,li,.btn,.chips a,.chips button,.nav a,.mm-nav a,.grid-box .name,.product-heading-title,.cat-card .sub,.eyebrow,.tag,.badge,.news-list b,.steps div,.ship h3,label,summary,.fit-coat .nm,.fit-coat .sub){word-break:auto-phrase}
+:is(h4,.lead,.ph p,.cat-card p,.gcard p,.feat p,.soon p,.quote p,.fit-promo p,.cards3 p,.grid-box .name,.news-list b,.eyebrow,.steps div,.ship h3,.product-heading-title){text-wrap:balance}
+:is(.article p,.article li,.rich p,.rich li,.rich-text p,.rich-text li,.story p,.notebox p,.fit-coat span){text-wrap:balance}
+:lang(ja){line-break:strict}
 """
 CSS = CSS + fit.CSS
 ASSET_VER = {"css": digest(CSS), "js": digest(JS), "fit": digest(fit.JS)}
@@ -1165,9 +1191,9 @@ def category_card(c, visible, d, lang):
     else:
         pic = f'<span class="ph-empty" aria-hidden="true"><img src="{asset(d, LOGO)}" alt=""></span>'
         meta = '<span class="tag">即將推出</span>'
-    types = "・".join(esc(t["name"]) for t in types_of(c))
+    types = "".join(f'<span class="sub">{esc(t["name"])}</span>' for t in types_of(c))
     return (f'<a class="cat-card" href="{link(d, sb.category_page(c["id"]), lang)}"><div class="img">{pic}</div>'
-            f'<div class="body"><h3>{esc(c["name"])}</h3>{f"<p>{types}</p>" if types else ""}{meta}</div></a>')
+            f'<div class="body"><h3>{esc(c["name"])}</h3>{f"<div class=subs>{types}</div>" if types else ""}{meta}</div></a>')
 
 
 def render_shop(data, visible, lang):
