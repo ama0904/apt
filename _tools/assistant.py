@@ -639,8 +639,9 @@ function answer(q){
 var SRV=null,srvP=null,SID='';
 try{SID=sessionStorage.getItem('apetto_ai_sid')||'';if(!SID){SID=Math.random().toString(36).slice(2,10)+Date.now().toString(36);sessionStorage.setItem('apetto_ai_sid',SID);}}catch(e){SID='x'+Math.random().toString(36).slice(2,10);}
 function srvOn(){if(!API)return Promise.resolve(false);if(SRV!==null)return Promise.resolve(SRV);
- if(!srvP){var ctl=new AbortController(),tm=setTimeout(function(){ctl.abort();},4000);
-  srvP=fetch(API+'/api/health',{cache:'no-store',signal:ctl.signal}).then(function(r){return r.json();}).then(function(j){SRV=!!(j&&j.helper);return SRV;}).catch(function(){SRV=false;return false;}).then(function(v){clearTimeout(tm);if(v&&foot)foot.textContent=T.foot+' · '+T.logged;return v;});}
+ if(!srvP){var ctl=new AbortController(),tm=setTimeout(function(){ctl.abort();},10000);
+  // the first connection through the tunnel can be slow; if it fails, try again 20 s later
+  srvP=fetch(API+'/api/health',{cache:'no-store',signal:ctl.signal}).then(function(r){return r.json();}).then(function(j){SRV=!!(j&&j.helper);return SRV;}).catch(function(){SRV=false;setTimeout(function(){SRV=null;srvP=null;},20000);return false;}).then(function(v){clearTimeout(tm);if(v&&foot)foot.textContent=T.foot+' · '+T.logged;return v;});}
  return srvP;}
 function srvMatch(q){return srvOn().then(function(on){if(!on||!KB.v)return null;var ctl=new AbortController(),tm=setTimeout(function(){ctl.abort();},3000);
  return fetch(API+'/api/helper/match',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:q.slice(0,300),lang:LANG,v:KB.v}),signal:ctl.signal})
@@ -685,7 +686,7 @@ function typing(){var t=document.createElement('div');t.className='ai-typing';t.
 function ask(q){q=String(q||'').trim();if(!q||busy)return;busy=true;sendBtn.disabled=true;ta.value='';grow();setChips([]);addMe(q);HIST.push({me:q});
  loadKB().then(function(){var a;try{a=answer(q);a.kind=K;}catch(e){a=A(T.unknown,{chips:T.chips0});a.kind='error';}a.via='rule';
   var stop=typing(),wait=Math.min(1400,450+a.text.length*6+Math.random()*250);
-  Promise.all([srvMatch(q).catch(function(){return null;}),new Promise(function(r){setTimeout(r,wait);})]).then(function(res){
+  Promise.all([Promise.race([srvMatch(q).catch(function(){return null;}),new Promise(function(r){setTimeout(function(){r(null);},3500);})]),new Promise(function(r){setTimeout(r,wait);})]).then(function(res){
    var b=a;try{b=refine(q,a,res[0]);}catch(e){b=a;}stop();
    addBot(b,false,function(){HIST.push({bot:b});save();setChips(b.chips);srvLog(q,b);busy=false;sendBtn.disabled=!ta.value.trim();ta.focus({preventScroll:true});});});
  }).catch(function(){busy=false;sendBtn.disabled=false;});}
