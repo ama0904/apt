@@ -16,6 +16,7 @@ from bs4 import BeautifulSoup, Comment, NavigableString
 
 import site_builder as sb
 import fitstudio as fit
+import assistant as ai
 
 CDN = "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/"
 LOGO = "assets/logo.png"  # transparent version of the shop logo (made from the original PNG; works on dark backgrounds too)
@@ -693,6 +694,7 @@ def page(data, site_rel, lang, title, body, desc="", og_image=None, current="", 
 </main>
 {footer(data, site_rel, lang)}
 <script src="{asset(d, 'assets/theme.js')}?v={ASSET_VER['js']}" defer></script>
+<script src="{asset(d, 'assets/assistant.js')}?v={ASSET_VER['ai']}" data-lang="{lang}" data-logo="{asset(d, LOGO)}" defer></script>
 </body>
 </html>"""
 
@@ -768,8 +770,8 @@ CSS += """
 .fit-coat span{text-wrap:balance}
 :lang(ja){line-break:strict}
 """
-CSS = CSS + fit.CSS
-ASSET_VER = {"css": digest(CSS), "js": digest(JS), "fit": digest(fit.JS)}
+CSS = CSS + fit.CSS + ai.CSS
+ASSET_VER = {"css": digest(CSS), "js": digest(JS), "fit": digest(fit.JS), "ai": digest(ai.JS)}
 
 
 # ----------------------------------------------------------------- components
@@ -1550,6 +1552,7 @@ def build_all(data, visible):
     (assets / "theme.css").write_text(CSS.strip() + "\n", encoding="utf-8")
     (assets / "theme.js").write_text(JS + "\n", encoding="utf-8")
     (assets / "fitstudio.js").write_text(fit.JS + "\n", encoding="utf-8")
+    (assets / "assistant.js").write_text(ai.JS + "\n", encoding="utf-8")
     for lang in LANG_CODES:
         write_page(render_home(data, visible, lang), "index.html", lang, table)
         for c in data["categories"]:
@@ -1589,3 +1592,4 @@ def build_all(data, visible):
     for f in list((sb.SITE / "information").glob("news&news_id=*.html")) + list((sb.SITE / "information").glob("notice&notice_id=*.html")):
         if f.relative_to(sb.SITE).as_posix() not in keep:
             f.unlink()
+    ai.build(data, visible, LANG_CODES)   # reads the finished pages, so it runs last
