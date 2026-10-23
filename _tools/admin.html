@@ -30,6 +30,23 @@
   .pane.on { display:block; }
   .pane > .sec-title:first-child { margin-top:4px; }
   .sec-title { font-size:17px; margin:36px 0 12px; }
+  .rte { border:1px solid var(--line2, #d0d7de); border-radius:10px; background:#fff; overflow:hidden; }
+  .rte:focus-within { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.15); }
+  .rte-bar { display:flex; flex-wrap:wrap; gap:4px; align-items:center; padding:6px; border-bottom:1px solid var(--line); background:#f6f8fa; position:sticky; top:0; z-index:1; }
+  .rte-bar button, .rte-bar select { height:32px; min-width:32px; padding:0 8px; font-size:14px; border-radius:6px; border:1px solid transparent; background:transparent; cursor:pointer; color:#1f2328; width:auto; }
+  .rte-bar button:hover, .rte-bar select:hover { background:#fff; border-color:var(--line); }
+  .rte-bar button.on { background:#dbeafe; border-color:#93c5fd; }
+  .rte-bar select { border-color:var(--line); background:#fff; }
+  .rte-bar .sep { width:1px; height:22px; background:var(--line); margin:0 4px; }
+  .rte-bar svg { width:16px; height:16px; vertical-align:-3px; }
+  .rte-area { min-height:200px; max-height:60vh; overflow:auto; padding:12px 14px; outline:none; font-size:15px; line-height:1.75; color:#1f2328; }
+  .rte-area:empty::before { content:attr(data-ph); color:#8c959f; }
+  .rte-area p { margin:0 0 .7em; } .rte-area h2 { font-size:21px; margin:.8em 0 .4em; } .rte-area h3 { font-size:17px; margin:.8em 0 .4em; }
+  .rte-area ul { list-style:disc; padding-left:1.4em; margin:0 0 .7em; } .rte-area ol { list-style:decimal; padding-left:1.4em; margin:0 0 .7em; }
+  .rte-area a { color:#2563eb; text-decoration:underline; } .rte-area blockquote { margin:.6em 0; padding-left:12px; border-left:3px solid #ff2414; color:#57606a; }
+  .rte-src { display:none; width:100%; min-height:200px; border:0; border-radius:0; font-family:ui-monospace,Consolas,monospace; font-size:13px; padding:12px 14px; }
+  .rte.src .rte-area { display:none; } .rte.src .rte-src { display:block; }
+  .rte .fs-s, .fs-s { font-size:.85em; } .rte .fs-l { font-size:1.25em; } .rte .fs-xl { font-size:1.6em; } .rte .tc-brand { color:#d41d0e; } .rte .tc-mute { color:#8c959f; }
   .content-view { background:#fafbfc; border:1px solid var(--line); border-radius:10px; padding:12px 16px; font-size:14px; }
   .content-view b { display:block; font-size:18px; margin-bottom:4px; } .content-view p { margin:4px 0 0; color:var(--mute); }
   td.ord { color:var(--mute); font-size:13px; }
@@ -347,8 +364,8 @@
       <div class="grid">
         <div><label class="f">日期 *</label><input type="date" name="date" required></div>
         <div class="full"><label class="f">標題 *</label><input type="text" name="title" required placeholder="例如：春季新色上市"></div>
-        <div class="full"><label class="f">內容（每行一段，網址會自動變成連結）</label><textarea name="body" class="tall" style="font-family:inherit;font-size:14px"></textarea></div>
-        <div><label class="f">相關連結（選填）</label><input type="url" name="link" placeholder="https://…"></div>
+        <div class="full"><label class="f">內容</label><textarea name="body" class="tall" style="font-family:inherit;font-size:14px"></textarea><div class="hint">用上方工具列設定標題、粗體、文字大小、顏色、對齊、清單與連結；也可以直接從 Word 貼上。</div></div>
+        <div><label class="f">相關連結（選填）</label><input type="text" name="link" placeholder="https://… 或站內頁面，例如 fitstudio.html"></div>
         <div><label class="f">連結文字（選填）</label><input type="text" name="link_text" placeholder="例如：在 Facebook 查看貼文"></div>
         <div class="full"><label class="checks"><input type="checkbox" name="nvisible" value="1" checked> 顯示在前台</label></div>
         <div class="full">
@@ -494,6 +511,38 @@
 const $ = s => document.querySelector(s);
 const UI_LANG = localStorage.getItem('apetto_admin_lang') || ((navigator.language || '').toLowerCase().startsWith('de') ? 'de' : 'zh');
 const DE = {
+  "段落樣式": "Absatzformat",
+  "內文": "Text",
+  "大標題": "Große Überschrift",
+  "小標題": "Kleine Überschrift",
+  "引言": "Zitat",
+  "文字大小": "Schriftgröße",
+  "小": "Klein",
+  "標準": "Normal",
+  "大": "Groß",
+  "特大": "Sehr groß",
+  "文字顏色": "Schriftfarbe",
+  "預設": "Standard",
+  "品牌紅": "Markenrot",
+  "灰色": "Grau",
+  "粗體": "Fett",
+  "斜體": "Kursiv",
+  "底線": "Unterstrichen",
+  "靠左": "Linksbündig",
+  "置中": "Zentriert",
+  "靠右": "Rechtsbündig",
+  "項目符號": "Aufzählung",
+  "編號清單": "Nummerierte Liste",
+  "插入連結": "Link einfügen",
+  "移除連結": "Link entfernen",
+  "取消連結": "Link weg",
+  "清除格式": "Formatierung entfernen",
+  "復原": "Rückgängig",
+  "重做": "Wiederholen",
+  "直接編輯 HTML 原始碼": "HTML-Quelltext direkt bearbeiten",
+  "在這裡輸入內容…": "Hier Text eingeben…",
+  "連結網址（例如 https://… 或站內頁面 fitstudio.html）": "Link-Adresse (z. B. https://… oder eine Seite wie fitstudio.html)",
+  "用上方工具列設定標題、粗體、文字大小、顏色、對齊、清單與連結；也可以直接從 Word 貼上。": "Über die Werkzeugleiste Überschriften, Fett, Schriftgröße, Farbe, Ausrichtung, Listen und Links setzen; Text aus Word kann direkt eingefügt werden.",
   "網站內容": "Seiteninhalte",
   "首頁主視覺與頁面文字": "Startseite & Seitentexte",
   "首頁大標題、副標，以及「機能與設計細節」頁的副標。": "Überschrift und Untertitel der Startseite sowie der Untertitel der Seite „Funktionen & Details“.",
@@ -1146,7 +1195,7 @@ function openNewsForm(n) {
   $('#ntr-blocks').innerHTML = TR_LANGS.map(([k, label]) => `
     <details class="tr" data-lang="${k}"><summary>${label}<span class="muted" data-filled></span></summary>
       <div class="grid"><div class="full"><label class="f">${t('標題')}</label><input type="text" name="ntr_${k}_title"></div>
-      <div class="full"><label class="f">${t('內容（每行一段）')}</label><textarea name="ntr_${k}_body"></textarea></div></div></details>`).join('');
+      <div class="full"><label class="f">${t('內容')}</label><textarea name="ntr_${k}_body"></textarea></div></div></details>`).join('');
   if (n) {
     f.date.value = dateIn(n.date); f.title.value = n.title || ''; f.body.value = n.body || ''; f.link.value = n.link || ''; f.link_text.value = n.link_text || '';
     f.nvisible.checked = n.visible !== false;
@@ -1154,7 +1203,8 @@ function openNewsForm(n) {
   } else {
     const now = new Date(); f.date.value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   }
-  const mark = () => $('#ntr-blocks').querySelectorAll('details.tr').forEach(d => { const c = [...d.querySelectorAll('input,textarea')].filter(i => i.value.trim()).length; d.querySelector('[data-filled]').textContent = c ? t('已填 {n} 欄', { n: c }) : t('未填'); });
+  mountRich(f.body); TR_LANGS.forEach(([k]) => mountRich(f[`ntr_${k}_body`]));
+  const mark = () => $('#ntr-blocks').querySelectorAll('details.tr').forEach(d => { const c = [...d.querySelectorAll('input,textarea:not(.rte-src)')].filter(i => i.value.trim()).length; d.querySelector('[data-filled]').textContent = c ? t('已填 {n} 欄', { n: c }) : t('未填'); });
   mark(); $('#ntr-blocks').oninput = mark;
   $('#ndlg').showModal();
 }
@@ -1497,6 +1547,158 @@ $('#fdlg-close').onclick = () => $('#fdlg').close();
 $('#fit-range').onchange = loadFit;
 $('#btn-fit-reload').onclick = loadFit;
 
+/* ---------------------------------------------------------------- rich text editor (Word-like): bold, size, colour, alignment, lists, links
+   The textarea stays the source of truth: the editor writes cleaned HTML back into it on every change. */
+const RICH_TAGS = ['P', 'H2', 'H3', 'H4', 'STRONG', 'EM', 'U', 'S', 'UL', 'OL', 'LI', 'A', 'BR', 'SPAN', 'BLOCKQUOTE'];
+const RICH_RENAME = { B: 'STRONG', I: 'EM', DIV: 'P', H1: 'H2', H5: 'H4', H6: 'H4', STRIKE: 'S' };
+const RICH_BLOCKS = ['P', 'H2', 'H3', 'H4', 'LI', 'BLOCKQUOTE'];
+const RICH_CLASSES = ['fs-s', 'fs-l', 'fs-xl', 'tc-brand', 'tc-mute'];
+const INLINE_TAGS = ['STRONG', 'EM', 'U', 'S', 'A', 'BR', 'SPAN'];
+const isRich = v => /^\s*<(p|h[1-6]|ul|ol|div|blockquote|span|strong|b|em|i|u|a|br)\b/i.test(v || '');
+function plainToRich(v) {
+  const out = []; let ul = [];
+  const inline = x => escHtml(x).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1">$1</a>');
+  const flush = () => { if (ul.length) { out.push('<ul>' + ul.map(x => `<li>${x}</li>`).join('') + '</ul>'); ul = []; } };
+  (v || '').split(/\r?\n/).forEach(l => { l = l.trim(); if (!l) return;
+    if (l.startsWith('## ')) { flush(); out.push(`<h2>${inline(l.slice(3))}</h2>`); } else if (l.startsWith('- ')) ul.push(inline(l.slice(2))); else { flush(); out.push(`<p>${inline(l)}</p>`); } });
+  flush(); return out.join('');
+}
+function cleanRich(html) {
+  const doc = new DOMParser().parseFromString(`<!doctype html><body>${(html || '').replace(/>\s*\n\s*</g, '><')}</body>`, 'text/html'), body = doc.body;
+  const unwrap = el => { while (el.firstChild) el.parentNode.insertBefore(el.firstChild, el); el.remove(); };
+  const rename = (el, tag) => { const r = doc.createElement(tag); [...el.attributes].forEach(a => r.setAttribute(a.name, a.value)); while (el.firstChild) r.appendChild(el.firstChild); el.replaceWith(r); return r; };
+  const walk = node => [...node.childNodes].forEach(n => {
+    if (n.nodeType === 3) return;
+    if (n.nodeType !== 1 || ['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'META', 'LINK', 'TITLE', 'IMG', 'VIDEO', 'FORM', 'INPUT', 'svg'].includes(n.tagName)) { n.remove(); return; }
+    walk(n);
+    let el = n; const st = el.getAttribute('style') || '';
+    if (el.tagName === 'FONT') {     // execCommand fontSize / pasted <font>
+      const sz = +el.getAttribute('size'), cls = sz && sz <= 2 ? 'fs-s' : sz >= 6 ? 'fs-xl' : sz >= 4 ? 'fs-l' : '';
+      el = rename(el, 'SPAN'); el.removeAttribute('size'); el.removeAttribute('color'); el.removeAttribute('face'); if (cls) el.className = cls;
+    }
+    if (el.tagName === 'SPAN' && /font-weight\s*:\s*(bold|[6-9]00)/i.test(st)) el = rename(el, 'STRONG');
+    else if (el.tagName === 'SPAN' && /font-style\s*:\s*italic/i.test(st)) el = rename(el, 'EM');
+    if (RICH_RENAME[el.tagName]) el = rename(el, RICH_RENAME[el.tagName]);
+    if (!RICH_TAGS.includes(el.tagName) || (/^(P|H2|H3|H4|BLOCKQUOTE)$/.test(el.tagName) && el.querySelector('ul,ol,p,h2,h3,h4'))) { unwrap(el); return; }
+    const align = ((el.getAttribute('style') || '').match(/text-align\s*:\s*(center|right|justify)/i) || [])[1] || (/(center|right|justify)/i.test(el.getAttribute('align') || '') ? el.getAttribute('align') : '');
+    const cls = [...el.classList].filter(c => RICH_CLASSES.includes(c)), href = el.getAttribute('href') || '';
+    [...el.attributes].forEach(a => el.removeAttribute(a.name));
+    if (align && RICH_BLOCKS.includes(el.tagName)) el.setAttribute('style', `text-align:${align.toLowerCase()}`);
+    if (el.tagName === 'SPAN') { if (cls.length) el.className = cls.join(' '); else unwrap(el); }
+    if (el.tagName === 'A') { if (!href || /^\s*(javascript|data|vbscript):/i.test(href)) unwrap(el); else el.setAttribute('href', href.trim()); }
+  });
+  walk(body);
+  // loose text / inline bits at the top level go into paragraphs
+  let p = null;
+  [...body.childNodes].forEach(n => {
+    const inline = n.nodeType === 3 || INLINE_TAGS.includes(n.tagName);
+    if (inline) { if (n.nodeType === 3 && !n.nodeValue.trim() && !p) { n.remove(); return; } if (!p) { p = doc.createElement('p'); n.before(p); } p.appendChild(n); }
+    else p = null;
+  });
+  body.querySelectorAll('p,h2,h3,h4,li').forEach(b => { if (!b.textContent.trim() && !b.querySelector('br')) b.remove(); });
+  if (!body.textContent.trim()) return '';
+  return body.innerHTML.replace(/<p><br><\/p>/g, '').trim();
+}
+const RTE_ICON = {
+  left: '<svg viewBox="0 0 16 16"><path d="M2 3h12M2 6.5h8M2 10h12M2 13.5h8" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>',
+  center: '<svg viewBox="0 0 16 16"><path d="M2 3h12M4 6.5h8M2 10h12M4 13.5h8" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>',
+  right: '<svg viewBox="0 0 16 16"><path d="M2 3h12M6 6.5h8M2 10h12M6 13.5h8" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>',
+  ul: '<svg viewBox="0 0 16 16"><circle cx="2.5" cy="4" r="1.2"/><circle cx="2.5" cy="8" r="1.2"/><circle cx="2.5" cy="12" r="1.2"/><path d="M6 4h8M6 8h8M6 12h8" stroke="currentColor" stroke-width="1.6"/></svg>',
+  ol: '<svg viewBox="0 0 16 16"><text x="0" y="5.5" font-size="5.5" font-family="sans-serif">1</text><text x="0" y="10" font-size="5.5" font-family="sans-serif">2</text><text x="0" y="14.5" font-size="5.5" font-family="sans-serif">3</text><path d="M6 4h8M6 8h8M6 12h8" stroke="currentColor" stroke-width="1.6"/></svg>',
+  link: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 9a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-.8.8M9 7a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l.8-.8"/></svg>',
+  quote: '<svg viewBox="0 0 16 16"><path d="M3 4h4v4H5l-1 4H2l1-4zM9 4h4v4h-2l-1 4H8l1-4z"/></svg>',
+  clear: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 3h9M8.5 3 6 13M3 13h5M11 10l4 4M15 10l-4 4"/></svg>',
+};
+function mountRich(ta, placeholder) {
+  const start = isRich(ta.value) ? cleanRich(ta.value) : plainToRich(ta.value);
+  if (ta._rte) { ta._rte.area.innerHTML = start; ta.value = cleanRich(start); ta._rte.box.classList.remove('src'); return; }
+  const box = document.createElement('div'); box.className = 'rte';
+  box.innerHTML = `<div class="rte-bar">
+      <select data-cmd="block" title="${t('段落樣式')}"><option value="p">${t('內文')}</option><option value="h2">${t('大標題')}</option><option value="h3">${t('小標題')}</option><option value="blockquote">${t('引言')}</option></select>
+      <select data-cmd="size" title="${t('文字大小')}"><option value="">${t('文字大小')}</option><option value="fs-s">${t('小')}</option><option value="normal">${t('標準')}</option><option value="fs-l">${t('大')}</option><option value="fs-xl">${t('特大')}</option></select>
+      <select data-cmd="color" title="${t('文字顏色')}"><option value="">${t('文字顏色')}</option><option value="normal">${t('預設')}</option><option value="tc-brand">${t('品牌紅')}</option><option value="tc-mute">${t('灰色')}</option></select>
+      <span class="sep"></span>
+      <button type="button" data-cmd="bold" title="${t('粗體')}"><b>B</b></button><button type="button" data-cmd="italic" title="${t('斜體')}"><i>I</i></button><button type="button" data-cmd="underline" title="${t('底線')}"><u>U</u></button>
+      <span class="sep"></span>
+      <button type="button" data-cmd="justifyLeft" title="${t('靠左')}">${RTE_ICON.left}</button><button type="button" data-cmd="justifyCenter" title="${t('置中')}">${RTE_ICON.center}</button><button type="button" data-cmd="justifyRight" title="${t('靠右')}">${RTE_ICON.right}</button>
+      <span class="sep"></span>
+      <button type="button" data-cmd="insertUnorderedList" title="${t('項目符號')}">${RTE_ICON.ul}</button><button type="button" data-cmd="insertOrderedList" title="${t('編號清單')}">${RTE_ICON.ol}</button>
+      <button type="button" data-cmd="link" title="${t('插入連結')}">${RTE_ICON.link}</button><button type="button" data-cmd="unlink" title="${t('移除連結')}">${t('取消連結')}</button>
+      <button type="button" data-cmd="removeFormat" title="${t('清除格式')}">${RTE_ICON.clear}</button>
+      <span class="sep"></span>
+      <button type="button" data-cmd="undo" title="${t('復原')}">↶</button><button type="button" data-cmd="redo" title="${t('重做')}">↷</button>
+      <button type="button" data-cmd="source" title="${t('直接編輯 HTML 原始碼')}">HTML</button>
+    </div><div class="rte-area" contenteditable="true"></div><textarea class="rte-src" spellcheck="false"></textarea>`;
+  const area = box.querySelector('.rte-area'), src = box.querySelector('.rte-src'), bar = box.querySelector('.rte-bar');
+  area.dataset.ph = placeholder || t('在這裡輸入內容…');
+  area.innerHTML = start;
+  ta.style.display = 'none'; ta.before(box); ta._rte = { box, area };
+  let range = null;
+  const keep = () => { const sel = getSelection(); if (sel.rangeCount && area.contains(sel.anchorNode)) range = sel.getRangeAt(0).cloneRange(); };
+  const restore = () => { area.focus(); if (range) { const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range); } };
+  const sync = () => { ta.value = cleanRich(area.innerHTML); ta.dispatchEvent(new Event('input', { bubbles: true })); refresh(); };
+  const refresh = () => {
+    ['bold', 'italic', 'underline', 'justifyCenter', 'justifyRight', 'insertUnorderedList', 'insertOrderedList'].forEach(c => { const b = bar.querySelector(`[data-cmd=${c}]`); try { b.classList.toggle('on', document.queryCommandState(c) && area.contains(getSelection().anchorNode)); } catch (e) {} });
+    const blk = (() => { let n = getSelection().anchorNode; while (n && n !== area) { if (n.nodeType === 1 && /^(H2|H3|BLOCKQUOTE|P)$/.test(n.tagName)) return n.tagName.toLowerCase(); n = n.parentNode; } return 'p'; })();
+    if (area.contains(getSelection().anchorNode)) bar.querySelector('[data-cmd=block]').value = blk;
+  };
+  // size / colour: mark the selection with a throw-away <font>, then turn it into one of our classes
+  const mark = (cmd, val, family, cls) => {
+    document.execCommand('styleWithCSS', false, false);
+    document.execCommand(cmd, false, val);
+    area.querySelectorAll(cmd === 'fontSize' ? 'font[size="7"]' : 'font[color="#010203"]').forEach(f => {
+      f.querySelectorAll('span').forEach(sp => { family.forEach(c => sp.classList.remove(c)); if (!sp.classList.length) { while (sp.firstChild) sp.before(sp.firstChild); sp.remove(); } });
+      for (let a = f.parentNode; a && a !== area && a.textContent === f.textContent;) {
+        const up = a.parentNode;
+        if (a.tagName === 'SPAN') { family.forEach(c => a.classList.remove(c)); if (!a.classList.length) { while (a.firstChild) a.before(a.firstChild); a.remove(); } }
+        else if (!/^(STRONG|B|EM|I|U|S|A)$/.test(a.tagName)) break;
+        a = up;
+      }
+      const sp = document.createElement('span'); if (cls !== 'normal') sp.className = cls; while (f.firstChild) sp.appendChild(f.firstChild); f.replaceWith(sp);
+      if (cls === 'normal') { while (sp.firstChild) sp.before(sp.firstChild); sp.remove(); }
+    });
+  };
+  const run = (cmd, val) => {
+    restore();
+    document.execCommand('defaultParagraphSeparator', false, 'p');
+    if (cmd === 'block') {
+      let li = getSelection().anchorNode; while (li && li !== area && li.tagName !== 'LI') li = li.parentNode;
+      if (li && li !== area) document.execCommand(li.parentNode.tagName === 'OL' ? 'insertOrderedList' : 'insertUnorderedList');
+      document.execCommand('formatBlock', false, `<${val}>`);
+    }
+    else if (cmd === 'size') mark('fontSize', '7', ['fs-s', 'fs-l', 'fs-xl'], val);
+    else if (cmd === 'color') mark('foreColor', '#010203', ['tc-brand', 'tc-mute'], val);
+    else if (cmd === 'link') { const u = prompt(t('連結網址（例如 https://… 或站內頁面 fitstudio.html）'), 'https://'); if (u && u.trim() && u.trim() !== 'https://') document.execCommand('createLink', false, u.trim()); }
+    else if (cmd === 'removeFormat') { document.execCommand('removeFormat'); mark('fontSize', '7', ['fs-s', 'fs-l', 'fs-xl', 'tc-brand', 'tc-mute'], 'normal'); }
+    else document.execCommand(cmd, false, val);
+    keep(); sync();
+  };
+  bar.addEventListener('mousedown', e => { if (e.target.closest('button')) e.preventDefault(); });   // keep the text selection
+  bar.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.cmd === 'source') {
+      if (box.classList.toggle('src')) { src.value = cleanRich(area.innerHTML).replace(/(<\/(p|h2|h3|h4|ul|ol|li|blockquote)>)/g, '$1\n'); b.classList.add('on'); src.focus(); }
+      else { area.innerHTML = cleanRich(src.value); b.classList.remove('on'); sync(); }
+      return;
+    }
+    run(b.dataset.cmd);
+  });
+  bar.querySelectorAll('select').forEach(sel => sel.addEventListener('change', () => { if (sel.value) run(sel.dataset.cmd, sel.value); if (sel.dataset.cmd !== 'block') sel.value = ''; }));
+  src.addEventListener('input', () => { ta.value = cleanRich(src.value); ta.dispatchEvent(new Event('input', { bubbles: true })); });
+  area.addEventListener('input', sync);
+  ['keyup', 'mouseup', 'focus'].forEach(ev => area.addEventListener(ev, () => { keep(); refresh(); }));
+  area.addEventListener('paste', e => {
+    e.preventDefault();
+    const h = e.clipboardData.getData('text/html'), txt = e.clipboardData.getData('text/plain');
+    document.execCommand('insertHTML', false, h ? cleanRich(h.replace(/^[\s\S]*<!--StartFragment-->|<!--EndFragment-->[\s\S]*$/g, '')) : plainToRich(txt));
+    sync();
+  });
+  area.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && ['b', 'i', 'u'].includes(e.key.toLowerCase())) { e.preventDefault(); run({ b: 'bold', i: 'italic', u: 'underline' }[e.key.toLowerCase()]); }
+  });
+  ta.value = cleanRich(start);
+}
+
 /* ---------------------------------------------------------------- 網站內容: hero text, groups, categories, guides, features */
 const siteJsonPath = () => `${SITE_DIR}/_data/site.json`, guidesPath = () => `${SITE_DIR}/_data/guides.json`;
 const DEFAULT_GROUPS = [{ key: 'apparel', name: '機能服飾', blurb: '' }, { key: 'outdoor', name: '外出配件', blurb: '' }, { key: 'living', name: '舒適生活', blurb: '' }];
@@ -1593,6 +1795,7 @@ function openEditor(o) {
   $('#efields').innerHTML = o.fields.map(fl => {
     const lab = `<label class="f">${t(fl.label)}${fl.required ? ' *' : ''}</label>`, hint = fl.hint ? `<div class="hint">${t(fl.hint)}</div>` : '', ph = fl.placeholder ? ` placeholder="${escHtml(t(fl.placeholder))}"` : '';
     const full = fl.full === false ? '' : ' class="full"';
+    if (fl.type === 'rich') return `<div class="full">${lab}<textarea name="f_${fl.k}" data-rich></textarea>${hint}</div>`;
     if (fl.type === 'textarea') return `<div${full}>${lab}<textarea name="f_${fl.k}" class="tall" style="font-family:inherit;font-size:14px"${ph}></textarea>${hint}</div>`;
     if (fl.type === 'select') return `<div${full}>${lab}<select name="f_${fl.k}">${fl.options.map(([val, txt]) => `<option value="${escHtml(val)}">${escHtml(txt)}</option>`).join('')}</select>${hint}</div>`;
     if (fl.type === 'check') return `<div class="full"><label class="checks"><input type="checkbox" name="f_${fl.k}" value="1"> ${t(fl.label)}</label>${hint}</div>`;
@@ -1608,9 +1811,10 @@ function openEditor(o) {
   const tr = o.tr || [];
   $('#etr-wrap').style.display = tr.length ? '' : 'none';
   $('#etr').innerHTML = TR_LANGS.map(([lang, label]) => `<details class="tr" data-lang="${lang}"><summary>${label}<span class="muted" data-filled></span></summary><div class="grid">` +
-    tr.map(fl => `<div class="full"><label class="f">${t(fl.label)}</label>${fl.type === 'textarea' ? `<textarea name="tr_${lang}_${fl.k}"></textarea>` : `<input type="text" name="tr_${lang}_${fl.k}">`}</div>`).join('') + '</div></details>').join('');
+    tr.map(fl => `<div class="full"><label class="f">${t(fl.label)}</label>${fl.type === 'textarea' || fl.type === 'rich' ? `<textarea name="tr_${lang}_${fl.k}"${fl.type === 'rich' ? ' data-rich' : ''}></textarea>` : `<input type="text" name="tr_${lang}_${fl.k}">`}</div>`).join('') + '</div></details>').join('');
   TR_LANGS.forEach(([lang]) => tr.forEach(fl => { f[`tr_${lang}_${fl.k}`].value = (((v.i18n || {})[lang] || {})[fl.k]) || ''; }));
-  const mark = () => $('#etr').querySelectorAll('details.tr').forEach(d => { const c = [...d.querySelectorAll('input,textarea')].filter(i => i.value.trim()).length; d.querySelector('[data-filled]').textContent = c ? t('已填 {n} 欄', { n: c }) : t('未填'); });
+  f.querySelectorAll('textarea[data-rich]').forEach(ta => mountRich(ta));
+  const mark = () => $('#etr').querySelectorAll('details.tr').forEach(d => { const c = [...d.querySelectorAll('input,textarea:not(.rte-src)')].filter(i => i.value.trim()).length; d.querySelector('[data-filled]').textContent = c ? t('已填 {n} 欄', { n: c }) : t('未填'); });
   mark(); $('#etr').oninput = mark;
   $('#edlg').showModal();
 }
@@ -1715,10 +1919,10 @@ $('#btn-cat-add').onclick = () => { if (!S.data.groups.length) return alert(t('�
 const guideForm = g => openEditor({
   title: g ? '編輯指南' : '新增指南',
   fields: [{ k: 'title', label: '標題', required: true, placeholder: '例如：雨衣怎麼選？' }, { k: 'summary', label: '一句話摘要', placeholder: '列表上顯示的短介紹' },
-           { k: 'body', label: '內容', type: 'textarea', hint: '每行一段。開頭打「## 」會變成小標題，開頭打「- 」會變成項目符號。' },
+           { k: 'body', label: '內容', type: 'rich', hint: '用上方工具列設定標題、粗體、文字大小、顏色、對齊、清單與連結；也可以直接從 Word 貼上。' },
            { k: 'link', label: '文章最後的按鈕連到（選填）', full: false, placeholder: '例如：fitstudio.html 或 https://…' }, { k: 'link_text', label: '按鈕文字', full: false, placeholder: '例如：到試衣間試穿' },
            { k: 'visible', label: '顯示在前台', type: 'check', default: true }],
-  tr: [{ k: 'title', label: '標題' }, { k: 'summary', label: '一句話摘要' }, { k: 'body', label: '內容', type: 'textarea' }, { k: 'link_text', label: '按鈕文字' }],
+  tr: [{ k: 'title', label: '標題' }, { k: 'summary', label: '一句話摘要' }, { k: 'body', label: '內容', type: 'rich' }, { k: 'link_text', label: '按鈕文字' }],
   values: g || { visible: true },
   async save(v, i18n) {
     const x = g ? GUIDES.items.find(y => y.key === g.key) : { key: 'guide-' + Date.now().toString(36) };
@@ -1744,9 +1948,9 @@ const featureForm = f => openEditor({
   title: f ? '編輯細節' : '新增細節',
   fields: [{ k: 'image', label: '圖片', type: 'image', required: true, hint: '橫式照片最好看（會裁成 4:3）；大圖會自動縮到 1600px。' },
            { k: 'title', label: '標題', required: true, placeholder: '例如：耐水壓 10000mmH2O' }, { k: 'tag', label: '標題上方的小字（選填）', placeholder: '例如：極致防水，奔跑不受限。' },
-           { k: 'text', label: '說明', type: 'textarea' },
+           { k: 'text', label: '說明', type: 'rich' },
            { k: 'home', label: '放在首頁（最多 4 個）', type: 'check' }, { k: 'visible', label: '顯示在前台', type: 'check', default: true }],
-  tr: [{ k: 'title', label: '標題' }, { k: 'tag', label: '標題上方的小字（選填）' }, { k: 'text', label: '說明', type: 'textarea' }],
+  tr: [{ k: 'title', label: '標題' }, { k: 'tag', label: '標題上方的小字（選填）' }, { k: 'text', label: '說明', type: 'rich' }],
   values: f || { visible: true },
   async save(v, i18n, file) {
     const FI = SITE.features.items, x = f ? FI.find(y => y.key === f.key) : { key: 'f' + Date.now().toString(36) };

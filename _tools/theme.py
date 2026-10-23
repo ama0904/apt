@@ -667,6 +667,12 @@ CSS += """
 .features .story{margin-bottom:56px}.features .story:last-child{margin-bottom:0}
 @media (max-width:980px){.gcards{grid-template-columns:1fr;gap:14px}.shop-cat-head{flex-direction:column;align-items:flex-start;gap:6px}.features .story{margin-bottom:36px}.shop-group{scroll-margin-top:80px}}
 """
+CSS += """
+.fs-s{font-size:.85em}.fs-l{font-size:1.25em}.fs-xl{font-size:1.6em;line-height:1.35}.tc-brand{color:var(--brand-ink)}.tc-mute{color:var(--mute)}
+.rich-text p{margin:0 0 .8em}.rich-text p:last-child{margin-bottom:0}.rich-text ul,.rich-text ol{padding-left:1.3em;margin:0 0 .8em}.rich-text ul{list-style:disc}.rich-text ol{list-style:decimal}
+.rich-text h2,.rich-text h3,.rich-text h4{margin:.8em 0 .4em}.article ol{list-style:decimal;padding-left:22px}.article ul{list-style:disc;padding-left:22px}
+.article blockquote,.rich-text blockquote{margin:1em 0;padding:.4em 0 .4em 1em;border-left:3px solid var(--brand);color:var(--ink2)}
+"""
 CSS = CSS + fit.CSS
 ASSET_VER = {"css": digest(CSS), "js": digest(JS), "fit": digest(fit.JS)}
 
@@ -712,7 +718,7 @@ def render_home(data, visible, lang):
     news_html = "".join(f'<a href="{link(d, news_page(n), lang)}"><time>{esc(n.get("date", ""))}</time><b>{esc(news_text(n, lang, "title"))}</b></a>' for n in load_news()[:6])
     news_html = f'<div class="news-list home">{news_html}</div>' if news_html else ""
     feats_html = "".join(f'<div class="feat"><div class="img"><img src="{asset(d, f["image"])}" alt="" loading="lazy"></div>'
-                         f'<div class="body"><h3>{esc(f.get("title", ""))}</h3><p>{esc(f.get("text", ""))}</p></div></div>' for f in feats)
+                         f'<div class="body"><h3>{esc(f.get("title", ""))}</h3><p>{esc(plain_of(item_text(f, lang, "text")))}</p></div></div>' for f in feats)
     body = f"""<section class="hero"><div class="wrap hero-in">
  <div class="rv in"><span class="eyebrow">{esc(BRAND)}</span><h1>{esc(site["hero"]["title"])}</h1>
   <p class="lead">{esc(site["hero"]["lead"])}</p>
@@ -1030,6 +1036,74 @@ def render_terms(data, rel, lang, crumbs):
     return page(data, rel, lang, f"購物流程 | {BRAND}", body, "購物流程", current=rel)
 
 
+# ----------------------------------------------------------------- rich text from the admin editor (sanitized again at build time)
+RICH_TAGS = {"p", "h2", "h3", "h4", "strong", "em", "u", "s", "ul", "ol", "li", "a", "br", "span", "blockquote"}
+RICH_RENAME = {"b": "strong", "i": "em", "div": "p", "h1": "h2", "h5": "h4", "h6": "h4", "strike": "s"}
+RICH_BLOCKS = {"p", "h2", "h3", "h4", "li", "blockquote"}
+RICH_CLASSES = {"fs-s", "fs-l", "fs-xl", "tc-brand", "tc-mute"}
+_ALIGN_RE = re.compile(r"text-align\s*:\s*(left|center|right|justify)", re.I)
+_HTML_START = re.compile(r"^\s*<(p|h[1-6]|ul|ol|div|blockquote|span|strong|b|em|i|u|a|br)\b", re.I)
+
+
+def is_rich(text):
+    return bool(_HTML_START.match(text or ""))
+
+
+def rich_html(text, page_dir="", lang="zh"):
+    soup = BeautifulSoup(text or "", "html.parser")
+    for el in soup.find_all(["script", "style", "iframe", "object", "embed", "form", "input", "img", "video", "audio"]):
+        el.decompose()
+    for c in soup.find_all(string=lambda x: isinstance(x, Comment)):
+        c.extract()
+    for el in list(soup.find_all(True)):
+        el.name = RICH_RENAME.get(el.name, el.name)
+        if el.name not in RICH_TAGS:
+            el.unwrap()
+            continue
+        style, align_attr = el.get("style", ""), (el.get("align") or "").lower()
+        cls = [c for c in (el.get("class") or []) if c in RICH_CLASSES]
+        href = (el.get("href") or "").strip()
+        el.attrs = {}
+        m = _ALIGN_RE.search(style)
+        align = (m.group(1).lower() if m else align_attr) if el.name in RICH_BLOCKS else ""
+        if align in ("left", "center", "right", "justify") and align != "left":
+            el["style"] = f"text-align:{align}"
+        if el.name == "span":
+            if cls:
+                el["class"] = cls
+            else:
+                el.unwrap()
+            continue
+        if el.name == "a":
+            if not href or re.match(r"^\s*(javascript|data|vbscript):", href, re.I):
+                el.unwrap()
+            elif re.match(r"^[a-z][a-z0-9+.-]*:", href, re.I):          # external / mailto / tel
+                el["href"] = href
+                if href.lower().startswith("http"):
+                    el["target"], el["rel"] = "_blank", "noopener"
+            else:                                                       # a page of this site, same language
+                el["href"] = link(page_dir, href.lstrip("/"), lang) if sb._LOCALIZED_RE.match(href.lstrip("/").split("#")[0]) else sb.href(page_dir, href.lstrip("/"))
+    return str(soup)
+
+
+def rich_or_plain(text, page_dir="", lang="zh"):
+    """Rich HTML from the editor, or the older plain-text format (one paragraph per line)."""
+    if is_rich(text):
+        return rich_html(text, page_dir, lang)
+    return "".join(f"<p>{esc(x.strip())}</p>" for x in (text or "").splitlines() if x.strip())
+
+
+def plain_of(text):
+    return re.sub(r"\s+", " ", html_mod.unescape(re.sub(r"<[^>]+>", " ", text or ""))).strip() if is_rich(text) else (text or "")
+
+
+def item_text(obj, lang, field):
+    """Admin-entered translation of a rich field when present, else the Chinese text."""
+    o = ((obj.get("i18n") or {}).get(lang) or {}) if lang != "zh" else {}
+    return (o.get(field) or "").strip() or (obj.get(field) or "")
+
+
+
 # ----------------------------------------------------------------- 商品分類 (shop.html) + group tiles
 def group_tiles(data, visible, d, lang):
     tiles = ""
@@ -1088,8 +1162,10 @@ def guide_text(g, lang, field):
     return (o.get(field) or "").strip() or (g.get(field) or "")
 
 
-def guide_body_html(text):
-    """'## heading', '- bullet' and plain paragraphs -> article HTML."""
+def guide_body_html(text, page_dir="", lang="zh"):
+    """Rich HTML from the admin editor, or the older '## heading' / '- bullet' / paragraph lines."""
+    if is_rich(text):
+        return rich_html(text, page_dir, lang)
     out, ul = [], []
 
     def flush():
@@ -1151,7 +1227,7 @@ def render_guide(data, g, lang):
         else:
             extra = f'<p class="guide-cta"><a class="btn brand" href="{link(d, g["link"].lstrip("/"), lang)}">{label}</a></p>'
     body = (f'<div class="wrap"><ol class="breadcrumb">{crumbs}</ol><article class="article guide"><div class="ph"><span class="eyebrow">商品指南</span>'
-            f'<h1>{esc(title)}</h1><p>{esc(summary)}</p></div>{guide_body_html(guide_text(g, lang, "body"))}{extra}</article></div>'
+            f'<h1>{esc(title)}</h1><p>{esc(summary)}</p></div>{guide_body_html(guide_text(g, lang, "body"), d, lang)}{extra}</article></div>'
             f'{section("更多指南", guide_cards(d, lang, skip=g["key"]), cls="tight", page_dir=d, lang=lang)}')
     return page(data, rel, lang, f"{title} | {BRAND}", body, summary, current=GUIDES)
 
@@ -1164,7 +1240,7 @@ def render_features(data, visible, lang):
     for i, f in enumerate(site["features"]["items"]):
         tag = f'<span class="eyebrow">{esc(f["tag"])}</span>' if f.get("tag") else ""
         rows_html += (f'<div class="story{" flip" if i % 2 else ""} rv"><div class="story-img"><img src="{asset(d, f["image"])}" alt="" loading="lazy"></div>'
-                      f'<div>{tag}<h2>{esc(f.get("title", ""))}</h2><p>{esc(f.get("text", ""))}</p></div></div>')
+                      f'<div>{tag}<h2>{esc(f.get("title", ""))}</h2><div class="rich-text">{rich_or_plain(item_text(f, lang, "text"), d, lang)}</div></div></div>')
     series = f"""<div class="cards2 rv">
   <div><h3>大汪系列</h3><p>專為中、大型毛孩子設計。</p><p>頂級防風、防水布料，具有包覆、防水與穿脫便利的多重優點。</p><a class="btn" href="{link(d, sb.category_page(1), lang)}">看雨衣</a></div>
   <div><h3>小汪系列</h3><p>小毛孩子的首選。</p><p><span>前項三點鈕扣、前腳雙袖設計，</span><span>更全面的防水保護。</span></p><p>領頂 3M 反光條，增加夜間行走的安全性。</p><a class="btn" href="{link(d, sb.category_page(2), lang)}">看保暖外套</a></div>
@@ -1201,7 +1277,9 @@ def news_text(n, lang, field):
 _URL_RE = re.compile(r"(https?://[^\s<>\"]+)")
 
 
-def news_body_html(text):
+def news_body_html(text, page_dir="", lang="zh"):
+    if is_rich(text):
+        return rich_html(text, page_dir, lang)
     out = []
     for line in (text or "").splitlines():
         line = line.strip()
@@ -1236,7 +1314,7 @@ def render_news_article(data, n, lang, rel=None):
         else:                                                      # a page of this site: same tab, same language
             extra = f'<p><a class="btn" href="{link(d, n["link"].lstrip("/"), lang)}">{label}</a></p>'
     body = (f'<div class="wrap"><ol class="breadcrumb">{crumbs}</ol><article class="article"><div class="ph"><h1>{esc(title)}</h1></div>'
-            f'<p class="date">{esc(n.get("date", ""))}</p>{news_body_html(news_text(n, lang, "body"))}{extra}</article></div>')
+            f'<p class="date">{esc(n.get("date", ""))}</p>{news_body_html(news_text(n, lang, "body"), d, lang)}{extra}</article></div>')
     return page(data, rel, lang, f"{title} | {BRAND}", body, title, current="information/news.html")
 
 
@@ -1289,7 +1367,7 @@ def i18n_table(data):
     put(site["hero"], ("title", "lead"))
     put(site["features"], ("intro",))
     for f in site["features"]["items"]:
-        put(f, ("title", "text", "tag"))
+        put(f, ("title", "tag") if is_rich(f.get("text")) else ("title", "text", "tag"))
     return table
 
 
