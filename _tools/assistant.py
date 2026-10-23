@@ -78,6 +78,172 @@ SEM = {
 }
 
 
+# Topics the helper answers with a fixed text. Only facts that are on the site; where the site says nothing
+# (invoices, discounts, orders, defects...) the answer hands over to customer service with the contact lines.
+# "k": keywords (any language) for the rules; "ex": example wordings for the server's semantic match.
+TOPICS = [
+    {"id": "discount", "k": ["折扣", "優惠", "折價", "打折", "特價", "促銷", "coupon", "discount", "promo code", "voucher", "割引", "クーポン", "rabatt", "gutschein"],
+     "ex": ["有折扣碼嗎", "最近有優惠嗎", "會打折嗎", "is there a discount", "any promo code", "セールはありますか", "gibt es rabatt"],
+     "a": {"zh": "目前的優惠活動以官方賣場和 [Instagram]({ig}) 公告為準；固定的優惠是台灣地區單筆滿 **NT$3,000 免運**。想確認有沒有折扣碼，可以問客服：\n{contact}",
+           "en": "Promotions are announced in our official store and on [Instagram]({ig}); orders of **NT$3,000+** ship free within Taiwan. To ask about a discount code:\n{contact}",
+           "ja": "セールやキャンペーンは公式ストアと [Instagram]({ig}) でお知らせします。台湾国内は **NT$3,000 以上で送料無料**です。クーポンについてのお問い合わせ：\n{contact}",
+           "de": "Aktionen kündigen wir im offiziellen Shop und auf [Instagram]({ig}) an; ab **NT$3.000** ist der Versand in Taiwan frei. Fragen zu Rabattcodes:\n{contact}"}},
+    {"id": "invoice", "k": ["發票", "統編", "收據", "invoice", "receipt", "領収書", "rechnung", "quittung"],
+     "ex": ["可以開統編嗎", "發票怎麼開", "can I get an invoice", "領収書はもらえますか", "bekomme ich eine rechnung"],
+     "a": {"zh": "發票和統編的開立方式網站上沒有寫，請直接問客服：\n{contact}",
+           "en": "The website doesn't cover invoices or receipts, so please ask us directly:\n{contact}",
+           "ja": "領収書・インボイスについてはサイトに記載がないため、直接お問い合わせください：\n{contact}",
+           "de": "Zu Rechnungen steht nichts auf der Website, bitte frag direkt bei uns nach:\n{contact}"}},
+    {"id": "order", "k": ["訂單", "物流", "追蹤", "改地址", "取消", "order status", "track my", "tracking", "cancel my order", "change my order", "注文", "追跡", "キャンセル", "bestellung", "sendungsverfolgung", "stornieren"],
+     "ex": ["我的訂單到哪了", "可以取消訂單嗎", "下錯單要改", "想改寄送地址", "where is my order", "I want to cancel", "注文をキャンセルしたい", "wo ist meine bestellung"],
+     "a": {"zh": "出貨時會寄 **email 出貨通知**。想查訂單、改資料或取消，請帶著訂單編號聯絡客服：\n{contact}",
+           "en": "We send an **email when your order ships**. To check, change or cancel an order, contact us with your order number:\n{contact}",
+           "ja": "発送時に **メールでお知らせ**します。注文の確認・変更・キャンセルは、注文番号を添えてお問い合わせください：\n{contact}",
+           "de": "Beim Versand bekommst du eine **E-Mail**. Für Fragen, Änderungen oder Stornos schreib uns mit deiner Bestellnummer:\n{contact}"}},
+    {"id": "overseas", "k": ["海外", "國外", "國際運送", "寄到香港", "寄到日本", "寄到美國", "香港", "澳門", "新加坡", "馬來西亞", "overseas", "international shipping", "ship to", "worldwide", "outside taiwan", "海外発送", "日本に送", "ins ausland", "international"],
+     "ex": ["可以寄到香港嗎", "有國際運送嗎", "do you ship internationally", "can you send it to the US", "日本に発送できますか", "versendet ihr nach deutschland"],
+     "a": {"zh": "網站上的運費只列 **台灣地區**。海外寄送是否可行、運費多少，請先問客服：\n{contact}",
+           "en": "The shipping fees on our site cover **Taiwan only**. For delivery abroad, please ask us first:\n{contact}",
+           "ja": "サイトの送料は **台湾国内のみ**です。海外発送についてはお問い合わせください：\n{contact}",
+           "de": "Die Versandkosten auf der Website gelten **nur für Taiwan**. Für den Versand ins Ausland frag bitte bei uns nach:\n{contact}"}},
+    {"id": "material", "k": ["材質", "布料", "面料", "什麼布", "成分", "fabric", "material", "素材", "生地", "stoff"],
+     "ex": ["衣服是什麼材質", "布料摸起來怎樣", "what is it made of", "素材は何ですか", "aus welchem material"],
+     "a": {"zh": "材質重點：\n• 外層：滑雪衣等級的防潑水、防風布料，耐水壓 10000mmH2O\n• 保暖款內層：MIT 抗靜電刷毛\n• 3M Scotchlite™ 反光條\n更多細節在 [機能與設計細節]({features})。",
+           "en": "What it's made of:\n• Outer: ski-jacket-grade water-repellent, windproof fabric rated to 10,000 mmH2O\n• Warm models: anti-static fleece lining made in Taiwan\n• 3M Scotchlite™ reflective strips\nMore in [Features & Design Details]({features}).",
+           "ja": "素材のポイント：\n• 表地：スキーウェア級の撥水・防風生地、耐水圧 10000mmH2O\n• 防寒タイプの裏地：台湾製の帯電防止フリース\n• 3M Scotchlite™ 反射材\n詳しくは [機能とデザイン]({features}) へ。",
+           "de": "Material:\n• Außen: wasserabweisender, winddichter Skijackenstoff, 10.000 mmH2O\n• Warme Modelle: antistatisches Fleecefutter aus Taiwan\n• 3M Scotchlite™ Reflektoren\nMehr unter [Funktionen & Details]({features})."}},
+    {"id": "breathe", "k": ["悶熱", "透氣", "會熱", "太熱", "夏天", "breathable", "too hot", "summer", "蒸れ", "暑い", "atmungsaktiv", "zu warm"],
+     "ex": ["穿了會不會很悶", "夏天可以穿嗎", "is it breathable", "will my dog overheat", "夏でも着られますか", "ist das im sommer zu warm"],
+     "a": {"zh": "網站上沒有標示透氣度。apetto 的布料以防水防風為主，天氣悶熱時建議只在下雨時穿、到家就脫下晾乾；保暖款有刷毛內裡，比較適合冷天。",
+           "en": "The site doesn't list breathability. The fabric is made to keep out rain and wind, so on warm days use it for the rain and take it off at home to dry; the warm models with fleece are for cold weather.",
+           "ja": "通気性についてはサイトに記載がありません。防水・防風が中心の生地なので、蒸し暑い日は雨のときだけ着せて、帰宅したら脱がせて乾かしてください。防寒タイプは寒い日向けです。",
+           "de": "Zur Atmungsaktivität steht nichts auf der Website. Der Stoff hält Regen und Wind ab; an warmen Tagen nur bei Regen tragen und zu Hause ausziehen und trocknen. Die warmen Modelle sind für kalte Tage."}},
+    {"id": "puton", "k": ["怎麼穿", "穿法", "怎麼套", "好穿嗎", "how to put", "put it on", "着せ方", "anziehen"],
+     "ex": ["衣服要怎麼穿上去", "穿起來麻煩嗎", "how do I put it on my dog", "着せるのは簡単ですか", "wie ziehe ich das an"],
+     "a": {"zh": "• **小汪系列**：斗篷式，前腳有袖子，前面三點鈕扣扣起來就好\n• **大汪系列**：前套式，從頭套進去再扣腹部插扣\n頸部都有可調鬆緊繩，可以依體型調整。",
+           "en": "• **Small Dog series**: a cape with front-leg sleeves; close the three front snaps\n• **Big Dog series**: pull it over the head and fasten the belly buckle\nBoth have an adjustable drawcord at the neck.",
+           "ja": "• **小型犬シリーズ**：前足に袖のあるケープ型。前の 3 つのボタンを留めるだけ\n• **大型犬シリーズ**：頭からかぶって胴のバックルを留めます\nどちらも首元のドローコードで調整できます。",
+           "de": "• **Kleine Hunde**: Cape mit Vorderbeinärmeln, vorne drei Druckknöpfe schließen\n• **Große Hunde**: über den Kopf ziehen und die Bauchschnalle schließen\nAm Hals lässt sich beides mit einem Kordelzug anpassen."}},
+    {"id": "cat", "k": ["貓", "cat", "kitten", "猫", "katze"],
+     "ex": ["貓咪可以穿嗎", "can my cat wear this", "猫にも使えますか", "passt das für katzen"],
+     "a": {"zh": "apetto 是為狗狗設計的，尺寸表也是依狗狗的體型。貓咪的背長、胸圍如果剛好落在尺寸表範圍內可以參考，但不保證合適，建議先問客服：\n{contact}",
+           "en": "apetto is designed for dogs and the size charts follow dog proportions. If your cat's measurements fall within a chart you could try, but we can't promise a good fit; please ask us first:\n{contact}",
+           "ja": "apetto は犬用に作られており、サイズ表も犬の体型が基準です。猫ちゃんのサイズが表に収まる場合もありますが、合うとは限らないので先にお問い合わせください：\n{contact}",
+           "de": "apetto ist für Hunde gemacht, die Größentabellen folgen Hundeproportionen. Passt deine Katze in die Maße, kann es klappen, garantieren können wir es nicht. Frag uns gern:\n{contact}"}},
+    {"id": "gift", "k": ["送禮", "禮物", "包裝", "禮盒", "gift", "wrap", "ギフト", "プレゼント", "geschenk"],
+     "ex": ["想送朋友可以包裝嗎", "可以附卡片嗎", "is gift wrapping available", "プレゼント包装できますか", "kann man das als geschenk verpacken"],
+     "a": {"zh": "禮物包裝、附卡片這類需求網站上沒有寫，請下單前先問客服：\n{contact}\n不確定尺寸的話，先問到毛孩的背長，我幫你對尺寸表。",
+           "en": "Gift wrapping and cards aren't covered on the site, so please ask us before ordering:\n{contact}\nNot sure about the size? Find out the dog's back length and I'll match it to the chart.",
+           "ja": "ギフト包装やカードについてはサイトに記載がないため、ご注文前にお問い合わせください：\n{contact}\nサイズは背丈がわかれば私が確認します。",
+           "de": "Geschenkverpackung steht nicht auf der Website, bitte vor der Bestellung nachfragen:\n{contact}\nFür die Größe reicht mir die Rückenlänge des Hundes."}},
+    {"id": "b2b", "k": ["批發", "團購", "合作", "經銷", "代理", "業配", "寄賣", "wholesale", "bulk order", "collaboration", "reseller", "卸売", "コラボ", "großhandel", "kooperation"],
+     "ex": ["想談合作", "可以批貨嗎", "我們想團購", "wholesale inquiry", "コラボしたい", "anfrage für großhandel"],
+     "a": {"zh": "批發、團購或合作洽詢，請聯絡我們：\n{contact}",
+           "en": "For wholesale, group orders or collaborations, please contact us:\n{contact}",
+           "ja": "卸売・まとめ買い・コラボのご相談はこちらへ：\n{contact}",
+           "de": "Für Großhandel, Sammelbestellungen oder Kooperationen:\n{contact}"}},
+    {"id": "stock", "k": ["缺貨", "補貨", "有貨", "庫存", "現貨", "賣完", "in stock", "out of stock", "restock", "sold out", "在庫", "再入荷", "vorrätig", "ausverkauft"],
+     "ex": ["M 號還有貨嗎", "什麼時候補貨", "is it in stock", "when will it be back", "在庫はありますか", "ist das noch da"],
+     "a": {"zh": "各尺寸的庫存以官方賣場的頁面為準；賣完的尺寸想知道補貨時間，可以問客服：\n{contact}",
+           "en": "Stock per size is shown in our official store. For restock dates, ask us:\n{contact}",
+           "ja": "サイズごとの在庫は公式ストアのページでご確認ください。再入荷のお問い合わせ：\n{contact}",
+           "de": "Den Bestand je Größe zeigt der offizielle Shop. Wann etwas wieder da ist:\n{contact}"}},
+    {"id": "defect", "k": ["瑕疵", "壞了", "破了", "脫線", "拉鍊壞", "保固", "defect", "broken", "damaged", "warranty", "不良", "壊れ", "defekt", "garantie"],
+     "ex": ["收到的衣服有破洞", "拉鍊壞掉了", "my coat arrived damaged", "the zipper broke", "壊れていました", "der reißverschluss ist kaputt"],
+     "a": {"zh": "很抱歉讓你遇到這個狀況 🙏 請拍照後聯絡客服，會協助處理：\n{contact}",
+           "en": "Sorry about that 🙏 Please take a photo and contact us, and we'll sort it out:\n{contact}",
+           "ja": "ご不便をおかけしてすみません 🙏 写真を撮ってお問い合わせください：\n{contact}",
+           "de": "Das tut uns leid 🙏 Bitte mach ein Foto und melde dich bei uns:\n{contact}"}},
+    {"id": "rainwalk", "k": ["雨天散步", "下雨散步", "雨天遛狗", "下雨遛狗", "會感冒", "rainy walk", "walk in the rain", "雨の日の散歩", "regenspaziergang"],
+     "ex": ["下雨天散步要注意什麼", "淋雨會不會感冒", "tips for walking in the rain", "雨の日の散歩の注意点", "tipps für spaziergänge im regen"],
+     "a": {"zh": "雨天散步的小提醒：\n• 出門前穿好雨衣，傍晚選有反光條的款式\n• 避開積水和水溝蓋，路面濕滑走慢一點\n• 回家先擦乾腳掌、肚子和耳朵，毛比較厚的記得吹乾\n• 雨衣脫下後掛起來陰乾，保養看 [如何清潔與保養]({care})",
+           "en": "Rainy-walk tips:\n• Put the raincoat on before you go; at dusk pick one with reflective strips\n• Avoid puddles and drain covers, and go slower on wet ground\n• At home dry the paws, belly and ears; blow-dry thick coats\n• Hang the raincoat to dry; see [Care & maintenance]({care})",
+           "ja": "雨の日の散歩のポイント：\n• 出かける前にレインコートを。夕方は反射材付きを\n• 水たまりやマンホールを避けて、ゆっくり歩く\n• 帰ったら足・お腹・耳を拭いて、毛の多い子はドライヤーで\n• レインコートは陰干し。お手入れは [お手入れ方法]({care})",
+           "de": "Tipps für Regenspaziergänge:\n• Regenmantel vor dem Losgehen anziehen, in der Dämmerung mit Reflektoren\n• Pfützen und Gullydeckel meiden, langsamer gehen\n• Zu Hause Pfoten, Bauch und Ohren trocknen, dichtes Fell föhnen\n• Den Mantel hängend trocknen; siehe [Pflege]({care})"}},
+    {"id": "dislike", "k": ["不喜歡穿", "不肯穿", "不愛穿", "討厭穿", "不習慣穿", "won't wear", "hates wearing", "doesn't like wearing", "嫌がる", "will nichts anziehen"],
+     "ex": ["我家狗不讓我穿衣服", "牠一穿就僵住不動", "my dog hates clothes", "服を嫌がります", "mein hund mag keine jacke"],
+     "a": {"zh": "很多毛孩一開始都不習慣穿衣服，可以慢慢來：\n• 先讓牠聞一聞衣服，給點零食\n• 在家穿 5～10 分鐘就脫，邊玩邊給獎勵\n• 幾天後再延長時間，習慣了再穿出門\napetto 的斗篷式和前套式都好穿脫，比較不會讓牠緊張。",
+           "en": "Lots of dogs need time to get used to clothes:\n• Let them sniff the coat and give a treat\n• Put it on at home for 5–10 minutes with play and rewards\n• Make it longer over a few days, then go outside\napetto's cape and pull-over designs go on quickly, which helps.",
+           "ja": "最初は服に慣れない子が多いので、少しずつ：\n• まず服のにおいを嗅がせておやつを\n• 家で 5〜10 分着せて、遊びながらごほうび\n• 数日かけて時間を延ばしてから外へ\napetto は着脱が簡単なので緊張しにくいです。",
+           "de": "Viele Hunde müssen sich erst an Kleidung gewöhnen:\n• Erst schnuppern lassen und ein Leckerli geben\n• Zu Hause 5–10 Minuten tragen, mit Spiel und Belohnung\n• Über ein paar Tage steigern, dann raus\napetto Modelle sind schnell an- und ausgezogen."}},
+    {"id": "colordiff", "k": ["色差", "實品顏色", "跟照片一樣", "顏色準", "colour accurate", "color accurate", "looks different", "色味", "farbabweichung"],
+     "ex": ["實品顏色跟照片會差很多嗎", "does the colour look like the photo", "写真と色は違いますか", "sieht die farbe aus wie auf dem foto"],
+     "a": {"zh": "照片顏色會因螢幕有些差異；像芬達桔這類螢光色，實品的螢光感通常會再強烈一點。想先看看穿上的樣子，可以到 [試衣間]({fit})。",
+           "en": "Colours vary a little by screen; neon shades like Fanta Orange are usually even brighter in person. To preview it on your dog, try the [Fitting Studio]({fit}).",
+           "ja": "画面によって色味が少し違って見えます。ファンタオレンジのような蛍光色は実物のほうが鮮やかです。着用イメージは [試着室]({fit}) で。",
+           "de": "Farben wirken je nach Bildschirm etwas anders; Neontöne wie Fanta Orange sind in echt meist noch kräftiger. Eine Vorschau gibt's in der [Anprobe]({fit})."}},
+    {"id": "shrink", "k": ["縮水", "掉色", "褪色", "起毛球", "shrink", "fade", "pilling", "縮む", "色落ち", "einlaufen", "verblassen"],
+     "ex": ["洗了會縮水嗎", "會不會掉色", "will it shrink in the wash", "洗うと縮みますか", "läuft das beim waschen ein"],
+     "a": {"zh": "照 [清洗方式]({care}) 照顧就好：手洗或放洗衣袋用輕柔模式、水溫 30 度以下、中性洗劑，不要漂白和柔軟精；保暖款翻面洗可以減少起毛球。網站上沒有縮水或掉色的測試數據，有疑問可以問客服。",
+           "en": "Follow the [care guide]({care}): hand wash or a gentle cycle in a laundry bag, 30°C or below, mild detergent, no bleach or softener; wash fleece-lined models inside out to reduce pilling. The site has no shrink or fade test data, so ask us if you're unsure.",
+           "ja": "[お手入れ方法]({care}) のとおり、手洗いか洗濯ネットで弱水流、30℃以下、中性洗剤で。漂白剤・柔軟剤は使わず、防寒タイプは裏返すと毛玉が減ります。縮みや色落ちのデータはサイトにないので、気になる場合はお問い合わせください。",
+           "de": "Nach der [Pflegeanleitung]({care}): Handwäsche oder Schonwaschgang im Wäschenetz, höchstens 30 °C, mildes Waschmittel, kein Bleich- oder Weichspüler; Fleece-Modelle auf links waschen. Daten zu Einlaufen oder Ausbleichen gibt es nicht, frag uns im Zweifel."}},
+    {"id": "vet", "k": ["生病", "獸醫", "飼料", "嘔吐", "拉肚子", "預防針", "皮膚病", "vet", "sick", "vomit", "diarrhea", "dog food", "獣医", "病気", "tierarzt", "krank"],
+     "ex": ["狗狗可以吃巧克力嗎", "狗一直咳嗽怎麼辦", "my dog is sick", "what should my dog eat", "犬が吐きました", "mein hund ist krank"],
+     "a": {"zh": "毛孩健康和飲食的問題我不是專業的，建議諮詢獸醫喔 🐾 我能幫忙的是衣服的尺寸、款式和購物問題。",
+           "en": "For health and food questions please ask a vet 🐾 I can help with coat sizes, models and shopping.",
+           "ja": "健康や食事のご相談は獣医さんへどうぞ 🐾 私はサイズ・モデル・ご購入のご案内ができます。",
+           "de": "Bei Gesundheits- und Futterfragen frag bitte deinen Tierarzt 🐾 Ich helfe bei Größen, Modellen und dem Kauf."}},
+]
+
+
+# Small talk. "x": the whole message must be one of these (after trimming punctuation); "k": contained anywhere.
+# Several answers per language: one is picked at random.
+CHAT = [
+    {"id": "chat-how", "k": ["你好嗎", "最近好嗎", "how are you", "how's it going", "元気", "wie geht"], "x": [],
+     "ex": ["你今天過得如何", "how are you doing today", "お元気ですか", "wie geht es dir"],
+     "a": {"zh": ["我很好，謝謝關心！今天也在等著幫毛孩挑衣服 🐾 你呢？家裡的毛孩好嗎？", "很好喔！你家毛孩今天有出門散步嗎？"],
+           "en": ["I'm great, thanks for asking! Ready to help your dog find a coat 🐾 How's your pup?"],
+           "ja": ["元気です、ありがとうございます！ワンちゃんは元気ですか？🐾"],
+           "de": ["Mir geht's gut, danke! Wie geht's deinem Hund? 🐾"]}},
+    {"id": "chat-name", "k": ["你叫什麼", "你的名字", "怎麼稱呼你", "what's your name", "what is your name", "お名前", "wie heißt du"], "x": [],
+     "ex": ["你叫什麼名字", "what should I call you", "名前は何ですか"],
+     "a": {"zh": ["我是 apetto 小幫手 🐾 叫我小幫手就好！"], "en": ["I'm the apetto Helper 🐾"], "ja": ["apetto アシスタントです 🐾"], "de": ["Ich bin der apetto Assistent 🐾"]}},
+    {"id": "chat-dogs", "k": ["你喜歡狗", "喜歡狗嗎", "do you like dogs", "犬は好き", "magst du hunde"], "x": [],
+     "ex": ["你喜歡狗狗嗎", "are you a dog person"],
+     "a": {"zh": ["超喜歡！每一隻毛孩都是獨一無二的寶貝 🐶 你家的是什麼狗呢？"], "en": ["I love them! Every dog is one of a kind 🐶 What breed is yours?"],
+           "ja": ["大好きです！🐶 どんな犬種ですか？"], "de": ["Und wie! 🐶 Was für ein Hund ist deiner?"]}},
+    {"id": "chat-joke", "k": ["講笑話", "說笑話", "笑話", "tell me a joke", "joke", "冗談", "witz"], "x": [],
+     "ex": ["說個笑話來聽", "make me laugh"],
+     "a": {"zh": ["為什麼狗狗下雨天不怕淋濕？因為牠有 apetto 啊 ☔ ……好吧我比較擅長挑尺寸 😅", "狗狗最喜歡哪種天氣？「汪」晴天 🌤️ 下雨的話就穿雨衣吧！"],
+           "en": ["Why don't dogs mind the rain? They've got apetto ☔ …OK, I'm better at sizing 😅"],
+           "ja": ["雨の日でも平気な犬は？apetto を着てる犬です ☔ …サイズ選びのほうが得意です 😅"],
+           "de": ["Warum stört Hunde der Regen nicht? Sie tragen apetto ☔ …Größen kann ich besser 😅"]}},
+    {"id": "chat-nice", "k": ["你好棒", "好厲害", "好聰明", "你很棒", "好可愛", "讚啦", "great job", "you're smart", "good bot", "すごい", "かわいい", "super", "toll"], "x": ["讚", "棒", "太棒了", "good", "nice", "cool"],
+     "ex": ["你真聰明", "you are helpful"],
+     "a": {"zh": ["謝謝誇獎！有什麼想問的儘管問 😊", "嘿嘿謝謝 🐾 還想看看哪件呢？"], "en": ["Thank you! Ask me anything 😊"], "ja": ["ありがとうございます 😊"], "de": ["Danke! Frag ruhig weiter 😊"]}},
+    {"id": "chat-mean", "k": ["好笨", "很爛", "沒用", "聽不懂", "笨蛋", "useless", "stupid", "dumb", "you suck", "役に立たない", "nutzlos", "dumm"], "x": [],
+     "ex": ["你根本答不出來", "this bot is bad"],
+     "a": {"zh": ["抱歉沒幫上忙 🙏 我還在學習中。換個說法問問看，或直接找真人客服：\n{contact}"],
+           "en": ["Sorry I couldn't help 🙏 I'm still learning. Try asking another way, or reach a person:\n{contact}"],
+           "ja": ["お役に立てずすみません 🙏 言い方を変えるか、スタッフにお問い合わせください：\n{contact}"],
+           "de": ["Sorry, dass ich nicht helfen konnte 🙏 Frag anders oder wende dich an uns:\n{contact}"]}},
+    {"id": "chat-laugh", "k": [], "x": ["哈哈", "哈哈哈", "哈", "lol", "haha", "hahaha", "笑", "www", "草", "hehe"],
+     "ex": [],
+     "a": {"zh": ["😄 還有什麼想問的嗎？", "哈哈 🐾 想幫毛孩看看哪一件？"], "en": ["😄 Anything else I can help with?"], "ja": ["😄 ほかに何かありますか？"], "de": ["😄 Kann ich sonst noch helfen?"]}},
+    {"id": "chat-ok", "k": [], "x": ["好", "好的", "好喔", "嗯", "嗯嗯", "ok", "okay", "了解", "知道了", "收到", "sure", "got it", "はい", "了解です", "ja", "alles klar"],
+     "ex": [],
+     "a": {"zh": ["好的！還有其他問題隨時問我 🐾", "沒問題 👍"], "en": ["Great! Ask me anytime 🐾"], "ja": ["承知しました 🐾"], "de": ["Alles klar 🐾"]}},
+    {"id": "chat-bored", "k": ["好無聊", "無聊", "陪我聊天", "聊聊天", "i'm bored", "talk to me", "chat with me", "暇", "langweilig"], "x": [],
+     "ex": ["可以陪我聊天嗎", "let's chat"],
+     "a": {"zh": ["來聊聊！你家毛孩叫什麼名字？是什麼狗呢？", "好啊 🐾 跟我說說你家毛孩吧，牠喜歡下雨天出門嗎？"],
+           "en": ["Let's chat! What's your dog's name, and what breed?"], "ja": ["おしゃべりしましょう！ワンちゃんのお名前は？"], "de": ["Gern! Wie heißt dein Hund?"]}},
+    {"id": "chat-love", "k": ["我愛你", "愛你", "love you", "大好き", "ich liebe dich"], "x": [],
+     "ex": [],
+     "a": {"zh": ["被告白了 🥹 我也很喜歡你和你家毛孩！"], "en": ["Aww 🥹 Right back at you and your pup!"], "ja": ["うれしいです 🥹"], "de": ["Oh 🥹 Danke!"]}},
+    {"id": "chat-sad", "k": ["好難過", "心情不好", "好累", "sad", "tired", "悲しい", "疲れた", "traurig", "müde"], "x": [],
+     "ex": ["今天心情很差", "I had a bad day"],
+     "a": {"zh": ["抱抱 🫂 毛孩的陪伴總是最療癒的。需要的話，我隨時都在。"], "en": ["Sending a hug 🫂 Dogs are the best comfort. I'm here if you need me."],
+           "ja": ["ぎゅっ 🫂 ワンちゃんが一番の癒しですね。"], "de": ["Fühl dich gedrückt 🫂 Hunde sind der beste Trost."]}},
+    {"id": "chat-night", "k": ["晚安", "要睡了", "good night", "おやすみ", "gute nacht"], "x": [],
+     "ex": [],
+     "a": {"zh": ["晚安 🌙 祝你和毛孩好夢！"], "en": ["Good night 🌙 Sweet dreams to you and your pup!"], "ja": ["おやすみなさい 🌙"], "de": ["Gute Nacht 🌙"]}},
+    {"id": "chat-morning", "k": [], "x": ["早安", "早", "早上好", "good morning", "morning", "おはよう", "guten morgen"],
+     "ex": [],
+     "a": {"zh": ["早安 ☀️ 今天要帶毛孩出門嗎？記得看看天氣喔！"], "en": ["Good morning ☀️ Walk time?"], "ja": ["おはようございます ☀️"], "de": ["Guten Morgen ☀️"]}},
+]
+
+
 COLOR_KEYS = [("灰", "gray"), ("冰川藍", "blue"), ("普魯士藍", "blue"), ("藍", "blue"), ("桔", "orange"), ("橘", "orange"),
               ("綠", "green"), ("桃", "pink"), ("粉", "pink"), ("黃", "yellow")]
 # size-chart rule from the charts' own notes: big coats are about 10 cm shorter than the back, small capes 5-7 cm
@@ -233,14 +399,27 @@ def build(data, visible, lang_codes):
                 items = [t.strip() for t in box.get_text(" | ", strip=True).split(" | ")]
                 items = [t for t in items if t and t != h.get_text(strip=True) and "©" not in t]
                 kb["contact"] = chr(10).join("• " + t for t in items[:6])
-        for f in custom.get("faq", []):
-            a = f.get("a", {})
-            ans = a.get(lang) or a.get("zh") if isinstance(a, dict) else a
-            if ans and f.get("q"):
-                kb["faq"].append({"q": f["q"], "a": ans, "u": L(f["link"]) if f.get("link") and not f["link"].startswith("http") else f.get("link", "")})
         # paraphrase bank for the server: examples with their key, and each key's question in this language
         kb["sem"] = {"ex": [[ex, k] for k, (_, exs) in SEM.items() for ex in exs], "q": {k: q.get(lang) or q["zh"] for k, (q, _) in SEM.items()}}
-        kb["v"] = hashlib.sha1(json.dumps([kb["sem"], [(d["t"], d["x"]) for d in kb["docs"]]], ensure_ascii=False).encode("utf-8")).hexdigest()[:12]
+        own = set()
+        for f in custom.get("faq", []):
+            a = f.get("a") or {}
+            ans = (a.get(lang) or a.get("zh")) if isinstance(a, dict) else a
+            if not ans or not str(ans).strip():
+                continue   # not answered yet in the admin
+            own.add(f.get("id"))
+            link = f.get("link", "")
+            kb["faq"].append({"id": f.get("id", ""), "q": [w for w in (f.get("k") or f.get("q") or []) if w], "a": ans,
+                              "u": L(link) if link and not link.startswith("http") else link})
+            kb["sem"]["ex"] += [[ex, "faq:" + f.get("id", "")] for ex in (f.get("ex") or []) + [f.get("title", "")] if ex]
+        for tp in TOPICS:
+            if tp["id"] not in own:
+                kb["faq"].append({"id": tp["id"], "q": tp["k"], "a": tp["a"].get(lang) or tp["a"]["en"], "u": ""})
+                kb["sem"]["ex"] += [[ex, "faq:" + tp["id"]] for ex in tp["ex"]]
+        for tp in CHAT:
+            kb["faq"].append({"id": tp["id"], "q": tp["k"], "x": tp["x"], "a": tp["a"].get(lang) or tp["a"]["en"], "u": "", "chat": 1})
+            kb["sem"]["ex"] += [[ex, "faq:" + tp["id"]] for ex in tp["ex"]]
+        kb["v"] = hashlib.sha1(json.dumps([kb["sem"], [(d["t"], d["x"]) for d in kb["docs"]], [f["a"] for f in kb["faq"]]], ensure_ascii=False).encode("utf-8")).hexdigest()[:12]
         (out_dir / f"kb.{lang}.json").write_text(json.dumps(kb, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
 
@@ -345,6 +524,8 @@ zh:{name:'apetto 小幫手',status:'線上 · 通常幾秒內回覆',ph:'輸入�
  compare:'簡單說：\n• **一般款**（小汪防水斗篷、大汪雨衣）：單層防水布，輕、好穿脫，適合一般雨天散步\n• **保暖款**（小汪保暖防水斗篷、大汪保暖夾克）：一樣防水，內層多了 MIT 抗靜電刷毛，適合又濕又冷的冬天\n另外「小汪」是小型犬的斗篷式前扣設計，「大汪」是中大型犬的套頭加腹部插扣。',
  weather:'我沒辦法查天氣 🙈 不過出門前如果在下雨，記得幫毛孩穿上雨衣；天冷的話保暖款會更舒服喔。',
  colorHit:'有的！這幾件是你要找的顏色：',chipsBreed:['柴犬','貴賓','柯基','黃金獵犬'],
+ dogName:['{name}，好可愛的名字！🐾 {name} 是什麼狗呢？告訴我品種或背長，我幫 {name} 挑尺寸。','{name} 你好 👋 想幫 {name} 找雨衣還是保暖外套？'],forDog:'幫 {name} 對好了 🐾 ',
+ chartAsk:'想看哪個系列的尺寸表？',chartHead:'**{line}** 尺寸表（公分，圈量）：',chartRow:'{s}：衣長 {len}、領圍 {neck}、腹圍 {belly}',chartTail:'挑尺寸的方法：衣長比背長短約 {off} 公分最合身。告訴我背長，我直接幫你算。',
  sizeWord:'號',cm:'公分'},
 en:{name:'apetto Helper',status:'Online · usually replies in seconds',ph:'Ask me, e.g. what size for a Shiba?',open:'Open the helper',close:'Close',reset:'Start over',send:'Send',
  foot:'Answers come from the apetto website',logged:'questions are logged anonymously to improve answers',tip:'Not sure about the size? Tell me the back length or breed 🐾',
@@ -387,6 +568,8 @@ en:{name:'apetto Helper',status:'Online · usually replies in seconds',ph:'Ask m
  compare:'In short:\n• **Standard** (Small Dog Waterproof Cape, Big Dog Raincoat): a single waterproof layer, light and quick to put on, for everyday rain\n• **Warm** (Small Dog Warm Waterproof Cape, Big Dog Warm Jacket): just as waterproof, plus an anti-static fleece lining for cold, wet winters\n"Small Dog" models are capes with front snaps; "Big Dog" models pull over and buckle under the belly.',
  weather:"I can't check the weather 🙈 but if it's raining, a raincoat keeps your dog dry, and the warm models help on cold days.",
  colorHit:'Yes! These come in that colour:',chipsBreed:['Shiba','Poodle','Corgi','Golden Retriever'],
+ dogName:["{name} is a lovely name! 🐾 What breed is {name}? Tell me the breed or back length and I'll pick a size."],forDog:'Here you go for {name} 🐾 ',
+ chartAsk:'Which series would you like the size chart for?',chartHead:'**{line}** size chart (cm, girths):',chartRow:'{s}: length {len}, neck {neck}, chest {belly}',chartTail:'Rule of thumb: the coat length should be about {off} cm shorter than the back. Tell me the back length and I will work it out.',
  sizeWord:'',cm:'cm'},
 ja:{name:'apetto アシスタント',status:'オンライン · すぐにお返事します',ph:'例：柴犬は何サイズ？',open:'アシスタントを開く',close:'閉じる',reset:'最初から',send:'送信',
  foot:'apetto サイトの情報をもとに自動で回答します',logged:'質問は改善のため匿名で記録されます',tip:'サイズに迷ったら、背丈か犬種を教えてください 🐾',
@@ -427,6 +610,8 @@ ja:{name:'apetto アシスタント',status:'オンライン · すぐにお返�
  compare:'ざっくり言うと：\n• **スタンダード**（小型犬 防水ケープ、大型犬レインコート）：防水 1 枚仕立てで軽く、普段の雨の日に\n• **防寒タイプ**：同じく防水で、内側に帯電防止フリース付き。寒くて雨の冬に\n小型犬用は前ボタンのケープ、大型犬用はかぶって胴でバックルを留めるタイプです。',
  weather:'天気は調べられません 🙈 雨ならレインコートを、寒い日は防寒タイプがおすすめです。',
  colorHit:'あります！そのカラーはこちら：',chipsBreed:['柴犬','プードル','コーギー','ゴールデン'],
+ dogName:['{name}ちゃん、素敵な名前ですね 🐾 犬種か背丈を教えてください。'],forDog:'{name}ちゃんのサイズです 🐾 ',
+ chartAsk:'どのシリーズのサイズ表を見ますか？',chartHead:'**{line}** サイズ表（cm・周囲）：',chartRow:'{s}：着丈 {len}、首回り {neck}、胴回り {belly}',chartTail:'目安は着丈が背丈より約 {off} cm 短いもの。背丈を教えていただければ計算します。',
  sizeWord:'',cm:'cm'},
 de:{name:'apetto Assistent',status:'Online · antwortet meist sofort',ph:'z. B. Welche Größe für einen Shiba?',open:'Assistent öffnen',close:'Schließen',reset:'Neu starten',send:'Senden',
  foot:'Antworten basieren auf der apetto Website',logged:'Fragen werden anonym gespeichert, um Antworten zu verbessern',tip:'Unsicher bei der Größe? Nenn mir Rückenlänge oder Rasse 🐾',
@@ -466,6 +651,8 @@ de:{name:'apetto Assistent',status:'Online · antwortet meist sofort',ph:'z. B. 
  compare:'Kurz gesagt:\n• **Standard** (Cape für kleine Hunde, Regenmantel für große Hunde): eine wasserdichte Lage, leicht, für normale Regentage\n• **Warm**: genauso wasserdicht, dazu antistatisches Fleecefutter für kalte, nasse Tage\nModelle für kleine Hunde sind Capes mit Druckknöpfen vorn, die für große Hunde werden übergezogen und am Bauch geschlossen.',
  weather:'Das Wetter kann ich nicht abrufen 🙈 Bei Regen hält ein Regenmantel trocken, an kalten Tagen helfen die warmen Modelle.',
  colorHit:'Ja! In dieser Farbe gibt es:',chipsBreed:['Shiba','Pudel','Corgi','Golden Retriever'],
+ dogName:['{name} – schöner Name! 🐾 Welche Rasse ist {name}? Dann finde ich die Größe.'],forDog:'Für {name} 🐾 ',
+ chartAsk:'Für welche Serie möchtest du die Größentabelle?',chartHead:'**{line}** Größentabelle (cm, Umfang):',chartRow:'{s}: Länge {len}, Hals {neck}, Brust {belly}',chartTail:'Faustregel: Die Mantellänge etwa {off} cm kürzer als der Rücken. Nenn mir die Rückenlänge, dann rechne ich.',
  sizeWord:'',cm:'cm'}};
 var T=TX[LANG]||TX.zh;
 // ---------------------------------------------------------------- language understanding
@@ -493,6 +680,7 @@ var R={
  store:/(實體店|實體門市|門市|店面|哪裡有店|可以去哪看|現場看|physical (store|shop)|shop near|brick|店舗|実店舗|laden|geschäft vor ort)/,
  about:/(品牌故事|品牌理念|關於 ?apetto|apetto 是|apetto是|創立|由來|about (you|apetto|the brand)|your story|brand story|ブランド|について|über apetto|geschichte)/,
  sell:/(有賣|有沒有|有在賣|賣不賣|販售|推出|上架|什麼時候有|do you (sell|have)|available|sell|販売|ありますか|verkauft|gibt es)/,
+ chart:/(尺寸表|尺寸對照|size ?chart|size table|サイズ表|größentabelle|masstabelle)/,
  sizeAsk:/(?:^|[^a-z])(xs|s|m|l|xl|2xl|xxl|3xl)(?:號|号|size)?(?=$|[^a-z])/,
  compare:/(差在|差別|差異|不同|比較|difference|differ|compare|vs|違い|比べ|unterschied|vergleich)/,
  weather:/(天氣|氣溫|下雨嗎|會下雨|weather|forecast|天気|wetter)/,
@@ -508,6 +696,8 @@ var BREEDS=[[/(吉娃娃|chihuahua|チワワ)/,22],[/(約克夏|yorkshire|yorkie
  [/(黃金獵犬|黃金|golden|ゴールデン)/,60],[/(德國狼犬|german shepherd|シェパード|schäferhund)/,63],[/(杜賓|doberman|ドーベルマン)/,62]];
 var CAT_WORDS={3:/(浴袍|浴巾|bathrobe|robe|hoodie|バスローブ|bademantel)/,4:/(牽繩|頸圈|項圈|胸背|leash|collar|harness|リード|首輪|leine|halsband)/,5:/(領巾|圍巾|bandana|scarf|バンダナ|halstuch)/,6:/(鞋|shoe|boot|靴|シューズ|schuh)/,7:/(墊|睡墊|床|pad|mat|bed|マット|ベッド|matte|decke)/};
 function norm(s){return String(s||'').normalize('NFKC').toLowerCase().replace(/[“”"'`]/g,'').replace(/\s+/g,' ').trim();}
+function faqText(f){var a=Array.isArray(f.a)?pick(f.a):f.a;return a+(f.u?'\n['+T.more+']('+f.u+')':'');}
+function kwHit(s,w){w=norm(w);if(!w)return false;if(/^[a-z0-9' ]+$/.test(w))return new RegExp('(^|[^a-z])'+w.replace(/ /g,'\\s+')+'($|[^a-z])').test(s);return s.indexOf(w)>=0;}
 function pick(a){return Array.isArray(a)?a[Math.floor(Math.random()*a.length)]:a;}
 function fmt(s,v){return String(s).replace(/\{(\w+)\}/g,function(m,k){return v&&v[k]!=null?v[k]:(KB&&KB.links[k]!=null?KB.links[k]:(KB&&typeof KB[k]==='string'?KB[k]:m));});}
 function money(n){return Number(n).toLocaleString('en-US');}
@@ -521,7 +711,7 @@ var KB=null,IDX=null,kbP=null,K=null;
 function loadKB(){if(!kbP)kbP=fetch(BASE+'assets/assistant/kb.'+LANG+'.json',{cache:'force-cache'}).then(function(r){return r.json();}).then(function(j){KB=j;buildIdx();
  var pm=location.pathname.match(/product_id=(\d+)/)||decodeURIComponent(location.href).match(/product_id=(\d+)/);if(pm&&prodById(pm[1]))ST.prod=pm[1];  // on a product page, "this one" means that product
  return j;});return kbP;}
-function buildIdx(){var docs=KB.docs.slice();KB.faq.forEach(function(f){docs.push({t:'',x:f.a,u:f.u,faq:f});});
+function buildIdx(){var docs=KB.docs.slice();KB.faq.forEach(function(f){if(!f.chat)docs.push({t:'',x:Array.isArray(f.a)?f.a.join(' '):f.a,u:f.u,faq:f});});
  var df={},N=docs.length,len=0;docs.forEach(function(d){var tk=toks(d.t+' '+d.t+' '+d.x+(d.faq?' '+d.faq.q.join(' ')+' '+d.faq.q.join(' '):''));d.tf={};tk.forEach(function(t){d.tf[t]=(d.tf[t]||0)+1;});d.len=tk.length;len+=tk.length;Object.keys(d.tf).forEach(function(t){df[t]=(df[t]||0)+1;});});
  IDX={docs:docs,df:df,N:N,avg:len/Math.max(1,N)};}
 var SYN=[[/(客製|訂製|刺繡|印名字|名字)/,' 寫上名字 名字 name'],[/(晚上|夜間|夜晚|天黑|看得到|看不到|安全|night|dark|visible)/,' 反光條 反光 3m reflective'],
@@ -537,7 +727,7 @@ function snippet(d,q){var qt={};toks(q).forEach(function(t){qt[t]=1;});var sents
  var keep=sc.slice(0,2).map(function(x){return x.i;}).sort(function(a,b){return a-b;}),out=keep.map(function(i){return sents[i];}).join(' ');
  if(out.length>220)out=out.slice(0,210)+'…';return out||d.x.slice(0,200);}
 // ---------------------------------------------------------------- state
-var ST={prod:null,ser:null,warm:null,back:null,chest:null,want:null,breed:null};
+var ST={prod:null,ser:null,warm:null,back:null,chest:null,want:null,breed:null,dog:null};
 function prodById(id){return KB.products.filter(function(p){return p.id===id;})[0]||null;}
 function curLine(){var p=ST.prod&&prodById(ST.prod);return p?p.lk:null;}
 function lines(){var seen={},out=[];KB.products.forEach(function(p){if(!seen[p.lk]){seen[p.lk]=1;out.push({lk:p.lk,line:p.line,ser:p.ser,warm:p.warm,ch:p.ch,ps:KB.products.filter(function(q){return q.lk===p.lk;})});}});return out;}
@@ -564,7 +754,7 @@ function pickProducts(q){var s=norm(q),ps=KB.products.slice(),f;
  if(ser)ps=ps.filter(function(p){return p.ser===ser;});if(warm!=null)ps=ps.filter(function(p){return p.warm===warm;});if(col){f=ps.filter(function(p){return p.ck===col;});if(f.length)ps=f;}
  return {ps:ps,ser:ser,warm:warm,col:col,any:!!(ser||warm!=null||col)};}
 function sizeAnswer(back,chest,src,narrow){
- var ls=lines(),head=fmt(T.sizeHead,{back:back,chest:chest?fmt(T.chestPart,{chest:chest}):''}),rows=[],tail=[];
+ var ls=lines(),head=(ST.dog?fmt(T.forDog,{name:ST.dog}):'')+fmt(T.sizeHead,{back:back,chest:chest?fmt(T.chestPart,{chest:chest}):''}),rows=[],tail=[];
  var pool=ls.filter(function(l){if(narrow&&narrow.lk)return l.lk===narrow.lk;if(narrow&&narrow.ser&&l.ser!==narrow.ser)return false;if(narrow&&narrow.warm!=null&&l.warm!==narrow.warm)return false;
   if(narrow&&narrow.ser)return true;return back<=44?l.ser==='small':back>=45?l.ser==='big':true;});
  if(!pool.length)pool=ls;
@@ -582,7 +772,10 @@ function answer(q){
  K=null;var s=norm(q),m=measures(q),br=breedOf(q),pp=pickProducts(q),cat=null,k,mentionsProduct=pp.any;
  Object.keys(CAT_WORDS).forEach(function(id){if(CAT_WORDS[id].test(s))cat=+id;});
  // hand-written answers win when they match well
- for(var i=0;i<KB.faq.length;i++){var f=KB.faq[i];if(f.q.some(function(w){return w&&s.indexOf(norm(w))>=0;}))return K='faq',A(f.a+(f.u?'\n['+T.more+']('+f.u+')':''),{chips:T.chipsAfter});}
+ var bare=s.replace(/[\s!！?？.。,，~～…]+/g,'');
+ var dn=q.match(/(?:我家|我的)(?:狗狗|狗|毛孩|寶貝|小孩)?(?:叫做|叫|名字是|名字叫)\s*([\u4e00-\u9fffA-Za-z]{1,8})/)||q.match(/my dog(?:'s name)? is (?:called |named )?([A-Z][a-z]{1,12})/)||q.match(/my dog is called ([A-Za-z]{2,12})/i);
+ if(dn&&!/^(什麼|啥|多大|幾歲)/.test(dn[1])){ST.dog=dn[1];K='chat-dogname';return A(fmt(pick(T.dogName),{name:dn[1]}),{chips:T.chipsBreed});}
+ for(var i=0;i<KB.faq.length;i++){var f=KB.faq[i];if(f.q.some(function(w){return kwHit(s,w);})||(f.x||[]).some(function(w){return bare===norm(w).replace(/[\s!！?？.。,，~～…]+/g,'');})){K=f.chat?f.id:'faq';return A(faqText(f),{chips:f.chat?T.chips0.slice(0,3):T.chipsAfter});}}
  if(R.who.test(s))return K='who',A(T.who,{chips:T.chips0.slice(0,3)});
  if(R.contact.test(s)&&!R.store.test(s))return K='contact',A(T.contact,{chips:T.chipsAfter});
  if(R.greet.test(s)&&s.length<14)return K='greet',A(pick(T.greet),{chips:T.chips0});
@@ -597,6 +790,10 @@ function answer(q){
   has=lines().filter(function(l){return lsz(l).some(function(z){return z.s===want;});});
   var row=function(l){var zs=lsz(l),x=zs.filter(function(z){return z.x;});return '• '+l.line+'：'+zs.map(function(z){return z.s;}).join(' / ')+(x.length?fmt(T.priceX,{s:x.map(function(z){return z.s;}).join('/'),x:money(x[0].x)}):'');};
   return K='sizeAvail',A((has.length?T.sizeHas:fmt(T.sizeNone,{s:want}))+'\n'+lines().map(row).join('\n').replace(/：/g,LANG==='zh'?'：':': '),{chips:[T.chips0[0]].concat(T.chipsSize.slice(0,1))});}
+ if(R.chart.test(s)){var named=lines().filter(function(l){return s.indexOf(norm(l.line))>=0;});var cls=named.length?named:lines().filter(function(l){return (pp.any?((!pp.ser||l.ser===pp.ser)&&(pp.warm==null||l.warm===pp.warm)):curLine()?l.lk===curLine():ST.ser?l.ser===ST.ser:false);});
+  if(cls.length!==1){K='chartAsk';return A(T.chartAsk,{chips:lines().map(function(l){return l.line;}).slice(0,4).map(function(n){return n+(LANG==='zh'?' 尺寸表':LANG==='ja'?' サイズ表':LANG==='de'?' Größentabelle':' size chart');})});}
+  var cl=cls[0],ch=KB.charts[cl.ch];ST.prod=cl.ps[0].id;K='chart';
+  return A(fmt(T.chartHead,{line:cl.line})+'\n'+ch.rows.map(function(r){return '• '+fmt(T.chartRow,{s:r.s,len:r.len,neck:r.neck,belly:r.belly.join('~')});}).join('\n')+'\n'+fmt(T.chartTail,{off:ch.off}),{chips:[T.chips0[0]].concat(T.chipsSize.slice(0,1))});}
  if(R.measure.test(s))return K='measure',A(T.measure,{chips:T.chips0.slice(0,1).concat(T.chipsSize.slice(2))});
  // size: numbers, breed, or a size question
  if(m.chest)ST.chest=m.chest;
@@ -652,13 +849,15 @@ function srvLog(q,a){if(!SRV)return;try{fetch(API+'/api/helper/log',{method:'POS
 function refine(q,a,mr){if(!mr||mr.v!==KB.v||!KB.sem)return a;var th=mr.th||{},weak=a.kind==='unknown'||a.kind==='doc';
  var ex=(mr.ex||[]).filter(function(e){return KB.sem.ex[e.i];}),top=ex[0];
  if(top){var key=KB.sem.ex[top.i][1],other=ex.filter(function(e){return KB.sem.ex[e.i][1]!==key;})[0],margin=other?top.s-other.s:1,canon=KB.sem.q[key];
+  var tf=/^faq:/.test(key)?KB.faq.filter(function(f){return f.id===key.slice(4);})[0]:null;
+  if(tf&&top.s>=(th.ex||.8)&&margin>=(th.margin||.02)&&(weak||top.s>=(th.strong||.9))&&a.kind!=='faq'&&!/^chat/.test(a.kind||'')){var t=A(faqText(tf),{chips:T.chipsAfter});t.kind=tf.chat?tf.id:'faq';t.via='sem';t.score=+top.s.toFixed(3);t.semKey=key;return t;}
   if(canon&&top.s>=(th.ex||.8)&&margin>=(th.margin||.02)&&(weak||top.s>=(th.strong||.9))){
    var keep=JSON.stringify(ST),b=answer(canon);b.kind=K;
    if(weak||b.kind!==a.kind){b.via='sem';b.score=+top.s.toFixed(3);b.semKey=key;return b;}
    Object.assign(ST,JSON.parse(keep));}}
  var dd=(mr.docs||[])[0];if(weak&&dd&&KB.docs[dd.i]&&dd.s>=(th.doc||.8)&&(a.kind==='unknown'||!a.doc||a.doc!==dd.i)){var c=docAnswer(KB.docs[dd.i],q);c.kind=K;c.via='sem';c.score=+dd.s.toFixed(3);return c;}
  return a;}
-function docAnswer(d,q){K=d.faq?'faq':'doc';if(d.faq)return A(d.faq.a+(d.faq.u?'\n['+T.more+']('+d.faq.u+')':''),{chips:T.chipsAfter});
+function docAnswer(d,q){K=d.faq?'faq':'doc';if(d.faq)return A(faqText(d.faq),{chips:T.chipsAfter});
  if(d.pid)ST.prod=d.pid;
  return A(fmt(pick(T.found),{t:d.t})+'\n'+snippet(d,q)+'\n['+T.more+']('+d.u+')',{cards:d.pid?[d.pid]:null,chips:T.chipsAfter});}
 // ---------------------------------------------------------------- rendering (all text is escaped; links only to this site or known stores)

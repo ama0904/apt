@@ -144,6 +144,16 @@
   .pv-head { display:flex; gap:10px; align-items:center; padding:10px 14px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
   .pv-head select { width:auto; }
   #pv-frame { flex:1; width:100%; border:0; background:#fff; }
+  /* helper Q&A */
+  .qa-list { display:flex; flex-direction:column; gap:8px; }
+  .qa-row { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 12px; display:grid; grid-template-columns:1fr auto; gap:4px 12px; cursor:pointer; }
+  .qa-row:hover { border-color:#c7d2fe; }
+  .qa-row.todo { background:#fffbeb; border-color:#fde68a; }
+  .qa-row b { font-size:15px; }
+  .qa-row .ans { grid-column:1 / -1; font-size:13.5px; color:var(--muted); white-space:pre-wrap; word-break:break-word; }
+  .qa-row .kw { grid-column:1 / -1; font-size:12px; color:var(--muted); }
+  .qa-row .acts { display:flex; gap:6px; align-items:start; }
+  .hl-row .add { margin-left:4px; }
   /* helper questions */
   .hl-top { margin-bottom:14px; }
   .hl-top h3 { font-size:14px; margin:0 0 8px; }
@@ -295,6 +305,7 @@
       <button type="button" class="tab" data-tab="news">最新消息</button>
       <button type="button" class="tab" data-tab="fit">試衣間</button>
       <button type="button" class="tab" data-tab="history">試衣間紀錄</button>
+      <button type="button" class="tab" data-tab="qa">小幫手問答</button>
       <button type="button" class="tab" data-tab="helper">小幫手紀錄</button>
       <span class="sp"></span>
       <span class="tools"><button id="btn-reload">重新載入</button><button id="btn-redeploy" title="不改資料，只重新執行部署流程">重新部署</button></span>
@@ -384,6 +395,16 @@
     <div class="fit-stats" id="fit-stats"></div>
     <div class="fit-grid" id="fit-grid"></div>
     <p class="muted" id="fit-msg" style="font-size:14px"></p>
+    </div>
+
+    <div class="pane" data-pane="qa">
+    <div class="toolbar">
+      <select id="qa-filter" style="width:auto"><option value="todo">待回答</option><option value="done">已回答</option><option value="all">全部</option></select>
+      <button class="primary" id="btn-qa-add">＋ 新增問題</button>
+      <span class="count" id="qa-count"></span>
+    </div>
+    <p class="muted" style="font-size:13px;margin:0 0 12px">這些是客人常問、但網站上沒有寫清楚的問題。填上答案存檔後，網站重新部署，小幫手就會照你的答案回答（沒填英日德的話，外語頁會用中文答案）。「關鍵字」是小幫手認題目用的，客人的問題裡出現任一個就會回這題；「其他問法」給伺服器的語意模型參考。</p>
+    <div class="qa-list" id="qa-list"></div>
     </div>
 
     <div class="pane" data-pane="helper">
@@ -716,6 +737,11 @@ const DE = {
   '尚未設定試衣間後台金鑰。': 'Kein Admin-Schlüssel für die Anprobe hinterlegt.', '去設定': 'Einstellungen', '載入中…': 'Lädt…',
   '試衣間後台金鑰不正確（{code}）': 'Admin-Schlüssel der Anprobe ungültig ({code})', '伺服器要求金鑰（{code}）；若伺服器已信任本站網域，請稍後再試。': 'Der Server verlangt einen Schlüssel ({code}); wenn er diese Domain bereits zulässt, bitte später erneut versuchen.', '連不上試衣間伺服器（可能離線中）。': 'Anprobe-Server nicht erreichbar (vielleicht offline).',
   '這段期間沒有試穿紀錄。': 'Keine Anproben in diesem Zeitraum.', '小幫手紀錄': 'Assistent-Fragen', '只看沒答好的': 'Nur unbeantwortete', '問題數': 'Fragen', '對話數': 'Gespräche', '答得出來': 'Beantwortet', '靠語意模型答出': 'Per Sprachmodell', '沒答好': 'Unbeantwortet', '最常沒答好的問題': 'Häufigste unbeantwortete Fragen', '語意': 'Modell', '語意模型分數': 'Modell-Score',
+  '小幫手問答': 'Assistent-Antworten', '待回答': 'Offen', '已回答': 'Beantwortet', '＋ 新增問題': '＋ Neue Frage', '待回答 {a} 題 · 已回答 {b} 題': '{a} offen · {b} beantwortet', '關鍵字': 'Stichwörter', '都回答完了 🎉': 'Alles beantwortet 🎉', '沒有項目': 'Keine Einträge',
+  '回答問題': 'Frage beantworten', '新增問題': 'Neue Frage', '問題': 'Frage', '回答（中文）': 'Antwort (Chinesisch)', '回答': 'Antwort', '其他問法': 'Andere Formulierungen', '相關頁面（選填）': 'Zugehörige Seite (optional)', '小幫手現在的回答：': 'Aktuelle Antwort des Assistenten: ',
+  '留空就是先不回答，小幫手會照原本的方式處理。': 'Leer lassen = noch keine Antwort; der Assistent antwortet wie bisher.', '用逗號分隔，例如：折扣, 優惠碼, discount。客人的問題裡出現任一個就會回這題，太短太常見的字（例如「好」）不要放。': 'Durch Kommas getrennt. Kommt eines davon in der Frage vor, wird diese Antwort gegeben. Keine sehr kurzen, häufigen Wörter.',
+  '一行一句，客人可能怎麼問。伺服器的語意模型會參考。': 'Eine Formulierung pro Zeile; das Sprachmodell auf dem Server nutzt sie.', '回答後面會附「看完整內容」連結。': 'Unter der Antwort erscheint ein Link „Weiterlesen“.', '請至少填一個關鍵字或其他問法，小幫手才認得這題': 'Bitte mindestens ein Stichwort oder eine Formulierung angeben',
+  '刪除「{t}」？': '„{t}“ löschen?', '已刪除': 'Gelöscht', '加到問答': 'Zu Antworten hinzufügen',
   '還沒有紀錄。試衣間伺服器開始記錄小幫手的問題後，這裡就會出現。': 'Noch keine Einträge. Sie erscheinen, sobald der Anprobe-Server die Fragen speichert.', '這段期間沒有紀錄。試衣間伺服器開始記錄小幫手的問題後，這裡就會出現。': 'Keine Einträge in diesem Zeitraum. Sie erscheinen, sobald der Anprobe-Server die Fragen speichert.',
   '沒答出來': 'Keine Antwort', '網站段落': 'Website-Abschnitt', '自訂答案': 'Eigene Antwort', '尺寸選項': 'Größen', '問背長': 'Rückenlänge erfragt', '體重': 'Gewicht', '怎麼量': 'Messen', '運費': 'Versand', '到貨時間': 'Lieferzeit', '付款': 'Zahlung', '退換貨': 'Rückgabe', '怎麼買': 'Kaufen', '顏色': 'Farbe', '推薦': 'Empfehlung', '款式比較': 'Vergleich', '聯絡': 'Kontakt', '門市': 'Laden', '品牌': 'Marke', '小幫手': 'Assistent', '打招呼': 'Begrüßung', '道謝': 'Dank', '道別': 'Abschied', '天氣': 'Wetter', '即將推出': 'Demnächst', '錯誤': 'Fehler', '同步試衣間伺服器的最新紀錄…': 'Neueste Einträge vom Anprobe-Server werden abgeglichen …', '試衣間伺服器目前連不上，顯示的是 GitHub 上已存的紀錄。': 'Anprobe-Server nicht erreichbar – angezeigt werden die auf GitHub gespeicherten Einträge.', '試穿紀錄': 'Anprobe', '時間': 'Zeit', '耗時': 'Dauer', '（排隊 {s}）': '(Warteschlange {s})',
   '帳號': 'Konto', '來源': 'Herkunft', '毛孩照片': 'Hundefoto', '試穿結果': 'Ergebnis', '查看商品 ↗': 'Produkt ansehen ↗',
@@ -1738,10 +1764,55 @@ function renderHelper() {
   const top = Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 10);
   $('#hl-top').innerHTML = top.length ? `<h3>${escHtml(t('最常沒答好的問題'))}</h3><ol>${top.map(([q, n]) => `<li>${escHtml(q)}${n > 1 ? ` <span class="muted">×${n}</span>` : ''}</li>`).join('')}</ol>` : '';
   $('#hl-list').innerHTML = es.slice(0, 500).map(e => `<div class="hl-row${hlMiss(e) ? ' miss' : ''}"><time>${escHtml(fmtTime(e.t))}</time><div class="q">${escHtml(e.q)}</div>`
-    + `<div class="meta"><span class="badge ${hlMiss(e) ? 'off' : 'on'}">${escHtml(t(HL_KIND[e.kind] || e.kind || '—'))}</span>${e.via === 'sem' ? `<span class="badge on" title="${escHtml(t('語意模型分數'))} ${e.score || ''}">${escHtml(t('語意'))}</span>` : ''}<span class="badge off">${escHtml(LANG_NAME[e.lang] || e.lang || '')}</span></div>`
+    + `<div class="meta">${hlMiss(e) ? `<button type="button" class="small add" data-addqa="${escHtml(e.q)}">${escHtml(t('加到問答'))}</button>` : ''}<span class="badge ${hlMiss(e) ? 'off' : 'on'}">${escHtml(t(HL_KIND[e.kind] || e.kind || '—'))}</span>${e.via === 'sem' ? `<span class="badge on" title="${escHtml(t('語意模型分數'))} ${e.score || ''}">${escHtml(t('語意'))}</span>` : ''}<span class="badge off">${escHtml(LANG_NAME[e.lang] || e.lang || '')}</span></div>`
     + (e.ans ? `<div class="a">${escHtml(e.ans)}${e.page ? ' · ' + escHtml(e.page) : ''}</div>` : '') + '</div>').join('');
 }
 $('#hl-range').onchange = loadHelper;
+$('#hl-list').addEventListener('click', ev => { const b = ev.target.closest('button[data-addqa]'); if (b) openQA(null, b.dataset.addqa); });
+
+/* ---- 小幫手問答: owner answers, saved to _data/assistant.json and built into the helper */
+const qaDone = it => !!(it.a && typeof it.a === 'object' ? (it.a.zh || '').trim() : (it.a || '').trim());
+function renderQA() {
+  const box = $('#qa-list'); if (!box) return;
+  const f = $('#qa-filter').value, all = QA.faq, todo = all.filter(it => !qaDone(it)).length;
+  const list = all.map((it, i) => [it, i]).filter(([it]) => f === 'all' || (f === 'done') === qaDone(it));
+  $('#qa-count').textContent = t('待回答 {a} 題 · 已回答 {b} 題', { a: todo, b: all.length - todo });
+  box.innerHTML = list.map(([it, i]) => `<div class="qa-row${qaDone(it) ? '' : ' todo'}" data-i="${i}"><b>${escHtml(it.title || '')}</b>`
+    + `<span class="acts"><span class="badge ${qaDone(it) ? 'on' : 'off'}">${escHtml(t(qaDone(it) ? '已回答' : '待回答'))}</span><button type="button" class="small danger" data-del="${i}" title="${escHtml(t('刪除'))}">✕</button></span>`
+    + `<div class="ans">${escHtml(qaDone(it) ? it.a.zh : (it.hint || ''))}</div>`
+    + `<div class="kw">${escHtml(t('關鍵字'))}：${escHtml((it.k || []).join('、'))}</div></div>`).join('') || `<p class="muted">${escHtml(t(f === 'todo' ? '都回答完了 🎉' : '沒有項目'))}</p>`;
+}
+function openQA(i, fromQuestion) {
+  const it = i != null ? QA.faq[i] : { id: 'q' + Date.now().toString(36), title: fromQuestion || '', k: [], ex: fromQuestion ? [fromQuestion] : [], a: {}, link: '' };
+  const a = typeof it.a === 'object' && it.a ? it.a : { zh: it.a || '' };
+  openEditor({
+    title: i != null ? '回答問題' : '新增問題',
+    fields: [{ k: 'title', label: '問題', required: true },
+             { k: 'a', label: '回答（中文）', type: 'textarea', hint: it.hint ? t('小幫手現在的回答：') + it.hint : '留空就是先不回答，小幫手會照原本的方式處理。' },
+             { k: 'k', label: '關鍵字', hint: '用逗號分隔，例如：折扣, 優惠碼, discount。客人的問題裡出現任一個就會回這題，太短太常見的字（例如「好」）不要放。' },
+             { k: 'ex', label: '其他問法', type: 'textarea', hint: '一行一句，客人可能怎麼問。伺服器的語意模型會參考。' },
+             { k: 'link', label: '相關頁面（選填）', placeholder: '例如 pages/5.html', hint: '回答後面會附「看完整內容」連結。' }],
+    tr: [{ k: 'a', label: '回答', type: 'textarea' }],
+    values: { title: it.title, a: a.zh || '', k: (it.k || []).join(', '), ex: (it.ex || []).join('\n'), link: it.link || '',
+              i18n: Object.fromEntries(TR_LANGS.map(([l]) => [l, { a: a[l] || '' }])) },
+    save: async (v, i18n) => {
+      const k = v.k.split(/[,，、\n]/).map(x => x.trim()).filter(Boolean);
+      if (v.a && !k.length && !v.ex) throw new Error(t('請至少填一個關鍵字或其他問法，小幫手才認得這題'));
+      const out = { ...it, title: v.title, k, ex: v.ex.split('\n').map(x => x.trim()).filter(Boolean), link: v.link,
+                    a: Object.assign({}, v.a ? { zh: v.a } : {}, ...TR_LANGS.map(([l]) => (i18n[l] && i18n[l].a) ? { [l]: i18n[l].a } : {})) };
+      if (i != null) QA.faq[i] = out; else QA.faq.push(out);
+      await saveJsonFile(qaPath(), QA, `Helper Q&A: ${v.title}`);
+    },
+  });
+}
+$('#qa-filter').onchange = renderQA;
+$('#btn-qa-add').onclick = () => openQA(null);
+$('#qa-list').addEventListener('click', ev => {
+  const del = ev.target.closest('button[data-del]');
+  if (del) { ev.stopPropagation(); const it = QA.faq[+del.dataset.del]; if (!confirm(t('刪除「{t}」？', { t: it.title }))) return;
+    runAct(async () => { QA.faq.splice(+del.dataset.del, 1); await saveJsonFile(qaPath(), QA, `Helper Q&A: remove ${it.title}`); toast(t('已刪除')); }); return; }
+  const row = ev.target.closest('.qa-row'); if (row) openQA(+row.dataset.i);
+});
 $('#hl-miss').onchange = renderHelper;
 $('#btn-hl-reload').onclick = loadHelper;
 
@@ -1921,7 +1992,8 @@ function mountRich(ta, placeholder) {
 /* ---------------------------------------------------------------- 網站內容: hero text, groups, categories, guides, features */
 const siteJsonPath = () => `${SITE_DIR}/_data/site.json`, guidesPath = () => `${SITE_DIR}/_data/guides.json`;
 const DEFAULT_GROUPS = [{ key: 'apparel', name: '機能服飾', blurb: '' }, { key: 'outdoor', name: '外出配件', blurb: '' }, { key: 'living', name: '舒適生活', blurb: '' }];
-let SITE = {}, GUIDES = { items: [] };
+let SITE = {}, GUIDES = { items: [] }, QA = { faq: [] };
+const qaPath = () => `${SITE_DIR}/_data/assistant.json`;
 async function readJsonFile(path, fallback) {
   try { const j = await gh(`/repos/${cfg.repo}/contents/${encPath(path)}?ref=${encodeURIComponent(cfg.branch)}&t=${Date.now()}`); return JSON.parse(b64decodeUtf8(j.content)); }
   catch (e) { return fallback; }
@@ -1930,6 +2002,8 @@ async function readContent() {
   SITE = await readJsonFile(siteJsonPath(), {}) || {};
   SITE.hero = SITE.hero || { title: '', lead: '' }; SITE.features = SITE.features || {}; if (!Array.isArray(SITE.features.items)) SITE.features.items = [];
   GUIDES = await readJsonFile(guidesPath(), { items: [] }) || { items: [] }; if (!Array.isArray(GUIDES.items)) GUIDES.items = [];
+  QA = await readJsonFile(qaPath(), { faq: [] }) || { faq: [] }; if (!Array.isArray(QA.faq)) QA.faq = [];
+  if (typeof renderQA === 'function') renderQA();
   if (S.data && !Array.isArray(S.data.groups)) S.data.groups = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
 }
 const contentImg = p => p ? rawUrl(p) : '';
@@ -2236,7 +2310,7 @@ function featureAction(act, f, i) {
 $('#btn-feat-add').onclick = () => featureForm(null);
 
 /* ---------------------------------------------------------------- tabs */
-const TABS = ['products', 'content', 'news', 'fit', 'history', 'helper'];
+const TABS = ['products', 'content', 'news', 'fit', 'history', 'qa', 'helper'];
 let historyLoaded = false, helperLoaded = false;
 function showPane(k) {
   if (!TABS.includes(k)) k = 'products';
