@@ -221,6 +221,10 @@ CHAT = [
     {"id": "chat-laugh", "k": [], "x": ["哈哈", "哈哈哈", "哈", "lol", "haha", "hahaha", "笑", "www", "草", "hehe"],
      "ex": [],
      "a": {"zh": ["😄 還有什麼想問的嗎？", "哈哈 🐾 想幫毛孩看看哪一件？"], "en": ["😄 Anything else I can help with?"], "ja": ["😄 ほかに何かありますか？"], "de": ["😄 Kann ich sonst noch helfen?"]}},
+    {"id": "chat-test", "k": [], "x": ["測試", "測試一下", "test", "testing", "テスト", "hallo test", "在嗎", "有人嗎", "anyone there", "hello?"],
+     "ex": [],
+     "a": {"zh": ["收到！我在這裡 🐾 想問尺寸、款式、運費都可以。", "在的！有什麼可以幫你？"], "en": ["I'm here 🐾 Ask me about sizes, coats or shipping."],
+           "ja": ["はい、ここにいます 🐾"], "de": ["Ich bin da 🐾"]}},
     {"id": "chat-ok", "k": [], "x": ["好", "好的", "好喔", "嗯", "嗯嗯", "ok", "okay", "了解", "知道了", "收到", "sure", "got it", "はい", "了解です", "ja", "alles klar"],
      "ex": [],
      "a": {"zh": ["好的！還有其他問題隨時問我 🐾", "沒問題 👍"], "en": ["Great! Ask me anytime 🐾"], "ja": ["承知しました 🐾"], "de": ["Alles klar 🐾"]}},
@@ -708,7 +712,7 @@ function toks(s){var out=[];norm(s).replace(/[぀-ヿ㐀-鿿]+|[a-z0-9äöüß]+
  else if(w.length===1)out.push(w);else for(var i=0;i<w.length-1;i++){var b=w.substr(i,2);if(!STOP[b])out.push(b);}return w;});return out;}
 // ---------------------------------------------------------------- knowledge base + search index
 var KB=null,IDX=null,kbP=null,K=null;
-function loadKB(){if(!kbP)kbP=fetch(BASE+'assets/assistant/kb.'+LANG+'.json',{cache:'force-cache'}).then(function(r){return r.json();}).then(function(j){KB=j;buildIdx();
+function loadKB(){if(!kbP)kbP=fetch(BASE+'assets/assistant/kb.'+LANG+'.json',{cache:'no-cache'}).then(function(r){return r.json();}).then(function(j){KB=j;buildIdx();
  var pm=location.pathname.match(/product_id=(\d+)/)||decodeURIComponent(location.href).match(/product_id=(\d+)/);if(pm&&prodById(pm[1]))ST.prod=pm[1];  // on a product page, "this one" means that product
  return j;});return kbP;}
 function buildIdx(){var docs=KB.docs.slice();KB.faq.forEach(function(f){if(!f.chat)docs.push({t:'',x:Array.isArray(f.a)?f.a.join(' '):f.a,u:f.u,faq:f});});
