@@ -94,6 +94,10 @@
 - 會記得前後文（例如先說「柴犬」再問「多少錢」），在商品頁問「這件」就是那件商品。對話只存在客人自己的瀏覽器分頁裡。
 - 想加固定答案：建立 `_data/assistant.json`，格式 `{"faq": [{"q": ["關鍵字", "另一個說法"], "a": {"zh": "答案", "en": "..."}, "link": "pages/5.html"}]}`，問題裡出現任一關鍵字就回這個答案。
 - 運費、付款、出貨天數的說法寫在 `assistant.py` 的 `TX` 裡（跟購物流程頁一致），改了購物流程要一起改。
+- **伺服器加強（選用）**：試衣間伺服器（`fitstudio.py` 的 `API_BASE`）的 `/api/health` 回 `"helper": true` 時，小幫手會：
+  - 每題同時送 `POST /api/helper/match`（`{q, lang, v}`）給伺服器上的多語言語意模型，回 `{v, th:{ex, doc, strong, margin}, ex:[{i, s}], docs:[{i, s}]}`：`ex` 的 `i` 是 `kb.sem.ex` 的索引（換句話說的例句，對到一個標準問法），`docs` 的 `i` 是 `kb.docs` 的索引，`s` 是相似度。規則答不出來、或伺服器分數高過 `strong` 且判斷不同時，改用伺服器的答案。3 秒內沒回就照規則答。
+  - 每題回答後送 `POST /api/helper/log`（`{sid, q, lang, page, kind, via, score, ans, t}`），伺服器存到私人 repo `apt-fitlog` 的 `helper/YYYY-MM.json`，後台「小幫手紀錄」讀那裡。
+  - 例句庫在 `assistant.py` 的 `SEM`，改了之後 `kb.v` 會變，伺服器看到新的 `v` 要重新讀 `assets/assistant/kb.<語言>.json` 重算向量。
 
 ## 多語版本
 

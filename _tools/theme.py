@@ -694,7 +694,7 @@ def page(data, site_rel, lang, title, body, desc="", og_image=None, current="", 
 </main>
 {footer(data, site_rel, lang)}
 <script src="{asset(d, 'assets/theme.js')}?v={ASSET_VER['js']}" defer></script>
-<script src="{asset(d, 'assets/assistant.js')}?v={ASSET_VER['ai']}" data-lang="{lang}" data-logo="{asset(d, LOGO)}" defer></script>
+<script src="{asset(d, 'assets/assistant.js')}?v={ASSET_VER['ai']}" data-lang="{lang}" data-logo="{asset(d, LOGO)}" data-api="{fit.API_BASE}" defer></script>
 </body>
 </html>"""
 

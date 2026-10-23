@@ -8,12 +8,75 @@ news, plus optional hand-written answers from _data/assistant.json.
 In the browser, assets/assistant.js understands the common questions (size from back length or breed,
 which coat, colours, prices, shipping, delivery time, payment, how to buy, fitting room), keeps
 context between turns, and falls back to searching the site text."""
+import hashlib
 import json
 import re
 
 from bs4 import BeautifulSoup
 
 import site_builder as sb
+
+# Paraphrase bank for the server's semantic match (multilingual model on the bridge).
+# key -> (the question the rules already answer, per language), example wordings in any language.
+# The server embeds every example; when a visitor's question is close to one, the helper answers
+# the canonical question for that key instead.
+SEM = {
+    "ship": ({"zh": "運費怎麼算", "en": "shipping cost", "ja": "送料は？", "de": "Versandkosten?"},
+             ["寄過來運費多少", "寄到家要多少錢", "運送費用", "郵資多少", "寄送要另外付錢嗎", "運費會很貴嗎", "超商取貨要錢嗎",
+              "how much is delivery", "what does it cost to send it to me", "is shipping free", "送料はいくらですか", "Was kostet der Versand"]),
+    "time": ({"zh": "多久會到貨", "en": "how long does delivery take", "ja": "届くまでの日数", "de": "Wie lange dauert die Lieferung?"},
+             ["什麼時候寄出", "今天下單哪天收到", "要等多久才會到", "幾天可以拿到", "下單後多快出貨", "急用來得及嗎", "週末會寄嗎",
+              "when will I get it", "how many days until it arrives", "いつ届きますか", "Wann kommt meine Bestellung"]),
+    "pay": ({"zh": "怎麼付款", "en": "how to pay", "ja": "支払い方法", "de": "Wie bezahlen?"},
+            ["可以刷卡嗎", "能用 LINE Pay 嗎", "結帳方式有哪些", "可以貨到付款嗎", "用什麼方式付錢", "可以轉帳嗎",
+             "can I pay by card", "payment options", "カードで払えますか", "Kann ich mit Karte zahlen"]),
+    "ret": ({"zh": "可以退換貨嗎", "en": "returns and exchanges", "ja": "返品・交換", "de": "Rückgabe und Umtausch"},
+            ["買錯尺寸可以換嗎", "不合身可以退嗎", "收到不喜歡怎麼辦", "尺寸不對要換貨", "可以退款嗎", "穿不下怎麼辦",
+             "can I exchange the size", "it does not fit what now", "サイズ交換できますか", "Passt nicht, kann ich tauschen"]),
+    "size": ({"zh": "幫我挑尺寸", "en": "help me pick a size", "ja": "サイズを選びたい", "de": "Größe finden"},
+             ["不知道該買哪個尺寸", "我家狗很胖要怎麼選", "穿起來會不會太大", "怕買太小", "尺寸怎麼選才對", "胖胖的狗適合哪一號", "我不確定我的狗穿什麼",
+              "which size should I buy", "my dog is chubby what size", "どのサイズを買えばいい", "Welche Größe soll ich nehmen"]),
+    "measure": ({"zh": "怎麼量背長", "en": "how to measure my dog", "ja": "測り方", "de": "Wie messe ich?"},
+                ["要量哪裡", "背長是從哪量到哪", "皮尺怎麼量狗", "胸圍要量哪邊", "where do I measure", "どこを測ればいい", "wo muss ich messen"]),
+    "warm": ({"zh": "推薦保暖款", "en": "recommend a warm jacket", "ja": "防寒タイプのおすすめ", "de": "warme Jacke empfehlen"},
+             ["狗狗很怕冷要穿什麼", "冬天散步穿什麼好", "寒流來了要穿什麼", "狗會發抖", "天氣冷出門穿什麼", "短毛狗冬天會冷", "老狗怕冷",
+              "my dog gets cold in winter", "what should my dog wear when it is freezing", "寒がりな犬に何を着せる", "mein Hund friert im Winter"]),
+    "rain": ({"zh": "推薦雨衣", "en": "recommend a raincoat", "ja": "レインコートのおすすめ", "de": "Regenmantel empfehlen"},
+             ["下雨天出門穿什麼", "梅雨季要準備什麼", "不想讓狗淋濕", "下雨天散步會弄得很髒", "狗討厭淋雨", "颱風天出門",
+              "keep my dog dry on rainy walks", "what to wear in the rain", "雨の日の散歩に", "Hund soll beim Regen trocken bleiben"]),
+    "compare": ({"zh": "雨衣跟保暖的差在哪", "en": "difference between the raincoat and the warm jacket", "ja": "レインコートと防寒タイプの違い", "de": "Unterschied zwischen Regenmantel und warmer Jacke"},
+                ["兩種有什麼不一樣", "保暖款跟一般款哪裡不同", "該買一般的還是保暖的", "小汪跟大汪差在哪",
+                 "what is the difference between the models", "違いは何ですか", "was ist der Unterschied"]),
+    "care": ({"zh": "可以洗衣機洗嗎", "en": "can I wash it in the machine", "ja": "洗濯機で洗えますか", "de": "Kann ich es waschen?"},
+             ["髒了怎麼辦", "怎麼清洗", "可以丟洗衣機嗎", "洗了會不會壞", "防水會不會洗掉", "要怎麼保養", "可以烘乾嗎",
+              "how do I clean it", "is it machine washable", "汚れたらどうする", "wie reinige ich das"]),
+    "fit": ({"zh": "試衣間怎麼用", "en": "how does the Fitting Studio work", "ja": "試着室の使い方", "de": "Wie funktioniert die Anprobe?"},
+            ["可以先看穿起來的樣子嗎", "想看狗穿上去的效果", "AI 換裝", "上傳照片試穿", "能模擬穿上的樣子嗎",
+             "can I see it on my dog", "virtual try on", "着せたイメージを見たい", "virtuell anprobieren"]),
+    "contact": ({"zh": "客服電話", "en": "contact a person", "ja": "問い合わせ", "de": "Kontakt"},
+                ["我要找真人", "有沒有客服", "可以打電話問嗎", "怎麼聯絡你們", "有 LINE 嗎", "客服信箱",
+                 "how can I contact you", "I want to talk to a human", "連絡先を教えて", "Wie erreiche ich euch"]),
+    "store": ({"zh": "有實體店嗎", "en": "is there a physical shop", "ja": "実店舗はありますか", "de": "Gibt es ein Ladengeschäft?"},
+              ["可以去哪裡看實品", "有門市嗎", "哪裡可以摸到實品", "可以現場試穿嗎", "有店面嗎",
+               "where can I see it in person", "can I try it on in a store", "実物を見られる場所", "wo kann ich es anschauen"]),
+    "who": ({"zh": "你是誰", "en": "who are you", "ja": "あなたは誰", "de": "Wer bist du?"},
+            ["你是機器人嗎", "你是真人嗎", "你叫什麼名字", "are you a real person", "are you AI", "ロボットですか", "bist du ein Mensch"]),
+    "colors": ({"zh": "有哪些顏色", "en": "which colours", "ja": "カラーは？", "de": "Welche Farben?"},
+               ["有什麼顏色可以選", "顏色有幾種", "有沒有亮一點的顏色", "有沒有比較低調的顏色", "what colors are available", "色は何色ありますか", "welche Farben gibt es"]),
+    "price": ({"zh": "多少錢", "en": "how much", "ja": "価格は？", "de": "Was kostet das?"},
+              ["價格多少", "一件多少", "貴不貴", "售價", "how much does it cost", "値段はいくら", "wie teuer ist das"]),
+    "leash": ({"zh": "可以穿著上牽繩嗎", "en": "can I clip on a leash with the coat on", "ja": "着たままリードを付けられますか", "de": "Kann man die Leine anlegen?"},
+              ["穿了還能扣牽繩嗎", "牽繩會不會卡住", "胸背帶可以一起穿嗎", "does it work with a harness", "ハーネスと一緒に使える", "geht das mit Geschirr"]),
+    "night": ({"zh": "晚上散步看得到嗎", "en": "is it visible at night", "ja": "夜でも見えますか", "de": "Ist es nachts sichtbar?"},
+              ["晚上散步安全嗎", "夜間車子看得到嗎", "有反光嗎", "天黑出門", "reflective for night walks", "反射材はありますか", "reflektierend"]),
+    "name": ({"zh": "可以客製名字嗎", "en": "can I add my dog's name", "ja": "名前を入れられますか", "de": "Kann ich einen Namen hinzufügen?"},
+             ["可以寫名字嗎", "能不能繡名字", "可以印字嗎", "personalize with a name", "名前入れ", "personalisieren"]),
+    "waterproof": ({"zh": "耐水壓多少", "en": "how waterproof is it", "ja": "防水性は？", "de": "Wie wasserdicht ist es?"},
+                   ["防水效果好嗎", "會不會滲水", "大雨也不會濕嗎", "颱風天撐得住嗎", "does water get through", "大雨でも大丈夫", "hält das starken Regen aus"]),
+    "about": ({"zh": "你們的品牌故事", "en": "tell me about apetto", "ja": "apetto について", "de": "Über apetto"},
+              ["apetto 是什麼品牌", "你們是哪裡的品牌", "是台灣品牌嗎", "品牌怎麼來的", "who makes these coats", "どこのブランド", "woher kommt die Marke"]),
+}
+
 
 COLOR_KEYS = [("灰", "gray"), ("冰川藍", "blue"), ("普魯士藍", "blue"), ("藍", "blue"), ("桔", "orange"), ("橘", "orange"),
               ("綠", "green"), ("桃", "pink"), ("粉", "pink"), ("黃", "yellow")]
@@ -175,6 +238,9 @@ def build(data, visible, lang_codes):
             ans = a.get(lang) or a.get("zh") if isinstance(a, dict) else a
             if ans and f.get("q"):
                 kb["faq"].append({"q": f["q"], "a": ans, "u": L(f["link"]) if f.get("link") and not f["link"].startswith("http") else f.get("link", "")})
+        # paraphrase bank for the server: examples with their key, and each key's question in this language
+        kb["sem"] = {"ex": [[ex, k] for k, (_, exs) in SEM.items() for ex in exs], "q": {k: q.get(lang) or q["zh"] for k, (q, _) in SEM.items()}}
+        kb["v"] = hashlib.sha1(json.dumps([kb["sem"], [(d["t"], d["x"]) for d in kb["docs"]]], ensure_ascii=False).encode("utf-8")).hexdigest()[:12]
         (out_dir / f"kb.{lang}.json").write_text(json.dumps(kb, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
 
@@ -236,10 +302,10 @@ CSS = r"""
 
 JS = r"""(function(){
 'use strict';
-var SC=document.currentScript, BASE=(SC.getAttribute('src')||'').replace(/assets\/assistant\.js.*$/,''), LANG=SC.getAttribute('data-lang')||'zh', LOGO=SC.getAttribute('data-logo')||'';
+var SC=document.currentScript, API=SC.getAttribute('data-api')||'', BASE=(SC.getAttribute('src')||'').replace(/assets\/assistant\.js.*$/,''), LANG=SC.getAttribute('data-lang')||'zh', LOGO=SC.getAttribute('data-logo')||'';
 var TX={
 zh:{name:'apetto 小幫手',status:'線上 · 通常幾秒內回覆',ph:'輸入問題，例如：柴犬穿幾號？',open:'開啟小幫手',close:'關閉',reset:'重新開始',send:'送出',
- foot:'小幫手依照 apetto 網站資料自動回答',tip:'尺寸不確定嗎？告訴我背長或品種，我幫你挑 🐾',
+ foot:'小幫手依照 apetto 網站資料自動回答',logged:'問題會匿名記錄，用來改善回答',tip:'尺寸不確定嗎？告訴我背長或品種，我幫你挑 🐾',
  hello:['嗨！我是 apetto 小幫手 🐾\n可以幫你挑尺寸、推薦款式，也能回答運費和出貨的問題。想問什麼呢？'],
  chips0:['幫我挑尺寸','雨衣怎麼選？','運費怎麼算？','多久會到貨？','有哪些顏色？'],
  greet:['嗨！很高興見到你 😊 想幫毛孩找雨衣，還是保暖外套呢？','哈囉！今天想幫毛孩找什麼呢？'],
@@ -281,7 +347,7 @@ zh:{name:'apetto 小幫手',status:'線上 · 通常幾秒內回覆',ph:'輸入�
  colorHit:'有的！這幾件是你要找的顏色：',chipsBreed:['柴犬','貴賓','柯基','黃金獵犬'],
  sizeWord:'號',cm:'公分'},
 en:{name:'apetto Helper',status:'Online · usually replies in seconds',ph:'Ask me, e.g. what size for a Shiba?',open:'Open the helper',close:'Close',reset:'Start over',send:'Send',
- foot:'Answers come from the apetto website',tip:'Not sure about the size? Tell me the back length or breed 🐾',
+ foot:'Answers come from the apetto website',logged:'questions are logged anonymously to improve answers',tip:'Not sure about the size? Tell me the back length or breed 🐾',
  hello:["Hi! I'm the apetto helper 🐾\nI can pick a size, suggest a coat, and answer questions about shipping and delivery. What would you like to know?"],
  chips0:['Help me pick a size','Which raincoat?','Shipping cost?','Delivery time?','Which colours?'],
  greet:['Hi there! 😊 Looking for a raincoat or a warm jacket?','Hello! What can I find for your dog today?'],
@@ -323,7 +389,7 @@ en:{name:'apetto Helper',status:'Online · usually replies in seconds',ph:'Ask m
  colorHit:'Yes! These come in that colour:',chipsBreed:['Shiba','Poodle','Corgi','Golden Retriever'],
  sizeWord:'',cm:'cm'},
 ja:{name:'apetto アシスタント',status:'オンライン · すぐにお返事します',ph:'例：柴犬は何サイズ？',open:'アシスタントを開く',close:'閉じる',reset:'最初から',send:'送信',
- foot:'apetto サイトの情報をもとに自動で回答します',tip:'サイズに迷ったら、背丈か犬種を教えてください 🐾',
+ foot:'apetto サイトの情報をもとに自動で回答します',logged:'質問は改善のため匿名で記録されます',tip:'サイズに迷ったら、背丈か犬種を教えてください 🐾',
  hello:['こんにちは！apetto アシスタントです 🐾\nサイズ選びやおすすめ、送料・発送についてお答えします。何でも聞いてください。'],
  chips0:['サイズを選びたい','レインコートの選び方','送料は？','届くまでの日数','カラーは？'],
  greet:['こんにちは！😊 レインコートと防寒ジャケット、どちらをお探しですか？'],
@@ -363,7 +429,7 @@ ja:{name:'apetto アシスタント',status:'オンライン · すぐにお返�
  colorHit:'あります！そのカラーはこちら：',chipsBreed:['柴犬','プードル','コーギー','ゴールデン'],
  sizeWord:'',cm:'cm'},
 de:{name:'apetto Assistent',status:'Online · antwortet meist sofort',ph:'z. B. Welche Größe für einen Shiba?',open:'Assistent öffnen',close:'Schließen',reset:'Neu starten',send:'Senden',
- foot:'Antworten basieren auf der apetto Website',tip:'Unsicher bei der Größe? Nenn mir Rückenlänge oder Rasse 🐾',
+ foot:'Antworten basieren auf der apetto Website',logged:'Fragen werden anonym gespeichert, um Antworten zu verbessern',tip:'Unsicher bei der Größe? Nenn mir Rückenlänge oder Rasse 🐾',
  hello:['Hallo! Ich bin der apetto Assistent 🐾\nIch helfe bei Größe und Modellwahl und beantworte Fragen zu Versand und Lieferung.'],
  chips0:['Größe finden','Welcher Regenmantel?','Versandkosten?','Lieferzeit?','Welche Farben?'],
  greet:['Hallo! 😊 Suchst du einen Regenmantel oder eine warme Jacke?'],thanks:['Gern geschehen! Frag jederzeit 🐾'],bye:['Tschüss! Bis bald 🐾'],
@@ -451,7 +517,7 @@ function toks(s){var out=[];norm(s).replace(/[぀-ヿ㐀-鿿]+|[a-z0-9äöüß]+
  if(/^[a-z0-9äöüß]+$/.test(w)){if(w.length>1&&!STOP[w])out.push(w.length>4?w.replace(/(es|en|s|e)$/,''):w);}
  else if(w.length===1)out.push(w);else for(var i=0;i<w.length-1;i++){var b=w.substr(i,2);if(!STOP[b])out.push(b);}return w;});return out;}
 // ---------------------------------------------------------------- knowledge base + search index
-var KB=null,IDX=null,kbP=null;
+var KB=null,IDX=null,kbP=null,K=null;
 function loadKB(){if(!kbP)kbP=fetch(BASE+'assets/assistant/kb.'+LANG+'.json',{cache:'force-cache'}).then(function(r){return r.json();}).then(function(j){KB=j;buildIdx();
  var pm=location.pathname.match(/product_id=(\d+)/)||decodeURIComponent(location.href).match(/product_id=(\d+)/);if(pm&&prodById(pm[1]))ST.prod=pm[1];  // on a product page, "this one" means that product
  return j;});return kbP;}
@@ -513,63 +579,85 @@ function sizeAnswer(back,chest,src,narrow){
  return A((src?src+'\n':'')+head+'\n'+rows.join('\n')+'\n'+tail.join('\n')+(Math.random()<.5?'\n'+T.sizeTail[1]:''),{cards:cards,chips:chipsFor('chipsSize')});}
 function priceLine(p){var x=p.sz.filter(function(z){return z.x;});return fmt(T.price,{name:p.line,p:money(p.p),x:x.length?fmt(T.priceX,{s:x.map(function(z){return z.s;}).join('/'),x:money(x[0].x)}):''});}
 function answer(q){
- var s=norm(q),m=measures(q),br=breedOf(q),pp=pickProducts(q),cat=null,k,mentionsProduct=pp.any;
+ K=null;var s=norm(q),m=measures(q),br=breedOf(q),pp=pickProducts(q),cat=null,k,mentionsProduct=pp.any;
  Object.keys(CAT_WORDS).forEach(function(id){if(CAT_WORDS[id].test(s))cat=+id;});
  // hand-written answers win when they match well
- for(var i=0;i<KB.faq.length;i++){var f=KB.faq[i];if(f.q.some(function(w){return w&&s.indexOf(norm(w))>=0;}))return A(f.a+(f.u?'\n['+T.more+']('+f.u+')':''),{chips:T.chipsAfter});}
- if(R.who.test(s))return A(T.who,{chips:T.chips0.slice(0,3)});
- if(R.contact.test(s)&&!R.store.test(s))return A(T.contact,{chips:T.chipsAfter});
- if(R.greet.test(s)&&s.length<14)return A(pick(T.greet),{chips:T.chips0});
- if(R.thanks.test(s)&&s.length<20)return A(pick(T.thanks),{chips:T.chipsAfter});
- if(R.bye.test(s)&&s.length<16)return A(pick(T.bye));
+ for(var i=0;i<KB.faq.length;i++){var f=KB.faq[i];if(f.q.some(function(w){return w&&s.indexOf(norm(w))>=0;}))return K='faq',A(f.a+(f.u?'\n['+T.more+']('+f.u+')':''),{chips:T.chipsAfter});}
+ if(R.who.test(s))return K='who',A(T.who,{chips:T.chips0.slice(0,3)});
+ if(R.contact.test(s)&&!R.store.test(s))return K='contact',A(T.contact,{chips:T.chipsAfter});
+ if(R.greet.test(s)&&s.length<14)return K='greet',A(pick(T.greet),{chips:T.chips0});
+ if(R.thanks.test(s)&&s.length<20)return K='thanks',A(pick(T.thanks),{chips:T.chipsAfter});
+ if(R.bye.test(s)&&s.length<16)return K='bye',A(pick(T.bye));
  // categories that are not on sale yet
- var soonCat=null;if(cat){var c=KB.cats.filter(function(x){return x.id===cat;})[0];if(c&&!c.cnt){if(R.sell.test(s)||s.length<=4)return A(fmt(T.soon,{cat:c.n}),{chips:T.chipsAfter});soonCat=c;}}
- if(R.store.test(s))return A(T.store,{chips:T.chipsAfter});
- if(R.about.test(s)){var ab=KB.docs.filter(function(d){return d.u===KB.links.about;});if(ab.length)return A(ab.slice(0,2).map(function(d){return '**'+d.t+'**\n'+snippet(d,d.t);}).join('\n')+'\n['+T.more+']('+KB.links.about+')',{chips:T.chipsAfter});}
+ var soonCat=null;if(cat){var c=KB.cats.filter(function(x){return x.id===cat;})[0];if(c&&!c.cnt){if(R.sell.test(s)||s.length<=4)return K='soon',A(fmt(T.soon,{cat:c.n}),{chips:T.chipsAfter});soonCat=c;}}
+ if(R.store.test(s))return K='store',A(T.store,{chips:T.chipsAfter});
+ if(R.about.test(s)){var ab=KB.docs.filter(function(d){return d.u===KB.links.about;});if(ab.length)return K='about',A(ab.slice(0,2).map(function(d){return '**'+d.t+'**\n'+snippet(d,d.t);}).join('\n')+'\n['+T.more+']('+KB.links.about+')',{chips:T.chipsAfter});}
  var sz=s.match(R.sizeAsk);if(sz&&(R.sell.test(s)||/(嗎|\?|？|有)/.test(s))&&!m.back){var want=sz[1].replace('xxl','2xl').toUpperCase(),has=lines().filter(function(l){return l.ps[0].sz.some(function(z){return z.s===want;});});
   var lsz=function(l){var seen={},o=[];l.ps.forEach(function(p){p.sz.forEach(function(z){if(!seen[z.s]){seen[z.s]=1;o.push(z);}});});return o;};
   has=lines().filter(function(l){return lsz(l).some(function(z){return z.s===want;});});
   var row=function(l){var zs=lsz(l),x=zs.filter(function(z){return z.x;});return '• '+l.line+'：'+zs.map(function(z){return z.s;}).join(' / ')+(x.length?fmt(T.priceX,{s:x.map(function(z){return z.s;}).join('/'),x:money(x[0].x)}):'');};
-  return A((has.length?T.sizeHas:fmt(T.sizeNone,{s:want}))+'\n'+lines().map(row).join('\n').replace(/：/g,LANG==='zh'?'：':': '),{chips:[T.chips0[0]].concat(T.chipsSize.slice(0,1))});}
- if(R.measure.test(s))return A(T.measure,{chips:T.chips0.slice(0,1).concat(T.chipsSize.slice(2))});
+  return K='sizeAvail',A((has.length?T.sizeHas:fmt(T.sizeNone,{s:want}))+'\n'+lines().map(row).join('\n').replace(/：/g,LANG==='zh'?'：':': '),{chips:[T.chips0[0]].concat(T.chipsSize.slice(0,1))});}
+ if(R.measure.test(s))return K='measure',A(T.measure,{chips:T.chips0.slice(0,1).concat(T.chipsSize.slice(2))});
  // size: numbers, breed, or a size question
  if(m.chest)ST.chest=m.chest;
  var wantsSize=R.size.test(s)||(ST.want==='back'&&!!m.back);
  if(m.back||(br&&(wantsSize||!mentionsProduct))){var back=m.back||br.cm,src=!m.back&&br?fmt(T.breed,{breed:br.name,cm:br.cm}):'';
   if(!m.chest&&(br&&(!ST.breed||ST.breed.name!==br.name)||(ST.back&&Math.abs(back-ST.back)>4)))ST.chest=null;
   ST.back=back;ST.breed=br||null;ST.want=null;
-  var narrow=pp.any?{ser:pp.ser,warm:pp.warm}:(curLine()&&R.thisOne.test(s)?{lk:curLine()}:null);return sizeAnswer(back,m.chest||ST.chest,src,narrow);}
- if(m.kg&&!m.back){ST.want='back';return A(fmt(T.kg,{kg:m.kg,series:m.kg<=9?T.serSmall:T.serBig}),{chips:[T.chips0[0]]});}
- if(wantsSize&&!R.ship.test(s)){if(ST.back&&(pp.any||curLine()))return sizeAnswer(ST.back,ST.chest,'',pp.any?{ser:pp.ser,warm:pp.warm}:{lk:curLine()});var again=ST.want==='back';ST.want='back';return A(again?T.askBack2:T.askBack,{chips:T.chipsBreed});}
- if(R.weather.test(s))return A(T.weather,{chips:T.chips0.slice(0,2)});
- if(R.compare.test(s)&&(R.warm.test(s)||R.rain.test(s)||R.small.test(s)||R.big.test(s)))return A(T.compare,{cards:lines().map(function(l){return l.ps[0].id;}),chips:[T.chips0[0]].concat(T.chipsSize.slice(0,2))});
- if(R.ship.test(s))return A(T.ship,{chips:T.chipsShip});
- if(R.time.test(s))return A(T.time,{chips:[T.chips0[2]].concat(T.chipsShip.slice(1))});
- if(R.pay.test(s))return A(T.pay,{chips:T.chipsShip.slice(0,1).concat(T.chips0.slice(2,3))});
- if(R.ret.test(s))return A(T.ret,{chips:[T.chips0[0]]});
- if(R.buy.test(s))return A(T.buy,{chips:T.chipsShip});
- if(R.fit.test(s))return A(T.fit,{chips:T.chipsAfter.slice(0,2)});
+  var narrow=pp.any?{ser:pp.ser,warm:pp.warm}:(curLine()&&R.thisOne.test(s)?{lk:curLine()}:null);return K='size',sizeAnswer(back,m.chest||ST.chest,src,narrow);}
+ if(m.kg&&!m.back){ST.want='back';return K='kg',A(fmt(T.kg,{kg:m.kg,series:m.kg<=9?T.serSmall:T.serBig}),{chips:[T.chips0[0]]});}
+ if(wantsSize&&!R.ship.test(s)){if(ST.back&&(pp.any||curLine()))return K='size',sizeAnswer(ST.back,ST.chest,'',pp.any?{ser:pp.ser,warm:pp.warm}:{lk:curLine()});var again=ST.want==='back';ST.want='back';return A(again?T.askBack2:T.askBack,{chips:T.chipsBreed});}
+ if(R.weather.test(s))return K='weather',A(T.weather,{chips:T.chips0.slice(0,2)});
+ if(R.compare.test(s)&&(R.warm.test(s)||R.rain.test(s)||R.small.test(s)||R.big.test(s)))return K='compare',A(T.compare,{cards:lines().map(function(l){return l.ps[0].id;}),chips:[T.chips0[0]].concat(T.chipsSize.slice(0,2))});
+ if(R.ship.test(s))return K='ship',A(T.ship,{chips:T.chipsShip});
+ if(R.time.test(s))return K='time',A(T.time,{chips:[T.chips0[2]].concat(T.chipsShip.slice(1))});
+ if(R.pay.test(s))return K='pay',A(T.pay,{chips:T.chipsShip.slice(0,1).concat(T.chips0.slice(2,3))});
+ if(R.ret.test(s))return K='ret',A(T.ret,{chips:[T.chips0[0]]});
+ if(R.buy.test(s))return K='buy',A(T.buy,{chips:T.chipsShip});
+ if(R.fit.test(s))return K='fit',A(T.fit,{chips:T.chipsAfter.slice(0,2)});
  // product questions
  if(R.price.test(s)){var ps=pp.any?pp.ps:(curLine()?[prodById(ST.prod)]:ST.ser?KB.products.filter(function(p){return p.ser===ST.ser;}):null);
-  if(ps&&ps.length){var seen={},out=[];ps.forEach(function(p){if(!seen[p.lk]){seen[p.lk]=1;out.push('• '+priceLine(p));}});ST.prod=ps[0].id;return A(out.length===1?out[0].slice(2):out.join('\n'),{cards:ps.slice(0,6).map(function(p){return p.id;}),chips:T.chipsSize});}
-  return A(T.priceAll+'\n'+lines().map(function(l){return '• '+l.line+(LANG==='zh'?'：':': ')+'NT$'+money(l.ps[0].p);}).join('\n'),{chips:T.chipsSize.slice(0,1).concat(T.chips0.slice(0,1))});}
- if(pp.col&&!R.reco.test(s)&&!R.price.test(s)){var cl=pp.ps.filter(function(p){return p.ck===pp.col;});if(cl.length){ST.prod=cl[0].id;return A(T.colorHit,{cards:cl.map(function(p){return p.id;}),chips:T.chipsSize.slice(1).concat(T.chips0.slice(0,1))});}}
+  if(ps&&ps.length){var seen={},out=[];ps.forEach(function(p){if(!seen[p.lk]){seen[p.lk]=1;out.push('• '+priceLine(p));}});ST.prod=ps[0].id;return K='price',A(out.length===1?out[0].slice(2):out.join('\n'),{cards:ps.slice(0,6).map(function(p){return p.id;}),chips:T.chipsSize});}
+  return K='priceAll',A(T.priceAll+'\n'+lines().map(function(l){return '• '+l.line+(LANG==='zh'?'：':': ')+'NT$'+money(l.ps[0].p);}).join('\n'),{chips:T.chipsSize.slice(0,1).concat(T.chips0.slice(0,1))});}
+ if(pp.col&&!R.reco.test(s)&&!R.price.test(s)){var cl=pp.ps.filter(function(p){return p.ck===pp.col;});if(cl.length){ST.prod=cl[0].id;return K='colorHit',A(T.colorHit,{cards:cl.map(function(p){return p.id;}),chips:T.chipsSize.slice(1).concat(T.chips0.slice(0,1))});}}
  if(R.colors.test(s)&&!pp.col){var ls=lines().filter(function(l){return (!pp.ser||l.ser===pp.ser)&&(pp.warm==null||l.warm===pp.warm)&&(!curLine()||pp.any||l.lk===curLine());});
   if(!ls.length)ls=lines();
-  return A((ls.length>1?T.colorsAll+'\n':'')+ls.map(function(l){return (ls.length>1?'• ':'')+fmt(T.colors,{line:l.line,list:l.ps.map(function(p){return p.c;}).join(LANG==='zh'||LANG==='ja'?'、':', ')});}).join('\n'),{cards:[].concat.apply([],ls.map(function(l){return l.ps.map(function(p){return p.id;});})).slice(0,8),chips:T.chipsSize.slice(1).concat(T.chips0.slice(0,1))});}
+  return K='colors',A((ls.length>1?T.colorsAll+'\n':'')+ls.map(function(l){return (ls.length>1?'• ':'')+fmt(T.colors,{line:l.line,list:l.ps.map(function(p){return p.c;}).join(LANG==='zh'||LANG==='ja'?'、':', ')});}).join('\n'),{cards:[].concat.apply([],ls.map(function(l){return l.ps.map(function(p){return p.id;});})).slice(0,8),chips:T.chipsSize.slice(1).concat(T.chips0.slice(0,1))});}
  if(R.care.test(s)&&!mentionsProduct){var hit=search(q).filter(function(h){return h.d.u===KB.links.care;})[0];if(hit)return docAnswer(hit.d,q);}
  if(R.reco.test(s)||mentionsProduct||R.rain.test(s)||R.warm.test(s)){
-  if(!pp.any&&!ST.back){if(R.reco.test(s))return A(T.recoAsk,{chips:LANG==='zh'?['小型犬，下雨天穿','中大型犬，冬天保暖','先幫我挑尺寸']:T.chips0.slice(0,2)});}
+  if(!pp.any&&!ST.back){if(R.reco.test(s))return K='recoAsk',A(T.recoAsk,{chips:LANG==='zh'?['小型犬，下雨天穿','中大型犬，冬天保暖','先幫我挑尺寸']:T.chips0.slice(0,2)});}
   var list=pp.ps;if(!pp.ser&&ST.ser)list=list.filter(function(p){return p.ser===ST.ser;});if(!list.length)list=pp.ps;
   if(list.length&&list.length<KB.products.length){ST.prod=list[0].id;if(pp.ser)ST.ser=pp.ser;
    var intro=pp.warm===true?T.recoWarm:pp.warm===false?T.recoRain:pick(T.reco),extra=ST.back?'\n'+sizeAnswer(ST.back,ST.chest,'',{ser:list[0].ser,warm:pp.warm}).text.split('\n').slice(1,-1).join('\n'):'';
-   return A(intro+extra,{cards:list.slice(0,6).map(function(p){return p.id;}),chips:ST.back?T.chipsSize:[T.chips0[0]].concat(T.chipsSize.slice(1,2))});}
+   return K='reco',A(intro+extra,{cards:list.slice(0,6).map(function(p){return p.id;}),chips:ST.back?T.chipsSize:[T.chips0[0]].concat(T.chipsSize.slice(1,2))});}
  }
  // free text: search the site
  var hits=search(q);if(hits.length&&hits[0].s>2.2&&hits[0].cov>=.25)return docAnswer(hits[0].d,expand(q));
- if(soonCat)return A(fmt(T.soon,{cat:soonCat.n}),{chips:T.chipsAfter});
- return A(T.unknown,{chips:T.chips0.slice(0,4)});}
-function docAnswer(d,q){if(d.faq)return A(d.faq.a+(d.faq.u?'\n['+T.more+']('+d.faq.u+')':''),{chips:T.chipsAfter});
+ if(soonCat)return K='soon',A(fmt(T.soon,{cat:soonCat.n}),{chips:T.chipsAfter});
+ return K='unknown',A(T.unknown,{chips:T.chips0.slice(0,4)});}
+// ---------------------------------------------------------------- server (optional): semantic match + question log
+var SRV=null,srvP=null,SID='';
+try{SID=sessionStorage.getItem('apetto_ai_sid')||'';if(!SID){SID=Math.random().toString(36).slice(2,10)+Date.now().toString(36);sessionStorage.setItem('apetto_ai_sid',SID);}}catch(e){SID='x'+Math.random().toString(36).slice(2,10);}
+function srvOn(){if(!API)return Promise.resolve(false);if(SRV!==null)return Promise.resolve(SRV);
+ if(!srvP){var ctl=new AbortController(),tm=setTimeout(function(){ctl.abort();},4000);
+  srvP=fetch(API+'/api/health',{cache:'no-store',signal:ctl.signal}).then(function(r){return r.json();}).then(function(j){SRV=!!(j&&j.helper);return SRV;}).catch(function(){SRV=false;return false;}).then(function(v){clearTimeout(tm);if(v&&foot)foot.textContent=T.foot+' · '+T.logged;return v;});}
+ return srvP;}
+function srvMatch(q){return srvOn().then(function(on){if(!on||!KB.v)return null;var ctl=new AbortController(),tm=setTimeout(function(){ctl.abort();},3000);
+ return fetch(API+'/api/helper/match',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:q.slice(0,300),lang:LANG,v:KB.v}),signal:ctl.signal})
+  .then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}).then(function(j){clearTimeout(tm);return j;});});}
+function srvLog(q,a){if(!SRV)return;try{fetch(API+'/api/helper/log',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},
+ body:JSON.stringify({sid:SID,q:q.slice(0,300),lang:LANG,page:decodeURIComponent(location.pathname.slice(new URL(BASE||'./',location.href).pathname.length)),kind:a.kind||'',via:a.via||'rule',score:a.score||null,ans:a.text.slice(0,160),t:new Date().toISOString()})}).catch(function(){});}catch(e){}}
+// use the server's match when the rules had nothing good, or when the server is very sure and the rules picked something else
+function refine(q,a,mr){if(!mr||mr.v!==KB.v||!KB.sem)return a;var th=mr.th||{},weak=a.kind==='unknown'||a.kind==='doc';
+ var ex=(mr.ex||[]).filter(function(e){return KB.sem.ex[e.i];}),top=ex[0];
+ if(top){var key=KB.sem.ex[top.i][1],other=ex.filter(function(e){return KB.sem.ex[e.i][1]!==key;})[0],margin=other?top.s-other.s:1,canon=KB.sem.q[key];
+  if(canon&&top.s>=(th.ex||.8)&&margin>=(th.margin||.02)&&(weak||top.s>=(th.strong||.9))){
+   var keep=JSON.stringify(ST),b=answer(canon);b.kind=K;
+   if(weak||b.kind!==a.kind){b.via='sem';b.score=+top.s.toFixed(3);b.semKey=key;return b;}
+   Object.assign(ST,JSON.parse(keep));}}
+ var dd=(mr.docs||[])[0];if(weak&&dd&&KB.docs[dd.i]&&dd.s>=(th.doc||.8)&&(a.kind==='unknown'||!a.doc||a.doc!==dd.i)){var c=docAnswer(KB.docs[dd.i],q);c.kind=K;c.via='sem';c.score=+dd.s.toFixed(3);return c;}
+ return a;}
+function docAnswer(d,q){K=d.faq?'faq':'doc';if(d.faq)return A(d.faq.a+(d.faq.u?'\n['+T.more+']('+d.faq.u+')':''),{chips:T.chipsAfter});
  if(d.pid)ST.prod=d.pid;
  return A(fmt(pick(T.found),{t:d.t})+'\n'+snippet(d,q)+'\n['+T.more+']('+d.u+')',{cards:d.pid?[d.pid]:null,chips:T.chipsAfter});}
 // ---------------------------------------------------------------- rendering (all text is escaped; links only to this site or known stores)
@@ -577,7 +665,7 @@ function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp
 function safeUrl(u){if(/^https:\/\/(www\.instagram\.com|www\.pinkoi\.com|www\.apetto\.com\.tw)\//.test(u))return u;if(/^[a-z0-9][\w\-\/.&=?#%]*$/i.test(u)&&!/^[a-z]+:/i.test(u))return BASE+u;return '';}
 function md(t){var h=esc(t).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,function(m,a,u){var s=safeUrl(u.replace(/&amp;/g,'&'));return s?'<a href="'+esc(s)+'"'+(/^https?:/.test(s)?' target="_blank" rel="noopener"':'')+'>'+a+'</a>':a;});
  var out=[],ul=[];h.split('\n').forEach(function(l){if(/^• /.test(l))ul.push('<li>'+l.slice(2)+'</li>');else{if(ul.length){out.push('<ul>'+ul.join('')+'</ul>');ul=[];}if(l.trim())out.push('<p>'+l+'</p>');}});if(ul.length)out.push('<ul>'+ul.join('')+'</ul>');return out.join('');}
-var root,log,chipsEl,ta,sendBtn,panel,fab,busy=false,HIST=[];
+var root,log,chipsEl,ta,sendBtn,panel,fab,foot,busy=false,HIST=[];
 var SKEY='apetto_ai_'+LANG;
 function save(){try{sessionStorage.setItem(SKEY,JSON.stringify({h:HIST.slice(-40),st:ST}));}catch(e){}}
 function restore(){try{var j=JSON.parse(sessionStorage.getItem(SKEY)||'null');if(j){HIST=j.h||[];Object.assign(ST,j.st||{});}}catch(e){}}
@@ -593,15 +681,18 @@ function addBot(a,instant,done){var d=document.createElement('div');d.className=
  // type it out: reveal the plain text progressively, then swap in the formatted version
  var plain=a.text.replace(/\*\*/g,'').replace(/\[([^\]]+)\]\([^)]+\)/g,'$1'),i=0,step=Math.max(2,Math.round(plain.length/60));
  (function tick(){i+=step;if(i>=plain.length){d.innerHTML=full;addCards(a.cards);scroll();done&&done();return;}d.textContent=plain.slice(0,i);scroll();setTimeout(tick,16);})();}
-function typing(ms,cb){var t=document.createElement('div');t.className='ai-typing';t.innerHTML='<i></i><i></i><i></i>';log.appendChild(t);scroll();setTimeout(function(){t.remove();cb();},ms);}
+function typing(){var t=document.createElement('div');t.className='ai-typing';t.innerHTML='<i></i><i></i><i></i>';log.appendChild(t);scroll();return function(){t.remove();};}
 function ask(q){q=String(q||'').trim();if(!q||busy)return;busy=true;sendBtn.disabled=true;ta.value='';grow();setChips([]);addMe(q);HIST.push({me:q});
- loadKB().then(function(){var a;try{a=answer(q);}catch(e){a=A(T.unknown,{chips:T.chips0});}
-  typing(Math.min(1400,450+a.text.length*6+Math.random()*250),function(){addBot(a,false,function(){HIST.push({bot:a});save();setChips(a.chips);busy=false;sendBtn.disabled=!ta.value.trim();ta.focus({preventScroll:true});});});
+ loadKB().then(function(){var a;try{a=answer(q);a.kind=K;}catch(e){a=A(T.unknown,{chips:T.chips0});a.kind='error';}a.via='rule';
+  var stop=typing(),wait=Math.min(1400,450+a.text.length*6+Math.random()*250);
+  Promise.all([srvMatch(q).catch(function(){return null;}),new Promise(function(r){setTimeout(r,wait);})]).then(function(res){
+   var b=a;try{b=refine(q,a,res[0]);}catch(e){b=a;}stop();
+   addBot(b,false,function(){HIST.push({bot:b});save();setChips(b.chips);srvLog(q,b);busy=false;sendBtn.disabled=!ta.value.trim();ta.focus({preventScroll:true});});});
  }).catch(function(){busy=false;sendBtn.disabled=false;});}
 function grow(){ta.style.height='auto';var h=ta.scrollHeight+2;ta.style.height=Math.min(110,h)+'px';ta.style.overflowY=h>110?'auto':'hidden';}
 function openPanel(){if(!root)build();var tip=document.querySelector('.ai-tip');if(tip)tip.remove();panel.hidden=false;fab.style.display='none';fab.setAttribute('aria-expanded','true');
  try{sessionStorage.setItem('apetto_ai_tip','1');}catch(e){}
- loadKB();if(matchMedia('(max-width:980px)').matches)document.documentElement.style.overflow='hidden';setTimeout(function(){ta.focus({preventScroll:true});},60);scroll();}
+ loadKB();srvOn();if(matchMedia('(max-width:980px)').matches)document.documentElement.style.overflow='hidden';setTimeout(function(){ta.focus({preventScroll:true});},60);scroll();}
 function closePanel(){panel.hidden=true;fab.style.display='';fab.setAttribute('aria-expanded','false');document.documentElement.style.overflow='';fab.focus({preventScroll:true});}
 function reset(){HIST=[];for(var k in ST)ST[k]=null;save();log.innerHTML='';addBot(A(pick(T.hello)),true);setChips(T.chips0);}
 function build(){root=document.createElement('div');
@@ -611,7 +702,7 @@ function build(){root=document.createElement('div');
   +'<div class="ai-log" aria-live="polite"></div><div class="ai-chips"></div>'
   +'<form class="ai-in"><textarea rows="1" placeholder="'+esc(T.ph)+'" aria-label="'+esc(T.ph)+'"></textarea><button type="submit" aria-label="'+esc(T.send)+'" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></form>'
   +'<div class="ai-foot">'+esc(T.foot)+'</div></div>';
- document.body.appendChild(root);panel=root.querySelector('.ai-panel');log=root.querySelector('.ai-log');chipsEl=root.querySelector('.ai-chips');ta=root.querySelector('textarea');sendBtn=root.querySelector('.ai-in button');
+ document.body.appendChild(root);panel=root.querySelector('.ai-panel');foot=root.querySelector('.ai-foot');log=root.querySelector('.ai-log');chipsEl=root.querySelector('.ai-chips');ta=root.querySelector('textarea');sendBtn=root.querySelector('.ai-in button');
  root.querySelector('.ai-x').onclick=closePanel;root.querySelector('.ai-rs').onclick=reset;
  root.querySelector('form').onsubmit=function(e){e.preventDefault();ask(ta.value);};
  ta.addEventListener('input',function(){grow();sendBtn.disabled=busy||!ta.value.trim();});
