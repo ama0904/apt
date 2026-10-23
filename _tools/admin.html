@@ -688,7 +688,7 @@ const DE = {
   '款式': 'Modell', '語言': 'Sprache', '地區': 'Region', '{n} 筆': '{n} Einträge', '伺服器已存 {mb} MB': '{mb} MB auf dem Server',
   '尚未設定試衣間後台金鑰。': 'Kein Admin-Schlüssel für die Anprobe hinterlegt.', '去設定': 'Einstellungen', '載入中…': 'Lädt…',
   '試衣間後台金鑰不正確（{code}）': 'Admin-Schlüssel der Anprobe ungültig ({code})', '伺服器要求金鑰（{code}）；若伺服器已信任本站網域，請稍後再試。': 'Der Server verlangt einen Schlüssel ({code}); wenn er diese Domain bereits zulässt, bitte später erneut versuchen.', '連不上試衣間伺服器（可能離線中）。': 'Anprobe-Server nicht erreichbar (vielleicht offline).',
-  '這段期間沒有試穿紀錄。': 'Keine Anproben in diesem Zeitraum.', '試穿紀錄': 'Anprobe', '時間': 'Zeit', '狀態': 'Status', '耗時': 'Dauer', '（排隊 {s}）': '(Warteschlange {s})',
+  '這段期間沒有試穿紀錄。': 'Keine Anproben in diesem Zeitraum.', '同步試衣間伺服器的最新紀錄…': 'Neueste Einträge vom Anprobe-Server werden abgeglichen …', '試衣間伺服器目前連不上，顯示的是 GitHub 上已存的紀錄。': 'Anprobe-Server nicht erreichbar – angezeigt werden die auf GitHub gespeicherten Einträge.', '試穿紀錄': 'Anprobe', '時間': 'Zeit', '狀態': 'Status', '耗時': 'Dauer', '（排隊 {s}）': '(Warteschlange {s})',
   '帳號': 'Konto', '來源': 'Herkunft', '毛孩照片': 'Hundefoto', '試穿結果': 'Ergebnis', '查看商品 ↗': 'Produkt ansehen ↗',
   '試衣間後台金鑰（選填）': 'Admin-Schlüssel der Anprobe (optional)', 'FitStudio ADMIN_TOKEN': 'FitStudio ADMIN_TOKEN',
   '用來讀取試衣間的試穿紀錄；留空則後台不顯示紀錄。': 'Zum Lesen des Anprobe-Verlaufs; leer lassen, wenn nicht gewünscht.',
@@ -1563,23 +1563,73 @@ const LANG_NAME = { zh: '中文', en: 'English', ja: '日本語', de: 'Deutsch' 
 const FIT_STATUS = { ok: ['成功', 'on'], failed: ['失敗', 'off'], quota: ['額度用完', 'off'], cancelled: ['中途取消', 'off'], attachFailed: ['貼圖失敗', 'off'], loadTimeout: ['頁面逾時', 'off'] };
 const fitTok = () => localStorage.getItem(LS.fit) || '';
 const fitImg = u => { if (!u) return ''; let url = /^[a-z]+:/i.test(u) ? u : FIT_API + u; if (fitTok() && !/[?&]token=/.test(url)) url += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(fitTok()); return url; };
+const fitLogRepo = () => cfg.repo + '-fitlog';   // private repo with the records (e.g. ama0904/apt-fitlog)
+const GH_BLOBS = new Map();
+const fitSrc = u => /^images\//.test(u || '') ? `data-gh="${escHtml(u)}" src="data:image/gif;base64,R0lGODlhAQABAAAAACw="` : `src="${escHtml(fitImg(u))}"`;
+const ghRaw = (repo, path) => fetch(`https://api.github.com/repos/${repo}/contents/${encPath(path)}`, { headers: { Accept: 'application/vnd.github.raw', Authorization: `Bearer ${cfg.token}` }, cache: 'no-store' });
+const ghIO = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting) { ghIO.unobserve(x.target); ghLoad(x.target); } }), { rootMargin: '300px' }) : null;
+async function ghLoad(img) {
+  const path = img.dataset.gh; if (!path) return;
+  try {
+    if (!GH_BLOBS.has(path)) GH_BLOBS.set(path, ghRaw(fitLogRepo(), path).then(r => { if (!r.ok) throw new Error(r.status); return r.blob(); }).then(b => URL.createObjectURL(b)));
+    img.src = await GH_BLOBS.get(path);
+  } catch (e) { GH_BLOBS.delete(path); img.alt = '✕'; }
+}
+const ghHydrate = root => root.querySelectorAll('img[data-gh]').forEach(i => ghIO ? ghIO.observe(i) : ghLoad(i));
 const fitStatus = e => e.status || (e.resultUrl ? 'ok' : 'failed');
 const fitCoat = e => e.coatName || (coatRec(e.coat) ? itemLabel(coatRec(e.coat)) : '') || (e.coat && FIT_COATS[e.coat]) || e.coat || '';
 const fmtDur = ms => ms == null ? '' : (ms / 1000).toFixed(ms < 10000 ? 1 : 0) + ' s';
 const fmtTime = (iso, long) => { const d = new Date(iso); if (isNaN(d)) return iso || ''; return d.toLocaleString(UI_LANG === 'de' ? 'de-DE' : 'zh-TW', long ? {} : { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }); };
-let FIT_ENTRIES = [];
+let FIT_ENTRIES = [], FIT_LOAD = 0;
+const fitKey = e => e.stamp || e.jobId || e.time;
+const fitSort = es => es.sort((a, b) => String(b.time || b.stamp || '').localeCompare(String(a.time || a.stamp || '')));
+async function fitFromGitHub(hours) {
+  // index/YYYY-MM.json per month; read only the months the chosen range touches
+  const since = hours === '0' ? 0 : Date.now() - hours * 3600e3;
+  let months;
+  if (hours === '0') {
+    const r = await ghRaw(fitLogRepo(), 'index'); if (r.status === 404) return null; if (!r.ok) throw new Error('GitHub ' + r.status);
+    const list = await r.json(); months = (Array.isArray(list) ? list : []).map(f => f.name.replace(/\.json$/, '')).filter(m => /^\d{4}-\d{2}$/.test(m));
+  } else {
+    months = []; const d = new Date(since); d.setUTCDate(1);
+    while (d <= new Date()) { months.push(d.toISOString().slice(0, 7)); d.setUTCMonth(d.getUTCMonth() + 1); }
+  }
+  const parts = await Promise.all(months.map(async m => { const r = await ghRaw(fitLogRepo(), `index/${m}.json`); if (r.status === 404) return []; if (!r.ok) throw new Error('GitHub ' + r.status); return r.json(); }));
+  return parts.flat().filter(e => !since || new Date(e.time || 0).getTime() >= since);
+}
+async function fitFromBridge(hours, tok) {
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 15000);
+  try {
+    const r = await fetch(`${FIT_API}/api/admin/list?limit=300&hours=${hours === '0' ? 876000 : hours}${tok ? '&token=' + encodeURIComponent(tok) : ''}`, { headers: tok ? { 'x-admin-token': tok } : {}, cache: 'no-store', signal: ctl.signal });
+    return r;
+  } finally { clearTimeout(timer); }
+}
 async function loadFit() {
-  const grid = $('#fit-grid'), msg = $('#fit-msg'), stats = $('#fit-stats');
+  const grid = $('#fit-grid'), msg = $('#fit-msg'), stats = $('#fit-stats'), run = ++FIT_LOAD;
   msg.textContent = t('載入中…');
   const hours = $('#fit-range').value, tok = fitTok();
+  const bridge = fitFromBridge(hours, tok).catch(e => e);
+  let gh = null;
+  try { gh = await fitFromGitHub(hours); } catch (e) { gh = null; }
+  if (run !== FIT_LOAD) return;
+  if (gh) { FIT_ENTRIES = fitSort(gh.slice()); renderFit({}); msg.textContent = FIT_ENTRIES.length ? t('同步試衣間伺服器的最新紀錄…') : t('載入中…'); }
+  // newer records the bridge has not copied to GitHub yet
+  const r = await bridge;
+  if (run !== FIT_LOAD) return;
   try {
-    const r = await fetch(`${FIT_API}/api/admin/list?limit=300&hours=${hours === '0' ? 876000 : hours}${tok ? '&token=' + encodeURIComponent(tok) : ''}`, { headers: tok ? { 'x-admin-token': tok } : {}, cache: 'no-store' });
-    if (r.status === 401 || r.status === 403) { grid.innerHTML = ''; stats.innerHTML = ''; $('#fit-count').textContent = ''; msg.innerHTML = escHtml(t(tok ? '試衣間後台金鑰不正確（{code}）' : '伺服器要求金鑰（{code}）；若伺服器已信任本站網域，請稍後再試。', { code: r.status })) + ' <button type="button" class="small" id="fit-setup">' + escHtml(t('去設定')) + '</button>'; $('#fit-setup').onclick = () => showLogin(''); return; }
+    if (r instanceof Error) throw r;
+    if (r.status === 401 || r.status === 403) { if (gh) { msg.textContent = ''; return; } grid.innerHTML = ''; stats.innerHTML = ''; $('#fit-count').textContent = ''; msg.innerHTML = escHtml(t(tok ? '試衣間後台金鑰不正確（{code}）' : '伺服器要求金鑰（{code}）；若伺服器已信任本站網域，請稍後再試。', { code: r.status })) + ' <button type="button" class="small" id="fit-setup">' + escHtml(t('去設定')) + '</button>'; $('#fit-setup').onclick = () => showLogin(''); return; }
     if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
-    const j = await r.json();
-    FIT_ENTRIES = (j.entries || []).slice().sort((a, b) => String(b.time || b.stamp || '').localeCompare(String(a.time || a.stamp || '')));
-    renderFit(j); msg.textContent = FIT_ENTRIES.length ? '' : t('這段期間沒有試穿紀錄。');
-  } catch (e) { grid.innerHTML = ''; stats.innerHTML = ''; $('#fit-count').textContent = ''; msg.textContent = e.name === 'TypeError' ? t('連不上試衣間伺服器（可能離線中）。') : e.message; }
+    const j = await r.json(), have = new Set(FIT_ENTRIES.map(fitKey));
+    const extra = (j.entries || []).filter(e => !have.has(fitKey(e)));
+    if (!gh) { FIT_ENTRIES = fitSort(extra); renderFit(j); }
+    else if (extra.length) { FIT_ENTRIES = fitSort(FIT_ENTRIES.concat(extra)); renderFit({}); }
+    msg.textContent = FIT_ENTRIES.length ? '' : t('這段期間沒有試穿紀錄。');
+  } catch (e) {
+    if (gh) { msg.textContent = FIT_ENTRIES.length ? t('試衣間伺服器目前連不上，顯示的是 GitHub 上已存的紀錄。') : t('這段期間沒有試穿紀錄。'); return; }
+    grid.innerHTML = ''; stats.innerHTML = ''; $('#fit-count').textContent = '';
+    msg.textContent = (e.name === 'TypeError' || e.name === 'AbortError') ? t('連不上試衣間伺服器（可能離線中）。') : e.message;
+  }
 }
 function renderFit(j) {
   const es = FIT_ENTRIES, ok = es.filter(e => fitStatus(e) === 'ok');
@@ -1593,9 +1643,10 @@ function renderFit(j) {
   $('#fit-grid').innerHTML = es.map((e, i) => {
     const st = fitStatus(e), [label, cls] = FIT_STATUS[st] || FIT_STATUS.failed, coat = fitCoat(e);
     const line = [coat && tName(coat), LANG_NAME[e.lang] || e.lang, e.country, e.durationMs > 0 && fmtDur(e.durationMs)].filter(Boolean).map(escHtml).join(' · ');
-    return `<div class="fit-card${st === 'ok' ? '' : ' failed'}" data-i="${i}"><div class="fit-pics"><img src="${escHtml(fitImg(e.dogUrl))}" loading="lazy" alt=""><span>→</span><div class="fit-res">${e.resultUrl ? `<img src="${escHtml(fitImg(e.resultUrl))}" loading="lazy" alt="">` : '<div class="fit-none">✕</div>'}${coatThumb(e)}</div></div>`
+    return `<div class="fit-card${st === 'ok' ? '' : ' failed'}" data-i="${i}"><div class="fit-pics"><img ${fitSrc(e.dogUrl)} loading="lazy" alt=""><span>→</span><div class="fit-res">${e.resultUrl ? `<img ${fitSrc(e.resultUrl)} loading="lazy" alt="">` : '<div class="fit-none">✕</div>'}${coatThumb(e)}</div></div>`
       + `<div class="fit-info"><div><b>${escHtml(fmtTime(e.time))}</b> <span class="badge ${cls}">${escHtml(t(label))}</span></div><div class="muted">${line}</div>${e.caption ? `<p class="fit-cap">${escHtml(e.caption)}</p>` : ''}</div></div>`;
   }).join('');
+  ghHydrate($('#fit-grid'));
 }
 function openFit(i) {
   const e = FIT_ENTRIES[i]; if (!e) return;
@@ -1611,9 +1662,9 @@ function openFit(i) {
     ['來源', escHtml(e.origin || '—')],
     ['ID', `<code>${escHtml(e.stamp || '')}</code>${e.jobId ? ' <code>' + escHtml(e.jobId) + '</code>' : ''}`],
   ];
-  $('#fdlg-body').innerHTML = `<div class="fit-big"><figure><img src="${escHtml(fitImg(e.dogUrl))}" alt=""><figcaption>${escHtml(t('毛孩照片'))}</figcaption></figure><figure><div class="fit-res">${e.resultUrl ? `<img src="${escHtml(fitImg(e.resultUrl))}" alt="">` : '<div class="fit-none big">✕</div>'}${coatThumb(e)}</div><figcaption>${escHtml(t('試穿結果'))}</figcaption></figure></div>`
+  $('#fdlg-body').innerHTML = `<div class="fit-big"><figure><img ${fitSrc(e.dogUrl)} alt=""><figcaption>${escHtml(t('毛孩照片'))}</figcaption></figure><figure><div class="fit-res">${e.resultUrl ? `<img ${fitSrc(e.resultUrl)} alt="">` : '<div class="fit-none big">✕</div>'}${coatThumb(e)}</div><figcaption>${escHtml(t('試穿結果'))}</figcaption></figure></div>`
     + (e.caption ? `<p class="fit-cap full">${escHtml(e.caption)}</p>` : '') + `<div class="fit-kv">${kv.map(([k, v]) => `<b>${escHtml(t(k))}</b><div>${v}</div>`).join('')}</div>`;
-  $('#fdlg').showModal();
+  ghHydrate($('#fdlg-body')); $('#fdlg').showModal();
 }
 $('#fit-grid').addEventListener('click', e => { const c = e.target.closest('.fit-card'); if (c) openFit(+c.dataset.i); });
 $('#fdlg-close').onclick = () => $('#fdlg').close();
