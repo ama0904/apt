@@ -763,7 +763,7 @@ $('#ui-lang').onchange = e => { localStorage.setItem('apetto_admin_lang', e.targ
 /* ---------------------------------------------------------------- config / auth */
 const LS = { token: 'apetto_admin_token', repo: 'apetto_admin_repo', branch: 'apetto_admin_branch', fit: 'apetto_fit_admin_token' };
 const SITE_DIR = 'www.apetto.com.tw';
-const SECTIONS_FALLBACK = [{ key: 'bestseller', name: '暢銷商品' }, { key: 'latest', name: '推薦商品' }];
+const SECTIONS_FALLBACK = [{ key: 'latest', name: '推薦商品' }];
 
 function guessRepo() {
   const h = location.hostname, seg = location.pathname.split('/').filter(Boolean);

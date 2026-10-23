@@ -135,7 +135,6 @@ UI = {
         "en": "From weather protection to everyday adventures, discover apetto’s thoughtful designs that bring together function, comfort, and style for your furry companions.",
         "ja": "天候からの保護から日常のお出かけまで。apetto が愛犬のために考えた、機能と快適さを備えたデザインをご覧ください。",
         "de": "Vom Wetterschutz bis zum Alltagsabenteuer: Entdecken Sie apettos durchdachte Designs, die Funktion, Komfort und Stil für Ihren Vierbeiner vereinen."},
-    "看暢銷商品": {"en": "See bestsellers", "ja": "人気商品を見る", "de": "Bestseller ansehen"},
     "探索系列": {"en": "Explore", "ja": "シリーズを見る", "de": "Entdecken"},
     "為什麼選擇 apetto": {"en": "Why apetto", "ja": "apetto が選ばれる理由", "de": "Warum apetto"},
     "機能細節": {"en": "Built for the weather", "ja": "機能のディテール", "de": "Funktion im Detail"},
@@ -619,7 +618,7 @@ def header(data, site_rel, lang, current=""):
 
 def footer(data, site_rel, lang):
     d = rel_dir(site_rel)
-    links = [(SHOP, "商品分類"), ("search.html", "全系列"), ("bestsellers.html", "暢銷商品"), (GUIDES, "商品指南"), (fit.PAGE, "AI 試衣間"),
+    links = [(SHOP, "商品分類"), ("search.html", "全系列"), (GUIDES, "商品指南"), (fit.PAGE, "AI 試衣間"),
              ("pages/5.html", "購物流程"), ("information/news.html", "最新消息"), (ABOUT, "品牌故事")]
     small = "".join(f'<a href="{link(d, sp, lang)}">{esc(t)}</a>' for sp, t in links)
     return f"""<footer class="ft">
@@ -765,7 +764,6 @@ def category_chips(data, page_dir, lang, current):
     for g in groups_of(data):
         for c in cats_in(data, g["key"]):
             chips += f'<a href="{link(page_dir, sb.category_page(c["id"]), lang)}"{cur(current == c["id"])}>{esc(c["name"])}</a>'
-    chips += f'<a href="{link(page_dir, "bestsellers.html", lang)}"{cur(current == "best")}>暢銷商品</a>'
     return f'<div class="chips">{chips}</div>'
 
 
@@ -1165,7 +1163,7 @@ def render_shop(data, visible, lang):
     body = f"""<div class="wrap">
 <ol class="breadcrumb"><li><a href="{link(d, 'index.html', lang)}">首頁</a></li><li><span>商品分類</span></li></ol>
 <div class="ph"><h1>商品分類</h1><p>依用途挑選</p></div>
-<div class="chips">{"".join(f'<a href="#{g["key"]}">{esc(g["name"])}</a>' for g in groups_of(data))}<a href="{link(d, 'search.html', lang)}">全系列</a><a href="{link(d, 'bestsellers.html', lang)}">暢銷商品</a></div>
+<div class="chips">{"".join(f'<a href="#{g["key"]}">{esc(g["name"])}</a>' for g in groups_of(data))}<a href="{link(d, 'search.html', lang)}">全系列</a></div>
 </div>
 {blocks}"""
     return page(data, SHOP, lang, f"商品分類 | {BRAND}", body, "依用途挑選 apetto 的機能服飾、外出配件與舒適生活用品。", current=SHOP)
@@ -1442,8 +1440,6 @@ def build_all(data, visible):
         for g in load_guides():
             write_page(render_guide(data, g, lang), guide_page(g), lang, table)
         write_page(render_listing(data, "search.html", lang, "全系列", visible, current="all", search=True), "search.html", lang, table)
-        best = [p for p in visible if "bestseller" in p.get("sections", [])]
-        write_page(render_listing(data, "bestsellers.html", lang, "暢銷商品", best, current="best"), "bestsellers.html", lang, table)
         write_page(fit.render(data, lang), fit.PAGE, lang, table)
         for p in visible:
             write_page(render_product(data, visible, p, lang, sb.product_i18n(p)), sb.product_page(p), lang, table)
