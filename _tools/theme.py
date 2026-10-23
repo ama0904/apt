@@ -97,7 +97,7 @@ UI = {
     "商品分類": {"en": "Shop All", "ja": "ショップ", "de": "Shop"},
     "商品指南": {"en": "Guides", "ja": "ガイド", "de": "Ratgeber"},
     "機能與設計細節": {"en": "Features & Design Details", "ja": "機能とデザインのディテール", "de": "Funktionen & Details"},
-    "品牌故事": {"en": "Our Story", "ja": "ブランドストーリー", "de": "Unsere Geschichte"},
+    "品牌故事": {"en": "About Us", "ja": "ブランドストーリー", "de": "Unsere Geschichte"},
     "依用途挑選": {"en": "Pick by what you need", "ja": "用途で選ぶ", "de": "Nach Einsatz wählen"},
     "瀏覽分類": {"en": "Browse", "ja": "カテゴリーを見る", "de": "Kategorie ansehen"},
     "即將推出": {"en": "Coming soon", "ja": "近日発売", "de": "Demnächst"},
@@ -336,6 +336,7 @@ p{margin:0 0 1em;text-wrap:pretty}h1,h2,h3{text-wrap:balance}ul,ol{margin:0;padd
 .logo{display:flex;align-items:center;gap:10px;flex:0 0 auto}.logo img{height:56px;width:auto}
 .nav{display:flex;gap:2px;flex-wrap:wrap;min-width:0}
 .nav a{white-space:nowrap;padding:8px 14px;border-radius:999px;font-weight:600;font-size:15.5px;color:var(--ink2)}.nav a:hover{background:var(--sand);color:var(--ink)}.nav a.cur{color:var(--brand-ink)}
+.hd-in>.nav a{position:relative}.hd-in>.nav a+a::before{content:"";position:absolute;left:-2px;top:50%;width:1px;height:14px;margin-top:-7px;background:var(--line2);pointer-events:none}
 .srch{display:flex;align-items:center;background:#fff;border:1.5px solid var(--line2);border-radius:999px;padding:0 6px 0 14px;height:44px;width:240px;flex:0 0 auto;transition:width .2s,border-color .2s}
 .srch:focus-within{border-color:var(--ink);width:280px}.srch input{border:0;outline:0;background:none;flex:1;min-width:0;font:inherit;font-size:15px}
 .srch button{border:0;background:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:var(--ink)}.srch button:hover{background:var(--sand)}
@@ -638,7 +639,7 @@ def header(data, site_rel, lang, current=""):
 
 def footer(data, site_rel, lang):
     d = rel_dir(site_rel)
-    links = [(SHOP, "商品分類"), ("search.html", "全系列"), (GUIDES, "商品指南"), (fit.PAGE, "AI 試衣間"),
+    links = [(SHOP, "商品分類"), ("search.html", "全系列"), (GUIDES, "商品指南"), (fit.PAGE, "試衣間"),
              ("pages/5.html", "購物流程"), ("information/news.html", "最新消息"), (ABOUT, "品牌故事")]
     small = "".join(f'<a href="{link(d, sp, lang)}">{esc(t)}</a>' for sp, t in links)
     return f"""<footer class="ft">

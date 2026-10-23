@@ -66,8 +66,8 @@ def coat_label(c, lang):
 
 # Markup strings (zh key -> translations); merged into theme.UI so translate_soup handles the page.
 UI = {
-    "試衣間": {"en": "Fitting room", "ja": "試着室", "de": "Anprobe"},
-    "AI 試衣間": {"en": "AI fitting room", "ja": "AI 試着室", "de": "KI-Anprobe"},
+    "試衣間": {"en": "Fitting Studio", "ja": "試着室", "de": "Anprobe"},
+    "AI 試衣間": {"en": "AI Fitting Studio", "ja": "AI 試着室", "de": "KI-Anprobe"},
     "讓毛孩先試穿，再決定": {"en": "Let your dog try it on first", "ja": "まず試着、それから決める", "de": "Erst anprobieren, dann entscheiden"},
     "上傳一張毛孩的照片，挑一件 apetto，AI 會畫出牠穿上的樣子。": {
         "en": "Upload a photo of your dog, pick an apetto coat, and the AI shows how it looks on them.",
@@ -123,7 +123,7 @@ UI = {
     "腹圍": {"en": "Girth", "ja": "胴回り", "de": "Bauchumfang"},
     # home promo
     "新功能": {"en": "New", "ja": "新機能", "de": "Neu"},
-    "AI 試衣間：先看牠穿上的樣子": {"en": "AI fitting room: see it on your dog first", "ja": "AI 試着室：着た姿を先に見る", "de": "KI-Anprobe: erst sehen, wie es deinem Hund steht"},
+    "AI 試衣間：先看牠穿上的樣子": {"en": "AI Fitting Studio: see it on your dog first", "ja": "AI 試着室：着た姿を先に見る", "de": "KI-Anprobe: erst sehen, wie es deinem Hund steht"},
     "上傳一張照片，挑一件 apetto，約 30 秒就能看到試穿效果。": {
         "en": "Upload a photo, pick an apetto coat, and see the result in about 30 seconds.",
         "ja": "写真を1枚アップロードして apetto を選ぶだけ。約30秒で試着イメージ。",
@@ -450,9 +450,9 @@ def render(data, lang):
                   f'<span class="nm">{th.esc(colour)}</span>{sub}</button>')
         if p and p.get("visible", True):
             links += f'<a href="{th.link(d, th.sb.product_page(p), lang)}">{th.esc(colour)}<span aria-hidden="true"> · </span>查看商品</a>'
-    crumbs = f'<li><a href="{th.link(d, "index.html", lang)}">首頁</a></li><li>AI 試衣間</li>'
+    crumbs = f'<li><a href="{th.link(d, "index.html", lang)}">首頁</a></li><li>試衣間</li>'
     body = f"""<div class="wrap"><ol class="breadcrumb">{crumbs}</ol>
-<div class="fit-head rv in"><span class="eyebrow">AI 試衣間</span><h1>讓毛孩先試穿，再決定</h1>
+<div class="fit-head rv in"><span class="eyebrow">試衣間</span><h1>讓毛孩先試穿，再決定</h1>
  <p class="lead">上傳一張毛孩的照片，挑一件 apetto，AI 會畫出牠穿上的樣子。</p>
  <div class="fit-status" role="status"><i></i><span>連線中…</span></div></div>
 <div class="fit-grid">
@@ -492,7 +492,7 @@ def render(data, lang):
 </div></div>
 <script id="apt-fit" type="application/json">{config_json(data, lang)}</script>
 <script src="{th.asset(d, 'assets/fitstudio.js')}?v={th.ASSET_VER['fit']}" defer></script>"""
-    title = {"zh": "AI 試衣間", "en": "AI fitting room", "ja": "AI 試着室", "de": "KI-Anprobe"}[lang]
+    title = {"zh": "試衣間", "en": "Fitting Studio", "ja": "試着室", "de": "Anprobe"}[lang]
     return th.page(data, PAGE, lang, f"{title} | {th.BRAND}", body, "上傳一張毛孩的照片，挑一件 apetto，AI 會畫出牠穿上的樣子。",
                    og_image=(load_coats() or [{"image": ASSET_DIR + COATS[1][1]}])[0]["image"], current=PAGE,
                    extra_head=f'<link rel="preconnect" href="{API_BASE}">')
