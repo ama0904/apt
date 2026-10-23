@@ -380,7 +380,7 @@ body.menu-open .bars i:nth-child(1){transform:translateY(6.75px) rotate(45deg)}b
 /* hero */
 .hero{padding:40px 0 20px}
 .hero-in{display:grid;grid-template-columns:1fr 1.15fr;gap:48px;align-items:center}
-.hero h1{font-size:clamp(34px,4.6vw,60px);letter-spacing:-.02em;margin-bottom:18px}
+.hero h1{font-size:clamp(34px,4.4vw,56px);letter-spacing:-.02em;margin-bottom:18px}.hero h1 .phr{display:inline-block}
 .hero .lead{font-size:18px;color:var(--ink2);max-width:46ch;margin-bottom:28px}
 .hero .cta{display:flex;gap:12px;flex-wrap:wrap}
 .hero-img{position:relative;border-radius:28px;overflow:hidden;aspect-ratio:16/10;background:var(--sand)}
@@ -1409,9 +1409,30 @@ def finish(html_text, site_rel, lang, table):
             el.decompose()
     if lang != "zh":
         sb.translate_soup(soup, lang, table)
+    keep_phrases(soup, lang)
     sb.use_optimized_images(soup, d)
     sb.add_search(soup, lang, site_rel)
     return str(soup)
+
+
+_PHRASE_END = re.compile(r"(?<=[，、。！？；：,!?])")
+
+
+def keep_phrases(soup, lang):
+    """Chinese / Japanese headlines: break lines only after punctuation, never inside a phrase.
+    Each phrase becomes an inline-block, so it still wraps internally if it alone is wider than the line."""
+    if lang not in ("zh", "ja"):
+        return
+    for h in soup.select(".hero h1"):
+        text = h.get_text()
+        parts = [x for x in _PHRASE_END.split(text) if x]
+        if len(parts) < 2 or h.find(True):
+            continue
+        h.clear()
+        for x in parts:
+            sp = soup.new_tag("span", attrs={"class": "phr"})
+            sp.string = x
+            h.append(sp)
 
 
 def write_page(html_text, site_rel, lang, table):
