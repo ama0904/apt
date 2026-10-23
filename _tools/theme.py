@@ -375,7 +375,8 @@ body.menu-open .bars i:nth-child(1){transform:translateY(6px) rotate(45deg)}body
  .mm-search input{flex:1;border:0;outline:0;background:none;font:inherit;font-size:16px;min-width:0}.mm-search button{border:0;background:var(--ink);color:#fff;width:40px;height:40px;border-radius:50%;margin:5px 0;cursor:pointer;display:grid;place-items:center}
  .mm-nav a{display:block;padding:16px 0;border-bottom:1px solid var(--line);font-size:20px;font-weight:700}.mm-nav a.cur{color:var(--brand-ink)}
  .mm-sub{margin-top:24px;display:flex;flex-wrap:wrap;gap:8px 20px}.mm-sub a{color:var(--mute);font-weight:600}
- .mm-social{margin-top:28px;display:flex;gap:10px}.mm-social a{display:inline-flex;align-items:center;height:44px;padding:0 20px;border-radius:999px;border:1.5px solid var(--line2);background:#fff;font-weight:700;font-size:15px}
+ .mm-more{margin-top:18px;display:flex;gap:22px}.mm-more a{font-size:15.5px;font-weight:600;color:var(--ink2)}
+ .mm-social{margin-top:22px;display:flex;gap:10px}.mm-social a{display:inline-flex;align-items:center;height:44px;padding:0 20px;border-radius:999px;border:1.5px solid var(--line2);background:#fff;font-weight:700;font-size:15px}
 }
 
 /* hero */
@@ -469,6 +470,7 @@ body.menu-open .bars i:nth-child(1){transform:translateY(6px) rotate(45deg)}body
 #options label.checkbox:hover{border-color:var(--ink)}#options input{position:absolute;opacity:0;width:0;height:0}
 .showcase #options label.checkbox{cursor:default;pointer-events:none}
 .buy{margin-top:24px;display:flex;flex-direction:column;gap:10px}.buy .btn{width:100%}.buy-note{margin:0;font-size:14px;color:var(--mute);text-align:center}
+.buy-help{display:inline-block;margin-top:12px;font-size:14.5px;font-weight:600;color:var(--ink2);text-decoration:underline;text-underline-offset:3px}.buy .buy-help{margin-top:0;align-self:center}.buy-help:hover{color:var(--brand-ink)}
 .showcase-note{margin:24px 0 0;padding:16px 18px;background:var(--sand);border-radius:14px;font-size:15px;color:var(--ink2)}
 .showcase-note a{font-weight:700;color:var(--brand-ink);white-space:nowrap}
 .pd-desc{padding:16px 0 64px;border-top:1px solid var(--line)}
@@ -633,6 +635,7 @@ def header(data, site_rel, lang, current=""):
 <div class="mobile-menu" role="dialog" aria-label="選單"><div class="mm-panel">
   <div class="mm-top"><a href="{link(d, 'index.html', lang)}" aria-label="apetto"><img src="{asset(d, LOGO)}" alt="apetto"></a><button class="mm-close" aria-label="關閉">✕</button></div>
   <nav class="mm-nav">{nav_links(data, d, lang, current)}</nav>
+  <nav class="mm-more"><a href="{link(d, "pages/5.html", lang)}">購物流程</a><a href="{link(d, "information/news.html", lang)}">最新消息</a></nav>
   <div class="mm-social"><a href="{INSTAGRAM}" target="_blank" rel="noopener">Instagram</a><a href="{PINKOI}" target="_blank" rel="noopener">Pinkoi</a></div>
 </div></div>"""
 
@@ -879,9 +882,11 @@ def render_product(data, visible, p, lang, overrides):
     online_url = f"{sb.ONLINE}product/product&product_id={p['id']}"
     if lang == "zh":
         buy = (f'<div class="buy"><a class="btn big brand" href="{esc(buy_link(p, data))}" target="_blank" rel="noopener">立即購買</a>'
-               f'<p class="buy-note">將前往官方賣場完成結帳</p></div>')
+               f'<p class="buy-note">將前往官方賣場完成結帳</p>'
+               f'<a class="buy-help" href="{link(d, "pages/5.html", lang)}">購物流程<span aria-hidden="true"> →</span></a></div>')
     else:
-        buy = f'<p class="showcase-note">本站為商品介紹，購買請至台灣官方商店。 <a href="{esc(online_url)}" target="_blank" rel="noopener">前往官方商店<span aria-hidden="true"> →</span></a></p>'
+        buy = (f'<p class="showcase-note">本站為商品介紹，購買請至台灣官方商店。 <a href="{esc(online_url)}" target="_blank" rel="noopener">前往官方商店<span aria-hidden="true"> →</span></a></p>'
+               f'<a class="buy-help" href="{link(d, "pages/5.html", lang)}">購物流程<span aria-hidden="true"> →</span></a>')
     related = [q for q in visible if q["id"] != p["id"] and (not cat or cat["id"] in q.get("categories", []))][:4]
     crumbs = f'<li><a href="{link(d, "index.html", lang)}">首頁</a></li><li><a href="{link(d, SHOP, lang)}">商品分類</a></li>'
     if cat:
