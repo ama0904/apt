@@ -342,16 +342,16 @@ p{margin:0 0 1em;text-wrap:pretty}h1,h2,h3{text-wrap:balance}ul,ol{margin:0;padd
 .lang{display:flex;flex:0 0 auto;background:#fff;border:1.5px solid var(--line2);border-radius:999px;padding:4px;gap:2px}
 .lang a{display:inline-flex;align-items:center;justify-content:center;min-width:56px;height:38px;padding:0 13px;white-space:nowrap;border-radius:999px;font-weight:700;font-size:15px;color:var(--ink2)}
 .lang a:hover{background:var(--sand);color:var(--ink)}.lang a.cur{background:var(--ink);color:#fff}
-.burger{display:none;border:1px solid var(--line2);background:#fff;width:44px;height:44px;border-radius:50%;cursor:pointer;color:var(--ink);box-shadow:0 2px 10px rgba(0,0,0,.08);transition:transform .15s,background .15s}
-.burger:active{transform:scale(.85);background:var(--sand)}
-.bars{display:block;width:22px;height:16px;position:relative}.bars i{position:absolute;left:0;width:22px;height:2.5px;border-radius:2px;background:currentColor;transition:transform .25s,opacity .2s}
-.bars i:nth-child(1){top:0}.bars i:nth-child(2){top:6.75px}.bars i:nth-child(3){top:13.5px}
-body.menu-open .bars i:nth-child(1){transform:translateY(6.75px) rotate(45deg)}body.menu-open .bars i:nth-child(2){opacity:0}body.menu-open .bars i:nth-child(3){transform:translateY(-6.75px) rotate(-45deg)}
+.burger{display:none;border:0;background:none;width:44px;height:44px;border-radius:12px;cursor:pointer;color:var(--ink);padding:0;transition:background .15s}
+.burger:active{background:var(--sand)}
+.bars{display:block;width:22px;height:14px;position:relative}.bars i{position:absolute;left:0;width:22px;height:2px;border-radius:2px;background:currentColor;transition:transform .25s,opacity .2s}
+.bars i:nth-child(1){top:0}.bars i:nth-child(2){top:6px}.bars i:nth-child(3){top:12px}
+body.menu-open .bars i:nth-child(1){transform:translateY(6px) rotate(45deg)}body.menu-open .bars i:nth-child(2){opacity:0}body.menu-open .bars i:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
 .lang-row{display:none}
 .mobile-menu{display:none}
 @media (max-width:1180px){.nav a{font-size:15px;padding:8px 10px}}
 @media (max-width:980px){
- .nav,.srch,.hd-in>.lang{display:none}.burger{display:grid;place-items:center;order:-1;margin-left:-8px}
+ .nav,.srch,.hd-in>.lang{display:none}.burger{display:grid;place-items:center;order:-1;margin-left:-11px}
  .hd-in{display:flex;align-items:center;min-height:64px;gap:12px;padding-top:0}.hd-in>.logo{margin:0 auto;padding-right:36px}.logo img{height:50px}
  /* phones: the language row sits once at the very top of the page and scrolls away; only the logo/menu bar stays sticky */
  .lang-row{display:flex;gap:6px;padding:8px var(--gutter) 2px;background:var(--bg,#fbfaf7)}
