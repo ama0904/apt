@@ -1,6 +1,29 @@
 {
  "items": [
   {
+   "id": 4,
+   "date": "2026/10/24",
+   "title": "AI 小幫手上線了！",
+   "body": "<p>挑尺寸、問運費、想知道雨衣怎麼洗？現在隨時都有人陪你聊。</p><p>點畫面右下角的 <strong>apetto 小幫手</strong>，直接打字問就好。告訴它狗狗的背長或品種，它會幫你挑尺寸、推薦適合的款式；運費、付款、保養這些問題也難不倒它。</p><p>小幫手支援中文、English、日本語和 Deutsch。AI 的回答僅供參考，如有疑問，請以客服答覆為準。</p>",
+   "link": "",
+   "link_text": "",
+   "visible": true,
+   "i18n": {
+    "en": {
+     "title": "Meet the AI helper!",
+     "body": "<p>Picking a size, checking shipping, wondering how to wash a raincoat? Now there's always someone to chat with.</p><p>Tap <strong>apetto Helper</strong> at the bottom right and just type your question. Tell it your dog's back length or breed and it will suggest a size and the right styles; shipping, payment and care questions are covered too.</p><p>The helper speaks Chinese, English, Japanese and German. AI answers are for reference only; our support team has the final word.</p>"
+    },
+    "ja": {
+     "title": "AI アシスタントが登場！",
+     "body": "<p>サイズ選び、送料、レインコートの洗い方……いつでも気軽に聞けるようになりました。</p><p>画面右下の <strong>apetto アシスタント</strong> をタップして、質問を入力するだけ。背丈や犬種を伝えればサイズやおすすめのモデルを提案します。送料・支払い・お手入れの質問にも答えます。</p><p>中国語・英語・日本語・ドイツ語に対応。AI の回答は参考情報です。正式な回答はスタッフからご案内します。</p>"
+    },
+    "de": {
+     "title": "Der KI-Assistent ist da!",
+     "body": "<p>Größe finden, Versandkosten, Regenmantel waschen? Jetzt kannst du jederzeit fragen.</p><p>Tippe unten rechts auf den <strong>apetto Assistent</strong>-Button und schreib einfach deine Frage. Nenn Rückenlänge oder Rasse deines Hundes, und er schlägt Größe und passende Modelle vor; auch Fragen zu Versand, Zahlung und Pflege beantwortet er.</p><p>Der Assistent spricht Chinesisch, Englisch, Japanisch und Deutsch. KI-Antworten sind unverbindlich; verbindlich ist unser Kundenservice.</p>"
+    }
+   }
+  },
+  {
    "id": 3,
    "date": "2026/10/21",
    "title": "AI 試衣間上線了！",

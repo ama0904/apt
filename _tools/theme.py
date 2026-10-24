@@ -80,7 +80,7 @@ def untyped_items(visible, c):
     return [p for p in visible if c["id"] in p.get("categories", []) and not keys.intersection(p.get("types") or [])]
 
 
-VERSION = "v1.0.1"
+VERSION = "v1.0.2"
 BRAND = "apetto 寵物機能衣"
 HOME_TITLE = "apetto | 高機能寵物時裝：專業防水防風、專為毛孩設計的機能衣服"
 HOME_DESC = ("apetto 專業製衣團隊專注研發高機能寵物時裝。嚴選防水與防風布料，結合俐落的結構剪裁與極致實用性。"
