@@ -111,7 +111,7 @@ function setFacts(kb) {
     return `- ${p.n}｜${money(p.p)}｜${cats[p.cat] || ''}｜${p.ser === 'big' ? '大汪系列（中大型犬）' : '小汪系列（小型犬）'}${p.warm ? '｜保暖款（刷毛內裡）' : ''}｜尺寸 ${sz}`;
   });
   const faq = (kb.faq || []).filter(f => !f.chat && !f.pending && f.a).map(f => `問：${f.t || (f.q || [])[0] || ''}\n答：${fill(Array.isArray(f.a) ? f.a[0] : f.a)}`);
-  const docs = (kb.docs || []).map(d => `【${d.t}】${String(d.x || '').replace(/\s+/g, ' ').slice(0, 260)}`);
+  const docs = (kb.docs || []).map(d => `【${d.t}】${String(d.x || '').replace(/\s+/g, ' ').slice(0, 200)}`);
   PREFIX = [
     '你是 apetto 網站上的客服「apetto 小幫手」。apetto 是台灣的狗狗雨衣與保暖外套品牌（匯得興業有限公司）。',
     '規則：',
@@ -129,11 +129,12 @@ function setFacts(kb) {
     '＝＝店家資料＝＝',
     '[商品]', ...prods,
     '',
-    '[常見問題]', ...faq,
-    '',
     '[指南與說明]', ...docs,
     '',
     '[客服]', contact,
+    '',
+    // the owner's answers change most often, so they go last: an update then only re-reads this tail
+    '[常見問題]', ...faq,
   ].join('\n');
   prefixV = kb.v;
   llmWarm = '';
@@ -147,7 +148,7 @@ async function warmLLM() {
   const v = prefixV, t0 = Date.now();
   warming = true;
   try {
-    await Promise.all([0, 1].map(() => fetch(LLM + '/v1/chat/completions', {
+    await Promise.all([0].map(() => fetch(LLM + '/v1/chat/completions', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: [{ role: 'system', content: PREFIX }, { role: 'user', content: '你好' }], max_tokens: 1, cache_prompt: true }),
     }).then(r => r.text())));

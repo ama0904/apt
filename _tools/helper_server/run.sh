@@ -49,7 +49,7 @@ if [ ! -s "$GGUF" ]; then
     && mv "$GGUF.part" "$GGUF" && say "AI model downloaded" || say "AI model download failed"
 fi
 if [ -s "$GGUF" ] && [ -x "$RT/llm/llama/llama-server" ] && ! pgrep -u "$USER" -x apetto-llm > /dev/null; then
-  LD_LIBRARY_PATH="$RT/llm/llama" nohup nice -n 10 "$RT/llm/llama/apetto-llm" -m "$GGUF" -t 12 -c 32768 -np 2 \
+  LD_LIBRARY_PATH="$RT/llm/llama" nohup nice -n 10 "$RT/llm/llama/apetto-llm" -m "$GGUF" -t 12 -c 16384 -np 1 \
     --host 127.0.0.1 --port 18788 --no-webui >> "$RT/logs/llm.log" 2>&1 < /dev/null 9>&- &
   say "AI model started"
 fi
