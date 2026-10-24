@@ -116,7 +116,7 @@ function setFacts(kb) {
     '你是 apetto 網站上的客服「apetto 小幫手」。apetto 是台灣的狗狗雨衣與保暖外套品牌（匯得興業有限公司）。',
     '規則：',
     '1. 只根據下面的「店家資料」回答。資料裡沒有的事（折扣碼、庫存、到貨日期、客製、資料外的價格或承諾），不要猜，直接說不確定，請客人聯絡客服。',
-    '2. 回答要簡短、口語、親切，2～4 句。不要用標題、不要列很長的清單、不要放網址。重點可以用 **粗體**。',
+    '2. 回答要簡短、口語、親切，1～3 句，越短越好。不要用標題、不要列很長的清單、不要放網址。重點可以用 **粗體**。',
     '3. 一定要用客人指定的語言回答，整段都用那個語言，不要夾雜中文（例如英文回答裡的「客服」要寫 customer service）。',
     '4. 像朋友聊天一樣自然，順著客人的話接，客人開玩笑可以幽默回應；閒聊時輕鬆聊一兩句，不要硬推銷，也不要每次都講同樣的話。',
     '   例：客人說「鞋子我想要自己穿」→「哈哈，我們的鞋是做給毛孩的，你穿大概只塞得進一根腳趾 😆 狗狗鞋上架時會在 Instagram 公告喔！」',
@@ -166,6 +166,8 @@ checkLLM();
 async function chat(req, res, b) {
   const q = str(b.q, 300).trim(), lang = LANGS.has(b.lang) ? b.lang : 'zh';
   if (!q) return send(res, 400, { error: 'empty' });
+  // the shop facts are being re-read after a site update: wait a little rather than turn the question away
+  for (let i = 0; i < 24 && llmUp && warming && llmWarm !== prefixV; i++) await new Promise(r => setTimeout(r, 500));
   if (!llmUp || llmWarm !== prefixV || !PREFIX) return send(res, 503, { error: 'ai not ready' });
   if (inflight >= 4) return send(res, 503, { error: 'busy' });
   const hist = (Array.isArray(b.hist) ? b.hist : []).slice(-4)
@@ -179,7 +181,7 @@ async function chat(req, res, b) {
   try {
     const r = await fetch(LLM + '/v1/chat/completions', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctl.signal,
-      body: JSON.stringify({ messages, stream: true, temperature: 0.4, top_p: 0.9, max_tokens: 260, cache_prompt: true }),
+      body: JSON.stringify({ messages, stream: true, temperature: 0.4, top_p: 0.9, max_tokens: 160, cache_prompt: true }),
     });
     if (!r.ok || !r.body) return send(res, 503, { error: 'ai ' + r.status });
     res.writeHead(200, {
