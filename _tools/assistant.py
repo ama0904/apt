@@ -431,12 +431,12 @@ def build(data, visible, lang_codes):
                 continue   # not answered yet in the admin
             own.add(f.get("id"))
             link = f.get("link", "")
-            kb["faq"].append({"id": f.get("id", ""), "q": [w for w in (f.get("k") or f.get("q") or []) if w], "a": ans,
+            kb["faq"].append({"id": f.get("id", ""), "q": [w for w in (f.get("k") or f.get("q") or []) if w], "a": ans, "t": f.get("title", ""),
                               "u": L(link) if link and not link.startswith("http") else link})
             kb["sem"]["ex"] += [[ex, "faq:" + f.get("id", "")] for ex in (f.get("ex") or []) + [f.get("title", "")] if ex]
         for tp in TOPICS:
             if tp["id"] not in own:
-                kb["faq"].append({"id": tp["id"], "q": tp["k"], "a": tp["a"].get(lang) or tp["a"]["en"], "u": ""})
+                kb["faq"].append({"id": tp["id"], "q": tp["k"], "a": tp["a"].get(lang) or tp["a"]["en"], "t": tp["ex"][0], "u": ""})
                 kb["sem"]["ex"] += [[ex, "faq:" + tp["id"]] for ex in tp["ex"]]
         for f in custom.get("faq", []):
             a = f.get("a") or {}
@@ -513,7 +513,7 @@ JS = r"""(function(){
 var SC=document.currentScript, API=SC.getAttribute('data-api')||'', BASE=(SC.getAttribute('src')||'').replace(/assets\/assistant\.js.*$/,''), LANG=SC.getAttribute('data-lang')||'zh', LOGO=SC.getAttribute('data-logo')||'';
 var TX={
 zh:{name:'apetto 小幫手',status:'線上 · 通常幾秒內回覆',ph:'輸入問題，例如：柴犬穿幾號？',open:'開啟小幫手',close:'關閉',reset:'重新開始',send:'送出',
- foot:'小幫手依照 apetto 網站資料自動回答',logged:'問題會匿名記錄，用來改善回答',tip:'尺寸不確定嗎？告訴我背長或品種，我幫你挑 🐾',
+ foot:'小幫手依照 apetto 網站資料自動回答',logged:'問題會匿名記錄，用來改善回答',ai:'AI 回答僅供參考，以客服答覆為準',tip:'尺寸不確定嗎？告訴我背長或品種，我幫你挑 🐾',
  hello:['嗨！我是 apetto 小幫手 🐾\n可以幫你挑尺寸、推薦款式，也能回答運費和出貨的問題。想問什麼呢？'],
  chips0:['幫我挑尺寸','雨衣怎麼選？','運費怎麼算？','多久會到貨？','有哪些顏色？'],
  greet:['嗨！很高興見到你 😊 想幫毛孩找雨衣，還是保暖外套呢？','哈囉！今天想幫毛孩找什麼呢？'],
@@ -557,7 +557,7 @@ zh:{name:'apetto 小幫手',status:'線上 · 通常幾秒內回覆',ph:'輸入�
  chartAsk:'想看哪個系列的尺寸表？',chartHead:'**{line}** 尺寸表（公分，圈量）：',chartRow:'{s}：衣長 {len}、領圍 {neck}、腹圍 {belly}',chartTail:'挑尺寸的方法：衣長比背長短約 {off} 公分最合身。告訴我背長，我直接幫你算。',
  sizeWord:'號',cm:'公分'},
 en:{name:'apetto Helper',status:'Online · usually replies in seconds',ph:'Ask me, e.g. what size for a Shiba?',open:'Open the helper',close:'Close',reset:'Start over',send:'Send',
- foot:'Answers come from the apetto website',logged:'questions are logged anonymously to improve answers',tip:'Not sure about the size? Tell me the back length or breed 🐾',
+ foot:'Answers come from the apetto website',logged:'questions are logged anonymously to improve answers',ai:'AI answers are for reference only; our support team has the final word',tip:'Not sure about the size? Tell me the back length or breed 🐾',
  hello:["Hi! I'm the apetto helper 🐾\nI can pick a size, suggest a coat, and answer questions about shipping and delivery. What would you like to know?"],
  chips0:['Help me pick a size','Which raincoat?','Shipping cost?','Delivery time?','Which colours?'],
  greet:['Hi there! 😊 Looking for a raincoat or a warm jacket?','Hello! What can I find for your dog today?'],
@@ -601,7 +601,7 @@ en:{name:'apetto Helper',status:'Online · usually replies in seconds',ph:'Ask m
  chartAsk:'Which series would you like the size chart for?',chartHead:'**{line}** size chart (cm, girths):',chartRow:'{s}: length {len}, neck {neck}, chest {belly}',chartTail:'Rule of thumb: the coat length should be about {off} cm shorter than the back. Tell me the back length and I will work it out.',
  sizeWord:'',cm:'cm'},
 ja:{name:'apetto アシスタント',status:'オンライン · すぐにお返事します',ph:'例：柴犬は何サイズ？',open:'アシスタントを開く',close:'閉じる',reset:'最初から',send:'送信',
- foot:'apetto サイトの情報をもとに自動で回答します',logged:'質問は改善のため匿名で記録されます',tip:'サイズに迷ったら、背丈か犬種を教えてください 🐾',
+ foot:'apetto サイトの情報をもとに自動で回答します',logged:'質問は改善のため匿名で記録されます',ai:'AI の回答は参考情報です。正式な回答はスタッフから',tip:'サイズに迷ったら、背丈か犬種を教えてください 🐾',
  hello:['こんにちは！apetto アシスタントです 🐾\nサイズ選びやおすすめ、送料・発送についてお答えします。何でも聞いてください。'],
  chips0:['サイズを選びたい','レインコートの選び方','送料は？','届くまでの日数','カラーは？'],
  greet:['こんにちは！😊 レインコートと防寒ジャケット、どちらをお探しですか？'],
@@ -643,7 +643,7 @@ ja:{name:'apetto アシスタント',status:'オンライン · すぐにお返�
  chartAsk:'どのシリーズのサイズ表を見ますか？',chartHead:'**{line}** サイズ表（cm・周囲）：',chartRow:'{s}：着丈 {len}、首回り {neck}、胴回り {belly}',chartTail:'目安は着丈が背丈より約 {off} cm 短いもの。背丈を教えていただければ計算します。',
  sizeWord:'',cm:'cm'},
 de:{name:'apetto Assistent',status:'Online · antwortet meist sofort',ph:'z. B. Welche Größe für einen Shiba?',open:'Assistent öffnen',close:'Schließen',reset:'Neu starten',send:'Senden',
- foot:'Antworten basieren auf der apetto Website',logged:'Fragen werden anonym gespeichert, um Antworten zu verbessern',tip:'Unsicher bei der Größe? Nenn mir Rückenlänge oder Rasse 🐾',
+ foot:'Antworten basieren auf der apetto Website',logged:'Fragen werden anonym gespeichert, um Antworten zu verbessern',ai:'KI-Antworten sind unverbindlich; verbindlich ist unser Kundenservice',tip:'Unsicher bei der Größe? Nenn mir Rückenlänge oder Rasse 🐾',
  hello:['Hallo! Ich bin der apetto Assistent 🐾\nIch helfe bei Größe und Modellwahl und beantworte Fragen zu Versand und Lieferung.'],
  chips0:['Größe finden','Welcher Regenmantel?','Versandkosten?','Lieferzeit?','Welche Farben?'],
  greet:['Hallo! 😊 Suchst du einen Regenmantel oder eine warme Jacke?'],thanks:['Gern geschehen! Frag jederzeit 🐾'],bye:['Tschüss! Bis bald 🐾'],
@@ -863,12 +863,12 @@ function answer(q){
  if(soonCat)return K='soon',A(fmt(T.soon,{cat:soonCat.n}),{chips:T.chipsAfter});
  return K='unknown',A(T.unknown,{chips:T.chips0.slice(0,4)});}
 // ---------------------------------------------------------------- server (optional): semantic match + question log
-var SRV=null,srvP=null,SID='';
+var SRV=null,srvP=null,SID='',LLM=false;
 try{SID=sessionStorage.getItem('apetto_ai_sid')||'';if(!SID){SID=Math.random().toString(36).slice(2,10)+Date.now().toString(36);sessionStorage.setItem('apetto_ai_sid',SID);}}catch(e){SID='x'+Math.random().toString(36).slice(2,10);}
 function srvOn(){if(!API)return Promise.resolve(false);if(SRV!==null)return Promise.resolve(SRV);
  if(!srvP){var ctl=new AbortController(),tm=setTimeout(function(){ctl.abort();},10000);
   // the first connection through the tunnel can be slow; if it fails, try again 20 s later
-  srvP=fetch(API+'/api/health',{cache:'no-store',signal:ctl.signal}).then(function(r){return r.json();}).then(function(j){SRV=!!(j&&j.helper);return SRV;}).catch(function(){SRV=false;setTimeout(function(){SRV=null;srvP=null;},20000);return false;}).then(function(v){clearTimeout(tm);if(v&&foot)foot.textContent=T.foot+' · '+T.logged;return v;});}
+  srvP=fetch(API+'/api/health',{cache:'no-store',signal:ctl.signal}).then(function(r){return r.json();}).then(function(j){SRV=!!(j&&j.helper);LLM=SRV&&!!j.llm;return SRV;}).catch(function(){SRV=false;setTimeout(function(){SRV=null;srvP=null;},20000);return false;}).then(function(v){clearTimeout(tm);if(v&&foot)foot.textContent=T.foot+' · '+T.logged+(LLM?' · '+T.ai:'');return v;});}
  return srvP;}
 function srvMatch(q){return srvOn().then(function(on){if(!on||!KB.v)return null;var ctl=new AbortController(),tm=setTimeout(function(){ctl.abort();},3000);
  return fetch(API+'/api/helper/match',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:q.slice(0,300),lang:LANG,v:KB.v}),signal:ctl.signal})
@@ -916,9 +916,24 @@ function ask(q){q=String(q||'').trim();if(!q||busy)return;busy=true;sendBtn.disa
  loadKB().then(function(){var a;try{a=answer(q);a.kind=K;}catch(e){a=A(T.unknown,{chips:T.chips0});a.kind='error';}a.via='rule';
   var stop=typing(),wait=Math.min(1400,450+a.text.length*6+Math.random()*250);
   Promise.all([Promise.race([srvMatch(q).catch(function(){return null;}),new Promise(function(r){setTimeout(function(){r(null);},3500);})]),new Promise(function(r){setTimeout(r,wait);})]).then(function(res){
-   var b=a;try{b=refine(q,a,res[0]);}catch(e){b=a;}stop();
-   addBot(b,false,function(){HIST.push({bot:b});save();setChips(b.chips);srvLog(q,b);busy=false;sendBtn.disabled=!ta.value.trim();ta.focus({preventScroll:true});});});
+   var b=a;try{b=refine(q,a,res[0]);}catch(e){b=a;}
+   var fin=function(x){HIST.push({bot:x});save();setChips(x.chips);srvLog(q,x);busy=false;sendBtn.disabled=!ta.value.trim();ta.focus({preventScroll:true});};
+   if(useAI(b))aiAnswer(q,b,stop,fin);else{stop();addBot(b,false,function(){fin(b);});}});
  }).catch(function(){busy=false;sendBtn.disabled=false;});}
+// the small AI model on the server takes what the rules could not answer, plus small talk, and streams its reply;
+// if it is slow to start or anything fails, the rule answer is shown instead
+function useAI(b){return LLM&&(b.kind==='unknown'||b.kind==='doc'||b.kind==='error'||/^chat/.test(b.kind||''));}
+function aiHist(){var o=[];HIST.slice(0,-1).slice(-4).forEach(function(h){if(h.me)o.push({r:'u',t:String(h.me).slice(0,300)});else if(h.bot)o.push({r:'a',t:String(h.bot.text||'').slice(0,400)});});return o;}
+function aiAnswer(q,fb,stop,fin){var ctl=new AbortController(),d=null,txt='',tm=setTimeout(function(){ctl.abort();},15000),cap=setTimeout(function(){ctl.abort();},60000);
+ var end=function(){clearTimeout(tm);clearTimeout(cap);
+  if(!d){stop();addBot(fb,false,function(){fin(fb);});return;}
+  var t=txt.trim(),a={text:t,chips:T.chipsAfter,kind:'ai',via:'ai'};d.innerHTML=md(t);scroll();fin(a);};
+ fetch(API+'/api/helper/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:q.slice(0,300),lang:LANG,hist:aiHist()}),signal:ctl.signal})
+ .then(function(r){if(!r.ok||!r.body)throw new Error('ai');var rd=r.body.getReader(),dec=new TextDecoder();
+  return (function pump(){return rd.read().then(function(x){if(x.done)return;txt+=dec.decode(x.value,{stream:true});
+   if(!d&&txt.trim()){clearTimeout(tm);stop();d=document.createElement('div');d.className='ai-m bot';log.appendChild(d);}
+   if(d){d.textContent=txt.replace(/\*\*/g,'');scroll();}return pump();});})();})
+ .then(end,end);}
 function grow(){ta.style.height='auto';var h=ta.scrollHeight+2;ta.style.height=Math.min(110,h)+'px';ta.style.overflowY=h>110?'auto':'hidden';}
 function openPanel(){if(!root)build();var tip=document.querySelector('.ai-tip');if(tip)tip.remove();panel.hidden=false;fab.style.display='none';fab.setAttribute('aria-expanded','true');
  try{sessionStorage.setItem('apetto_ai_tip','1');}catch(e){}

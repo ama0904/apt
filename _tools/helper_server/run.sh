@@ -33,7 +33,28 @@ if ! pgrep -u "$USER" -f "$RT/ts/tailscaled" > /dev/null; then
   say "tailscaled started"
 fi
 
-# 3. helper server
+# 3. small AI model for chat (llama.cpp, CPU only, 12 threads, low priority)
+LLAMA_TAG=b11539
+GGUF="$RT/models-gguf/Qwen3-4B-Instruct-2507-Q4_K_M.gguf"
+if [ ! -x "$RT/llm/llama/llama-server" ]; then
+  mkdir -p "$RT/llm" && rm -rf "$RT/llm/llama" "$RT/llm/llama-$LLAMA_TAG"
+  if curl -fsSL "https://github.com/ggml-org/llama.cpp/releases/download/$LLAMA_TAG/llama-$LLAMA_TAG-bin-ubuntu-x64.tar.gz" | tar xz -C "$RT/llm"; then
+    mv "$RT/llm/llama-$LLAMA_TAG" "$RT/llm/llama"; say "llama.cpp $LLAMA_TAG installed"
+  else say "llama.cpp download failed"; fi
+fi
+ln -sfn llama-server "$RT/llm/llama/apetto-llm"   # a clear process name for the lab admins
+if [ ! -s "$GGUF" ]; then
+  mkdir -p "$RT/models-gguf"
+  curl -fsSL -o "$GGUF.part" https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/main/Qwen3-4B-Instruct-2507-Q4_K_M.gguf \
+    && mv "$GGUF.part" "$GGUF" && say "AI model downloaded" || say "AI model download failed"
+fi
+if [ -s "$GGUF" ] && [ -x "$RT/llm/llama/llama-server" ] && ! pgrep -u "$USER" -x apetto-llm > /dev/null; then
+  LD_LIBRARY_PATH="$RT/llm/llama" nohup nice -n 10 "$RT/llm/llama/apetto-llm" -m "$GGUF" -t 12 -c 32768 -np 2 \
+    --host 127.0.0.1 --port 18788 --no-webui >> "$RT/logs/llm.log" 2>&1 < /dev/null 9>&- &
+  say "AI model started"
+fi
+
+# 4. helper server
 if ! pgrep -u "$USER" -f "apetto-helper/server.mjs" > /dev/null && ! pgrep -u "$USER" -x apetto-helper > /dev/null; then
   APP="$APP" RT="$RT" PORT=$PORT nohup nice -n 5 node "$APP/server.mjs" >> "$RT/logs/server.log" 2>&1 < /dev/null 9>&- &
   say "server started"
