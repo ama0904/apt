@@ -14,8 +14,25 @@ DIR = SITE / "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/2026/08/2
 # (x0, y0, x1, y1, dx, dy, mirror): fill the box with the band found dx/dy away, optionally mirrored
 JOBS = {
     "cf1d3a5ae88219b7f6c3868005c2ff8d.jpg": [(60, 82, 492, 152, 430, 0, True), (60, 152, 484, 212, 0, 64, False)],
-    "b2963b09f6f2a473a8f3367f8d8ac9e2.jpg": [(66, 172, 506, 306, 0, 200, False)],
 }
+# photos where the slogan sits on dark, busy foliage: copying a band duplicated the mossy steps, so only the
+# white letter strokes are erased and filled from their surroundings
+STROKES = {
+    "b2963b09f6f2a473a8f3367f8d8ac9e2.jpg": [(66, 172, 506, 306)],
+}
+
+
+def erase_strokes(src_path, out_path, boxes):
+    import cv2
+    img = cv2.imdecode(np.fromfile(str(src_path), dtype=np.uint8), cv2.IMREAD_COLOR)
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    mask = np.zeros(img.shape[:2], np.uint8)
+    for x0, y0, x1, y1 in boxes:
+        sub = hsv[y0:y1, x0:x1]
+        mask[y0:y1, x0:x1] = ((sub[..., 2] > 185) & (sub[..., 1] < 60)).astype(np.uint8) * 255  # near-white
+    mask = cv2.dilate(mask, np.ones((5, 5), np.uint8), iterations=2)
+    out = cv2.inpaint(img, mask, 5, cv2.INPAINT_TELEA)
+    cv2.imencode(".jpg", out, [cv2.IMWRITE_JPEG_QUALITY, 92])[1].tofile(str(out_path))
 
 
 def repair(src_path, out_path, jobs, seam=6):
@@ -37,10 +54,10 @@ def repair(src_path, out_path, jobs, seam=6):
 
 
 if __name__ == "__main__":
-    for name, jobs in JOBS.items():
+    for name, jobs in list(JOBS.items()) + list(STROKES.items()):
         src = DIR / name
         out = src.with_name(src.stem + ".clean.jpg")
-        repair(src, out, jobs)
+        (erase_strokes if name in STROKES else repair)(src, out, jobs)
         webp = src.with_name(src.stem + ".clean.opt.webp")
         if webp.exists():
             webp.unlink()
