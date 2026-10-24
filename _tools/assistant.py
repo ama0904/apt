@@ -899,7 +899,11 @@ var root,log,chipsEl,ta,sendBtn,panel,fab,foot,busy=false,HIST=[];
 var SKEY='apetto_ai_'+LANG;
 function save(){try{sessionStorage.setItem(SKEY,JSON.stringify({h:HIST.slice(-40),st:ST}));}catch(e){}}
 function restore(){try{var j=JSON.parse(sessionStorage.getItem(SKEY)||'null');if(j){HIST=j.h||[];Object.assign(ST,j.st||{});}}catch(e){}}
-function scroll(){log.scrollTop=log.scrollHeight;}
+// keep the newest message (and the typing dots) in view; also after late layout changes such as the
+// phone keyboard closing or the suggestion chips appearing, unless the reader scrolled up on purpose
+var stick=true;
+function pin(){if(log&&stick)log.scrollTop=log.scrollHeight;}
+function scroll(){stick=true;pin();requestAnimationFrame(pin);setTimeout(pin,120);}
 function addMe(t){var d=document.createElement('div');d.className='ai-m me';d.textContent=t;log.appendChild(d);scroll();}
 function addCards(ids){if(!ids||!ids.length)return;var w=document.createElement('div');w.className='ai-cards';
  ids.forEach(function(id){var p=prodById(id);if(!p)return;var a=document.createElement('a');a.className='ai-card';a.href=BASE+p.u;
@@ -951,7 +955,7 @@ function build(){root=document.createElement('div');
   +'<div class="ai-log" aria-live="polite"></div><div class="ai-chips"></div>'
   +'<form class="ai-in"><textarea rows="1" placeholder="'+esc(T.ph)+'" aria-label="'+esc(T.ph)+'"></textarea><button type="submit" aria-label="'+esc(T.send)+'" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></form>'
   +'<div class="ai-foot">'+esc(T.foot)+'</div></div>';
- document.body.appendChild(root);panel=root.querySelector('.ai-panel');foot=root.querySelector('.ai-foot');log=root.querySelector('.ai-log');chipsEl=root.querySelector('.ai-chips');ta=root.querySelector('textarea');sendBtn=root.querySelector('.ai-in button');
+ document.body.appendChild(root);panel=root.querySelector('.ai-panel');foot=root.querySelector('.ai-foot');log=root.querySelector('.ai-log');chipsEl=root.querySelector('.ai-chips');log.addEventListener('scroll',function(){stick=log.scrollHeight-log.scrollTop-log.clientHeight<80;},{passive:true});if(window.ResizeObserver)new ResizeObserver(pin).observe(log);ta=root.querySelector('textarea');sendBtn=root.querySelector('.ai-in button');
  root.querySelector('.ai-x').onclick=closePanel;root.querySelector('.ai-rs').onclick=reset;
  root.querySelector('form').onsubmit=function(e){e.preventDefault();ask(ta.value);};
  ta.addEventListener('input',function(){grow();sendBtn.disabled=busy||!ta.value.trim();});
