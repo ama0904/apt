@@ -7,7 +7,8 @@ APP="$HOME/apetto-helper"
 RT="/tmp2/$USER-apetto"
 PORT=18787
 mkdir -p "$RT/logs" "$APP/logs" "$APP/ts"
-exec 9>"$RT/.lock"; flock -n 9 || exit 0
+# lock so two runs never overlap; children must not inherit it (9>&-), or the lock stays held forever
+exec 9>"$RT/.run.lock"; flock -n 9 || exit 0
 say() { echo "$(date '+%F %T') $*" >> "$APP/logs/run.log"; }
 # keep logs small (home quota is 200 MB)
 for f in "$APP/logs/run.log" "$RT/logs/"*.log; do [ -f "$f" ] && [ "$(stat -c %s "$f")" -gt 5000000 ] && tail -c 1000000 "$f" > "$f.tmp" && mv "$f.tmp" "$f"; done
@@ -15,7 +16,7 @@ for f in "$APP/logs/run.log" "$RT/logs/"*.log; do [ -f "$f" ] && [ "$(stat -c %s
 # 1. node packages (in /tmp2, linked from the app folder)
 if [ ! -d "$RT/node_modules/@huggingface/transformers" ] || ! cmp -s "$APP/package.json" "$RT/package.json"; then
   cp "$APP/package.json" "$RT/package.json"
-  (cd "$RT" && npm install --omit=dev --no-audit --no-fund >> "$RT/logs/npm.log" 2>&1) && say "npm install ok" || say "npm install failed"
+  (cd "$RT" && npm install 9>&- --omit=dev --no-audit --no-fund >> "$RT/logs/npm.log" 2>&1) && say "npm install ok" || say "npm install failed"
 fi
 ln -sfn "$RT/node_modules" "$APP/node_modules"
 
@@ -28,12 +29,12 @@ if [ ! -x "$RT/ts/tailscaled" ]; then
 fi
 if ! pgrep -u "$USER" -f "$RT/ts/tailscaled" > /dev/null; then
   nohup "$RT/ts/tailscaled" --tun=userspace-networking --statedir="$APP/ts" --socket="$RT/ts.sock" --port=0 \
-    >> "$RT/logs/tailscaled.log" 2>&1 < /dev/null &
+    >> "$RT/logs/tailscaled.log" 2>&1 < /dev/null 9>&- &
   say "tailscaled started"
 fi
 
 # 3. helper server
 if ! pgrep -u "$USER" -f "apetto-helper/server.mjs" > /dev/null && ! pgrep -u "$USER" -x apetto-helper > /dev/null; then
-  APP="$APP" RT="$RT" PORT=$PORT nohup nice -n 5 node "$APP/server.mjs" >> "$RT/logs/server.log" 2>&1 < /dev/null &
+  APP="$APP" RT="$RT" PORT=$PORT nohup nice -n 5 node "$APP/server.mjs" >> "$RT/logs/server.log" 2>&1 < /dev/null 9>&- &
   say "server started"
 fi
