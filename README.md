@@ -95,7 +95,7 @@
 - **店家自己的答案（後台「小幫手問答」）**：存在 `_data/assistant.json`，每題 `{id, title, k: [關鍵字], ex: [其他問法], a: {zh, en, ja, de}, link, hint}`。`a.zh` 有填才會生效；客人的問題裡出現任一關鍵字（英文字比對整個字）就回這個答案，`ex` 和 `title` 給伺服器的語意模型。`id` 跟 `assistant.py` 內建的 `TOPICS` 同名時，店家的答案會取代內建的。後台「小幫手紀錄」沒答好的問題旁有「加到問答」。
 - 內建的：`TOPICS`（折扣、發票、訂單、海外、材質、透氣、穿法、貓、送禮、合作、庫存、瑕疵、雨天散步、不愛穿、色差、縮水、獸醫類問題；網站沒寫的部分會附客服聯絡方式）和 `CHAT`（打招呼、問名字、笑話、稱讚、抱怨、閒聊、晚安…）。客人說「我家狗叫小白」會記住名字。問「尺寸表」會列出該系列的尺寸表。
 - 運費、付款、出貨天數的說法寫在 `assistant.py` 的 `TX` 裡（跟購物流程頁一致），改了購物流程要一起改。
-- **伺服器加強（選用）**：試衣間伺服器（`fitstudio.py` 的 `API_BASE`）的 `/api/health` 回 `"helper": true` 時，小幫手會：
+- **伺服器加強（選用）**：小幫手伺服器（`assistant.py` 的 `API_BASE`，跑在台大工作站 ws1，程式在工作站的 `~/apetto-helper/`，cron 每 5 分鐘執行 `run.sh` 自動補裝與重啟）的 `/api/health` 回 `"helper": true` 時，小幫手會：
   - 每題同時送 `POST /api/helper/match`（`{q, lang, v}`）給伺服器上的多語言語意模型，回 `{v, th:{ex, doc, strong, margin}, ex:[{i, s}], docs:[{i, s}]}`：`ex` 的 `i` 是 `kb.sem.ex` 的索引（換句話說的例句，對到一個標準問法），`docs` 的 `i` 是 `kb.docs` 的索引，`s` 是相似度。規則答不出來、或伺服器分數高過 `strong` 且判斷不同時，改用伺服器的答案。3 秒內沒回就照規則答。
   - 每題回答後送 `POST /api/helper/log`（`{sid, q, lang, page, kind, via, score, ans, t}`），伺服器存到私人 repo `apt-fitlog` 的 `helper/YYYY-MM.json`，後台「小幫手紀錄」讀那裡。
   - 例句庫在 `assistant.py` 的 `SEM`，改了之後 `kb.v` 會變，伺服器看到新的 `v` 要重新讀 `assets/assistant/kb.<語言>.json` 重算向量。

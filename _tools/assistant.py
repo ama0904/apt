@@ -16,6 +16,9 @@ from bs4 import BeautifulSoup
 
 import site_builder as sb
 
+# helper server (semantic matching + question log); runs on the NTU workstation, separate from the fitting room
+API_BASE = "https://apetto-helper.tailbec98f.ts.net"
+
 # Paraphrase bank for the server's semantic match (multilingual model on the bridge).
 # key -> (the question the rules already answer, per language), example wordings in any language.
 # The server embeds every example; when a visitor's question is close to one, the helper answers
