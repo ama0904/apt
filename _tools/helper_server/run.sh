@@ -71,11 +71,13 @@ if [ -f "$FIT/src/server.js" ] && [ -f "$FIT/src/.env" ]; then
     (cd "$FRT" && npm ci 9>&- --omit=dev --no-audit --no-fund >> "$FRT/logs/npm.log" 2>&1) && say "fit npm ok" || say "fit npm failed"
   fi
   ln -sfn "$FRT/node_modules" "$FIT/src/node_modules"
+  # Playwright catches SIGTERM (it only closes the browsers), so the node process needs SIGKILL after that
+  fit_stop() { kill "$1" 2>/dev/null; sleep 5; kill -9 "$1" 2>/dev/null; }
   FPID=$(pgrep -u "$USER" -f "apetto-fit/src/server.js" | head -1)
   if [ -n "$FPID" ]; then
     # restart it if it stops answering for 3 runs in a row (15 minutes)
     if curl -fsS -m 20 http://127.0.0.1:18789/api/health > /dev/null; then rm -f "$FRT/.bad"
-    else echo x >> "$FRT/.bad"; [ "$(wc -l < "$FRT/.bad")" -ge 3 ] && kill "$FPID" && rm -f "$FRT/.bad" && say "fit server hung, restarted" && FPID=""; fi
+    else echo x >> "$FRT/.bad"; [ "$(wc -l < "$FRT/.bad")" -ge 3 ] && rm -f "$FRT/.bad"; fit_stop "$FPID"; say "fit server hung, restarted"; FPID=""; fi
   fi
   if [ -z "$FPID" ]; then
     pkill -u "$USER" -f "$FRT/playwright_session" 2>/dev/null
