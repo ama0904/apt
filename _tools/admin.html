@@ -868,6 +868,8 @@ async function commitFiles(files, message, onProgress, attempt = 0) {
   const ref = await gh(`${R}/git/ref/heads/${encodeURIComponent(cfg.branch)}?t=${Date.now()}`, { headers: { 'If-None-Match': '' } });
   const headSha = ref.object.sha;
   const headCommit = await gh(`${R}/git/commits/${headSha}`);
+  const stale = await changedSinceLoad(R, headSha, files);
+  if (stale) throw new Error(t('資料已被別人更新，請按「重新載入」後再試一次。（') + stale + ')');
   const tree = [];
   let i = 0;
   for (const f of files) {
@@ -1994,9 +1996,20 @@ const siteJsonPath = () => `${SITE_DIR}/_data/site.json`, guidesPath = () => `${
 const DEFAULT_GROUPS = [{ key: 'apparel', name: '機能服飾', blurb: '' }, { key: 'outdoor', name: '外出配件', blurb: '' }, { key: 'living', name: '舒適生活', blurb: '' }];
 let SITE = {}, GUIDES = { items: [] }, QA = { faq: [] };
 const qaPath = () => `${SITE_DIR}/_data/assistant.json`;
+// which version of each data file this page loaded, so a save can't silently overwrite someone else's newer save
+const LOADED_SHA = {};
 async function readJsonFile(path, fallback) {
-  try { const j = await gh(`/repos/${cfg.repo}/contents/${encPath(path)}?ref=${encodeURIComponent(cfg.branch)}&t=${Date.now()}`); return JSON.parse(b64decodeUtf8(j.content)); }
-  catch (e) { return fallback; }
+  try { const j = await gh(`/repos/${cfg.repo}/contents/${encPath(path)}?ref=${encodeURIComponent(cfg.branch)}&t=${Date.now()}`); LOADED_SHA[path] = j.sha; return JSON.parse(b64decodeUtf8(j.content)); }
+  catch (e) { if (/Not Found|404/.test(e.message)) LOADED_SHA[path] = null; else delete LOADED_SHA[path]; return fallback; }
+}
+async function changedSinceLoad(R, headSha, files) {
+  for (const f of files) {
+    if (!(f.path in LOADED_SHA)) continue;
+    let now = null;
+    try { now = (await gh(`${R}/contents/${encPath(f.path)}?ref=${headSha}`)).sha; } catch (e) { if (!/Not Found|404/.test(e.message)) throw e; }
+    if (now !== LOADED_SHA[f.path]) return f.path;
+  }
+  return '';
 }
 async function readContent() {
   SITE = await readJsonFile(siteJsonPath(), {}) || {};
