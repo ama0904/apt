@@ -920,15 +920,17 @@ function ask(q){q=String(q||'').trim();if(!q||busy)return;busy=true;sendBtn.disa
    var fin=function(x){HIST.push({bot:x});save();setChips(x.chips);srvLog(q,x);busy=false;sendBtn.disabled=!ta.value.trim();ta.focus({preventScroll:true});};
    if(useAI(b))aiAnswer(q,b,stop,fin);else{stop();addBot(b,false,function(){fin(b);});}});
  }).catch(function(){busy=false;sendBtn.disabled=false;});}
-// the small AI model on the server takes what the rules could not answer, plus small talk, and streams its reply;
-// if it is slow to start or anything fails, the rule answer is shown instead
-function useAI(b){return LLM&&(b.kind==='unknown'||b.kind==='doc'||b.kind==='error'||/^chat/.test(b.kind||''));}
+// the small AI model on the server writes most replies, in context and in its own words, using the rule answer as a reference;
+// answers with numbers or product cards (sizes, prices, shipping...) stay exactly as the rules wrote them.
+// if the model is slow to start or anything fails, the rule answer is shown instead
+var KEEP=/^(size|chart|reco|price|colors|compare|kg|measure|ship|pay|time|ret|contact|pending)$/;
+function useAI(b){return LLM&&!KEEP.test(b.kind||'')&&!(b.cards&&b.cards.length);}
 function aiHist(){var o=[];HIST.slice(0,-1).slice(-4).forEach(function(h){if(h.me)o.push({r:'u',t:String(h.me).slice(0,300)});else if(h.bot)o.push({r:'a',t:String(h.bot.text||'').slice(0,400)});});return o;}
 function aiAnswer(q,fb,stop,fin){var ctl=new AbortController(),d=null,txt='',tm=setTimeout(function(){ctl.abort();},15000),cap=setTimeout(function(){ctl.abort();},60000);
  var end=function(){clearTimeout(tm);clearTimeout(cap);
   if(!d){stop();addBot(fb,false,function(){fin(fb);});return;}
   var t=txt.trim(),a={text:t,chips:T.chipsAfter,kind:'ai',via:'ai'};d.innerHTML=md(t);scroll();fin(a);};
- fetch(API+'/api/helper/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:q.slice(0,300),lang:LANG,hist:aiHist()}),signal:ctl.signal})
+ fetch(API+'/api/helper/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:q.slice(0,300),lang:LANG,hist:aiHist(),ref:/^(unknown|error)$/.test(fb.kind||'')?'':String(fb.text||'').slice(0,600)}),signal:ctl.signal})
  .then(function(r){if(!r.ok||!r.body)throw new Error('ai');var rd=r.body.getReader(),dec=new TextDecoder();
   return (function pump(){return rd.read().then(function(x){if(x.done)return;txt+=dec.decode(x.value,{stream:true});
    if(!d&&txt.trim()){clearTimeout(tm);stop();d=document.createElement('div');d.className='ai-m bot';log.appendChild(d);}
