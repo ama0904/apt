@@ -151,7 +151,7 @@ async function warmLLM() {
     await Promise.all([0].map(() => fetch(LLM + '/v1/chat/completions', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: [{ role: 'system', content: PREFIX }, { role: 'user', content: '你好' }], max_tokens: 1, cache_prompt: true }),
-    }).then(r => r.text())));
+    }).then(r => { if (!r.ok) throw new Error("llm " + r.status); return r.text(); })));
     if (v === prefixV) { llmWarm = v; log(`ai warm in ${Date.now() - t0} ms`); }
   } catch (e) { log('ai warm failed', e.message); }
   finally { warming = false; }
