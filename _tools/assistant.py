@@ -909,20 +909,21 @@ function addCards(ids){if(!ids||!ids.length)return;var w=document.createElement(
  ids.forEach(function(id){var p=prodById(id);if(!p)return;var a=document.createElement('a');a.className='ai-card';a.href=BASE+p.u;
   a.innerHTML=(p.img?'<img src="'+esc(BASE+p.img)+'" alt="" loading="lazy">':'')+'<div><b>'+esc(p.n)+'</b><span>NT$'+money(p.p)+'</span></div>';w.appendChild(a);});
  log.appendChild(w);}
-function setChips(list){chipsEl.innerHTML='';(list||[]).slice(0,4).forEach(function(c){var b=document.createElement('button');b.type='button';b.textContent=c;b.onclick=function(){ask(c);};chipsEl.appendChild(b);});}
+function setChips(list){chipsEl.innerHTML='';(list||[]).slice(0,4).forEach(function(c){var b=document.createElement('button');b.type='button';b.textContent=c;b.onclick=function(){ask(c,true);};chipsEl.appendChild(b);});}
 function addBot(a,instant,done){var d=document.createElement('div');d.className='ai-m bot';log.appendChild(d);var full=md(a.text);
  if(instant||matchMedia('(prefers-reduced-motion: reduce)').matches){d.innerHTML=full;addCards(a.cards);scroll();done&&done();return;}
  // type it out: reveal the plain text progressively, then swap in the formatted version
  var plain=a.text.replace(/\*\*/g,'').replace(/\[([^\]]+)\]\([^)]+\)/g,'$1'),i=0,step=Math.max(2,Math.round(plain.length/60));
  (function tick(){i+=step;if(i>=plain.length){d.innerHTML=full;addCards(a.cards);scroll();done&&done();return;}d.textContent=plain.slice(0,i);scroll();setTimeout(tick,16);})();}
 function typing(){var t=document.createElement('div');t.className='ai-typing';t.innerHTML='<i></i><i></i><i></i>';log.appendChild(t);scroll();return function(){t.remove();};}
-function ask(q){q=String(q||'').trim();if(!q||busy)return;busy=true;sendBtn.disabled=true;ta.value='';grow();setChips([]);addMe(q);HIST.push({me:q});
+// chip=true: a suggestion button, whose answer is already written: show it right away, no server or AI
+function ask(q,chip){q=String(q||'').trim();if(!q||busy)return;busy=true;sendBtn.disabled=true;ta.value='';grow();setChips([]);addMe(q);HIST.push({me:q});
  loadKB().then(function(){var a;try{a=answer(q);a.kind=K;}catch(e){a=A(T.unknown,{chips:T.chips0});a.kind='error';}a.via='rule';
-  var stop=typing(),wait=Math.min(1400,450+a.text.length*6+Math.random()*250);
-  Promise.all([Promise.race([srvMatch(q).catch(function(){return null;}),new Promise(function(r){setTimeout(function(){r(null);},3500);})]),new Promise(function(r){setTimeout(r,wait);})]).then(function(res){
+  var stop=typing(),wait=chip?350:Math.min(1400,450+a.text.length*6+Math.random()*250);
+  Promise.all([chip?null:Promise.race([srvMatch(q).catch(function(){return null;}),new Promise(function(r){setTimeout(function(){r(null);},3500);})]),new Promise(function(r){setTimeout(r,wait);})]).then(function(res){
    var b=a;try{b=refine(q,a,res[0]);}catch(e){b=a;}
    var fin=function(x){HIST.push({bot:x});save();setChips(x.chips);srvLog(q,x);busy=false;sendBtn.disabled=!ta.value.trim();ta.focus({preventScroll:true});};
-   if(useAI(b,q))aiAnswer(q,b,stop,fin);else{stop();addBot(b,false,function(){fin(b);});}});
+   if(!chip&&useAI(b,q))aiAnswer(q,b,stop,fin);else{stop();addBot(b,false,function(){fin(b);});}});
  }).catch(function(){busy=false;sendBtn.disabled=false;});}
 // the small AI model on the server writes most replies, in context and in its own words, using the rule answer as a reference;
 // answers with numbers or product cards (sizes, prices, shipping...) stay exactly as the rules wrote them.
