@@ -918,13 +918,14 @@ function ask(q){q=String(q||'').trim();if(!q||busy)return;busy=true;sendBtn.disa
   Promise.all([Promise.race([srvMatch(q).catch(function(){return null;}),new Promise(function(r){setTimeout(function(){r(null);},3500);})]),new Promise(function(r){setTimeout(r,wait);})]).then(function(res){
    var b=a;try{b=refine(q,a,res[0]);}catch(e){b=a;}
    var fin=function(x){HIST.push({bot:x});save();setChips(x.chips);srvLog(q,x);busy=false;sendBtn.disabled=!ta.value.trim();ta.focus({preventScroll:true});};
-   if(useAI(b))aiAnswer(q,b,stop,fin);else{stop();addBot(b,false,function(){fin(b);});}});
+   if(useAI(b,q))aiAnswer(q,b,stop,fin);else{stop();addBot(b,false,function(){fin(b);});}});
  }).catch(function(){busy=false;sendBtn.disabled=false;});}
 // the small AI model on the server writes most replies, in context and in its own words, using the rule answer as a reference;
 // answers with numbers or product cards (sizes, prices, shipping...) stay exactly as the rules wrote them.
 // if the model is slow to start or anything fails, the rule answer is shown instead
 var KEEP=/^(size|chart|reco|price|colors|compare|kg|measure|ship|pay|time|ret|contact|pending)$/;
-function useAI(b){return LLM&&!KEEP.test(b.kind||'')&&!(b.cards&&b.cards.length);}
+// a short, direct question gets the exact rule answer; a longer, chatty one goes to the AI with that answer as its reference
+function useAI(b,q){if(!LLM||(b.cards&&b.cards.length))return false;return !KEEP.test(b.kind||'')||String(q||'').replace(/\s/g,'').length>14;}
 function aiHist(){var o=[];HIST.slice(0,-1).slice(-4).forEach(function(h){if(h.me)o.push({r:'u',t:String(h.me).slice(0,300)});else if(h.bot)o.push({r:'a',t:String(h.bot.text||'').slice(0,400)});});return o;}
 function aiAnswer(q,fb,stop,fin){var ctl=new AbortController(),d=null,txt='',tm=setTimeout(function(){ctl.abort();},20000),cap=setTimeout(function(){ctl.abort();},90000),cut=false;
  var end=function(){clearTimeout(tm);clearTimeout(cap);
