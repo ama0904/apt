@@ -19,7 +19,9 @@ JOBS = {
 # white letter strokes are erased and filled from their surroundings
 # b2963b09...clean.jpg (forest, two dogs) is no longer made here: stroke inpainting left a blur, so it was
 # repaired once with the LaMa model (lama_fp32.onnx from huggingface.co/Carve/LaMa-ONNX, 512x512 window at
-# x=20,y=0, mask = near-white pixels in (66,172)-(506,306) dilated 4x). Don't regenerate it with this script.
+# x=20,y=0, mask = near-white pixels in (66,172)-(506,306) dilated 4x), then given back fine foliage detail
+# (high frequencies of the mirrored band above it, x0.6) and a light unsharp mask on the left 540 px so it is
+# as crisp as the rest. Don't regenerate it with this script.
 STROKES = {}
 
 
