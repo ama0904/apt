@@ -558,9 +558,9 @@ if(b&&mm){b.addEventListener('click',function(){if(document.body.classList.conta
  mm.querySelectorAll('.mm-close,a').forEach(function(el){el.addEventListener('click',closeMenu);});
  mm.addEventListener('click',function(e){if(e.target===mm)closeMenu();});
  document.addEventListener('keydown',function(e){if(e.key==='Escape')closeMenu();});}
-/* swipe right opens the menu, swipe left closes it (phones only; horizontal thumbnail strips are left alone) */
+/* swipe right opens the menu, swipe left closes it (phones only; horizontal thumbnail strips and the helper chat are left alone) */
 var sx=0,sy=0,swiping=false;
-document.addEventListener('touchstart',function(e){var t=e.touches[0];sx=t.clientX;sy=t.clientY;swiping=!e.target.closest('.thumbs,.lang-row,input,textarea');},{passive:true});
+document.addEventListener('touchstart',function(e){var t=e.touches[0];sx=t.clientX;sy=t.clientY;swiping=!e.target.closest('.thumbs,.lang-row,input,textarea,.ai-panel');},{passive:true});
 document.addEventListener('touchend',function(e){if(!swiping||!b||getComputedStyle(b).display==='none')return;var t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
  if(Math.abs(dx)<70||Math.abs(dy)>60||Math.abs(dy)>Math.abs(dx)*0.6)return;
  if(dx>0&&!document.body.classList.contains('menu-open'))openMenu();else if(dx<0)closeMenu();},{passive:true});
