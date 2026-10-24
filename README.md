@@ -80,7 +80,7 @@
 
 - 衣服圖不能用一般商品照（AI 會畫錯），要先做「去背 + 套黑色動物剪影 + 白底」的合成圖。
 
-- 那台伺服器是家用電腦，不保證 24 小時在線；同時最多 2 個生成，之後最多排隊 5 個（頁面顯示排隊位置），再多才回 429（「請稍候一分鐘」）。
+- 伺服器自 2026/10/24 起跑在台大工作站 ws1（與小幫手同一台），網址 `https://apetto-helper.tailbec98f.ts.net:8443`（Tailscale Funnel → 127.0.0.1:18789）。程式在 ws1 `~/apetto-fit/src`（來自家用電腦 `dog` 資料夾，加了可用環境變數設定的 Linux 支援：`PORT`、`FIT_HOST`、`FIT_DATA_DIR`、`FIT_ACCOUNTS`、`FIT_LOCALE`），設定在同資料夾 `.env`；瀏覽器設定檔、照片、紀錄在 `/tmp2/r96128-fit`。只用一個 Google 帳號（apettodog1，帳號 id 沿用 `backup2`），同時 1 個生成，最多排隊 8 個。由 `helper_server/run.sh` 第 5 段每 5 分鐘檢查、卡住 15 分鐘自動重啟。Google 登出時要重新登入：ws1 上 `~/apetto-fit/login.sh start` 開虛擬螢幕＋VNC（只限本機，經 SSH 通道連），登入後 `login.sh stop`。家用電腦上的舊伺服器暫時保留當備援，切回只要把 `API_BASE` 改回 `https://tablet-uaj7iieq.tail188668.ts.net`。Windows 的 Chrome 登入資料無法複製到 Linux（會被 Google 撤銷），一定要在 ws1 上登入。
 
 - 請求 body 另帶 `coat`（款式 key）、`coatName`、`product`（商品編號），伺服器會存進紀錄。
 

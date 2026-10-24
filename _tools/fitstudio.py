@@ -21,7 +21,7 @@ the header (the bridge can allow the site's origin instead). The clothes picture
 import json
 import os
 
-API_BASE = "https://tablet-uaj7iieq.tail188668.ts.net"
+API_BASE = "https://apetto-helper.tailbec98f.ts.net:8443"
 API_KEY = os.environ.get("FITSTUDIO_API_KEY", "")
 PAGE = "fitstudio.html"
 ASSET_DIR = "assets/fitstudio/"

@@ -59,3 +59,27 @@ if ! pgrep -u "$USER" -f "apetto-helper/server.mjs" > /dev/null && ! pgrep -u "$
   APP="$APP" RT="$RT" PORT=$PORT nohup nice -n 5 node "$APP/server.mjs" >> "$RT/logs/server.log" 2>&1 < /dev/null 9>&- &
   say "server started"
 fi
+
+# 5. FitStudio (AI fitting room) bridge, only if it has been set up in ~/apetto-fit:
+#    code in ~/apetto-fit/src (settings in its .env), browser profile, photos and logs in /tmp2.
+#    The Google login is imported from ~/apetto-fit/state.json when /tmp2 lost the profile.
+FIT="$HOME/apetto-fit"; FRT="/tmp2/$USER-fit"
+if [ -f "$FIT/src/server.js" ] && [ -f "$FIT/src/.env" ]; then
+  mkdir -p "$FRT/logs" && chmod 700 "$FRT"
+  if [ ! -d "$FRT/node_modules/playwright" ] || ! cmp -s "$FIT/src/package-lock.json" "$FRT/package-lock.json"; then
+    cp "$FIT/src/package.json" "$FIT/src/package-lock.json" "$FRT/"
+    (cd "$FRT" && npm ci 9>&- --omit=dev --no-audit --no-fund >> "$FRT/logs/npm.log" 2>&1) && say "fit npm ok" || say "fit npm failed"
+  fi
+  ln -sfn "$FRT/node_modules" "$FIT/src/node_modules"
+  FPID=$(pgrep -u "$USER" -f "apetto-fit/src/server.js" | head -1)
+  if [ -n "$FPID" ]; then
+    # restart it if it stops answering for 3 runs in a row (15 minutes)
+    if curl -fsS -m 20 http://127.0.0.1:18789/api/health > /dev/null; then rm -f "$FRT/.bad"
+    else echo x >> "$FRT/.bad"; [ "$(wc -l < "$FRT/.bad")" -ge 3 ] && kill "$FPID" && rm -f "$FRT/.bad" && say "fit server hung, restarted" && FPID=""; fi
+  fi
+  if [ -z "$FPID" ]; then
+    pkill -u "$USER" -f "$FRT/playwright_session" 2>/dev/null
+    (cd "$FIT/src" && nohup nice -n 5 node "$FIT/src/server.js" >> "$FRT/logs/server.log" 2>&1 < /dev/null 9>&- &)
+    say "fit server started"
+  fi
+fi

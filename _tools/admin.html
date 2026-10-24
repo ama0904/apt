@@ -1612,7 +1612,7 @@ $('#btn-dog-add').onclick = () => openItemForm('dogs', null);
 $('#cdlg-close').onclick = $('#cdlg-cancel').onclick = () => $('#cdlg').close();
 
 /* ---------------------------------------------------------------- fitting-room history (FitStudio bridge admin API) */
-const FIT_API = 'https://tablet-uaj7iieq.tail188668.ts.net';
+const FIT_API = 'https://apetto-helper.tailbec98f.ts.net:8443';
 const FIT_COATS = { pink: '莓果桃', yellow: '檸檬螢光黃', blue: '普魯士藍' };   // labels for records older than the admin-managed list
 const coatRec = k => F.coats.find(c => c.key === k);
 const coatThumb = e => { const r = coatRec(e.coat); return r ? `<img class="fit-coat-thumb" src="${escHtml(fitImgUrl(r.image))}" alt="" title="${escHtml(fitCoat(e))}">` : ''; };
