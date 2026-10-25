@@ -919,10 +919,15 @@ function typing(){var t=document.createElement('div');t.className='ai-typing';t.
 // chip=true: a suggestion button, whose answer is already written: show it right away, no server or AI
 function ask(q,chip){q=String(q||'').trim();if(!q||busy)return;busy=true;sendBtn.disabled=true;ta.value='';grow();setChips([]);addMe(q);HIST.push({me:q});
  loadKB().then(function(){var a;try{a=answer(q);a.kind=K;}catch(e){a=A(T.unknown,{chips:T.chips0});a.kind='error';}a.via='rule';
-  var stop=typing(),wait=chip?350:Math.min(1400,450+a.text.length*6+Math.random()*250);
+  var fin=function(x){HIST.push({bot:x});save();setChips(x.chips);srvLog(q,x);busy=false;sendBtn.disabled=!ta.value.trim();ta.focus({preventScroll:true});};
+  // when the AI will most likely answer, ask it right away, at the same time as the server match, and with no
+  // "typing" pause; the match result only decides whether that reply is shown (go) or dropped for another answer
+  var spec=!chip&&useAI(a,q),go=null,gate=spec?new Promise(function(r){go=r;}):null;
+  var stop=typing(),wait=chip?350:spec?0:Math.min(1400,450+a.text.length*6+Math.random()*250);
+  if(spec)aiAnswer(q,a,stop,fin,gate);
   Promise.all([chip?null:Promise.race([srvMatch(q).catch(function(){return null;}),new Promise(function(r){setTimeout(function(){r(null);},3500);})]),new Promise(function(r){setTimeout(r,wait);})]).then(function(res){
    var b=a;try{b=refine(q,a,res[0]);}catch(e){b=a;}
-   var fin=function(x){HIST.push({bot:x});save();setChips(x.chips);srvLog(q,x);busy=false;sendBtn.disabled=!ta.value.trim();ta.focus({preventScroll:true});};
+   if(spec){var same=b===a||(b.text===a.text&&b.kind===a.kind);go(same);if(same)return;}
    if(!chip&&useAI(b,q))aiAnswer(q,b,stop,fin);else{stop();addBot(b,false,function(){fin(b);});}});
  }).catch(function(){busy=false;sendBtn.disabled=false;});}
 // the small AI model on the server writes most replies, in context and in its own words, using the rule answer as a reference;
@@ -932,17 +937,20 @@ var KEEP=/^(size|chart|reco|price|colors|compare|kg|measure|ship|pay|time|ret|co
 // a short, direct question gets the exact rule answer; a longer, chatty one goes to the AI with that answer as its reference
 function useAI(b,q){if(!LLM||(b.cards&&b.cards.length))return false;return !KEEP.test(b.kind||'')||String(q||'').replace(/\s/g,'').length>14;}
 function aiHist(){var o=[];HIST.slice(0,-1).slice(-4).forEach(function(h){if(h.me)o.push({r:'u',t:String(h.me).slice(0,300)});else if(h.bot)o.push({r:'a',t:String(h.bot.text||'').slice(0,400)});});return o;}
-function aiAnswer(q,fb,stop,fin){var ctl=new AbortController(),d=null,txt='',tm=setTimeout(function(){ctl.abort();},20000),cap=setTimeout(function(){ctl.abort();},90000),cut=false;
- var end=function(){clearTimeout(tm);clearTimeout(cap);
+// gate (optional): a promise; nothing is shown until it resolves true, and the request is dropped if it resolves false
+function aiAnswer(q,fb,stop,fin,gate){var ctl=new AbortController(),d=null,txt='',tm=setTimeout(function(){ctl.abort();},20000),cap=setTimeout(function(){ctl.abort();},90000),cut=false,
+ show=!gate,done=false,ended=false;
+ var draw=function(){if(!show||!txt.trim())return;if(!d){clearTimeout(tm);stop();d=document.createElement('div');d.className='ai-m bot';log.appendChild(d);}
+  d.textContent=txt.replace(/\*\*/g,'');scroll();};
+ var end=function(){if(!show||!done||ended)return;ended=true;clearTimeout(tm);clearTimeout(cap);
   if(!d){stop();addBot(fb,false,function(){fin(fb);});return;}
   // a reply cut off mid-sentence (dropped connection, time cap) ends with an ellipsis rather than just stopping
   var t=txt.trim();if(cut&&!/[。！？!?.～~）)」🐾]$/.test(t))t+='…';var a={text:t,chips:T.chipsAfter,kind:'ai',via:'ai'};d.innerHTML=md(t);scroll();fin(a);};
+ if(gate)gate.then(function(ok){if(!ok){ended=true;clearTimeout(tm);clearTimeout(cap);ctl.abort();return;}show=true;draw();end();});
  fetch(API+'/api/helper/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:q.slice(0,300),lang:LANG,hist:aiHist(),ref:/^(unknown|error)$/.test(fb.kind||'')?'':String(fb.text||'').slice(0,600)}),signal:ctl.signal})
  .then(function(r){if(!r.ok||!r.body)throw new Error('ai');var rd=r.body.getReader(),dec=new TextDecoder();
-  return (function pump(){return rd.read().then(function(x){if(x.done)return;txt+=dec.decode(x.value,{stream:true});
-   if(!d&&txt.trim()){clearTimeout(tm);stop();d=document.createElement('div');d.className='ai-m bot';log.appendChild(d);}
-   if(d){d.textContent=txt.replace(/\*\*/g,'');scroll();}return pump();});})();})
- .then(end,function(){cut=true;end();});}
+  return (function pump(){return rd.read().then(function(x){if(x.done)return;txt+=dec.decode(x.value,{stream:true});draw();return pump();});})();})
+ .then(function(){done=true;end();},function(){cut=true;done=true;end();});}
 function grow(){ta.style.height='auto';var h=ta.scrollHeight+2;ta.style.height=Math.min(110,h)+'px';ta.style.overflowY=h>110?'auto':'hidden';}
 function openPanel(){if(!root)build();var tip=document.querySelector('.ai-tip');if(tip)tip.remove();panel.hidden=false;fab.style.display='none';fab.setAttribute('aria-expanded','true');
  try{sessionStorage.setItem('apetto_ai_tip','1');}catch(e){}
