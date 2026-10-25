@@ -918,7 +918,8 @@ function addBot(a,instant,done){var d=document.createElement('div');d.className=
 function typing(){var t=document.createElement('div');t.className='ai-typing';t.innerHTML='<i></i><i></i><i></i>';log.appendChild(t);scroll();return function(){t.remove();};}
 // chip=true: a suggestion button, whose answer is already written: show it right away, no server or AI
 function ask(q,chip){q=String(q||'').trim();if(!q||busy)return;busy=true;sendBtn.disabled=true;ta.value='';grow();setChips([]);addMe(q);HIST.push({me:q});
- loadKB().then(function(){var a;try{a=answer(q);a.kind=K;}catch(e){a=A(T.unknown,{chips:T.chips0});a.kind='error';}a.via='rule';
+ // also wait (briefly) for the server check, so the very first question already knows whether the AI is there
+ Promise.all([loadKB(),Promise.race([srvOn(),new Promise(function(r){setTimeout(r,1500);})])]).then(function(){var a;try{a=answer(q);a.kind=K;}catch(e){a=A(T.unknown,{chips:T.chips0});a.kind='error';}a.via='rule';
   var fin=function(x){HIST.push({bot:x});save();setChips(x.chips);srvLog(q,x);busy=false;sendBtn.disabled=!ta.value.trim();ta.focus({preventScroll:true});};
   // when the AI will most likely answer, ask it right away, at the same time as the server match, and with no
   // "typing" pause; the match result only decides whether that reply is shown (go) or dropped for another answer
