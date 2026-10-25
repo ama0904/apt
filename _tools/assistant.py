@@ -845,7 +845,7 @@ function answer(q){
  // product questions
  if(R.price.test(s)){var ps=pp.any?pp.ps:(curLine()?[prodById(ST.prod)]:ST.ser?KB.products.filter(function(p){return p.ser===ST.ser;}):null);
   if(ps&&ps.length){var seen={},out=[];ps.forEach(function(p){if(!seen[p.lk]){seen[p.lk]=1;out.push('• '+priceLine(p));}});ST.prod=ps[0].id;return K='price',A(out.length===1?out[0].slice(2):out.join('\n'),{cards:ps.slice(0,6).map(function(p){return p.id;}),chips:T.chipsSize});}
-  return K='priceAll',A(T.priceAll+'\n'+lines().map(function(l){return '• '+l.line+(LANG==='zh'?'：':': ')+'NT$'+money(l.ps[0].p);}).join('\n'),{chips:T.chipsSize.slice(0,1).concat(T.chips0.slice(0,1))});}
+  return K='priceAll',A(T.priceAll+'\n'+lines().map(function(l){return '• '+l.line+(LANG==='zh'?'：':': ')+'NT$'+money(l.ps[0].p);}).join('\n'),{cards:lines().map(function(l){return l.ps[0].id;}),chips:T.chipsSize.slice(0,1).concat(T.chips0.slice(0,1))});}
  if(pp.col&&!R.reco.test(s)&&!R.price.test(s)){var cl=pp.ps.filter(function(p){return p.ck===pp.col;});if(cl.length){ST.prod=cl[0].id;return K='colorHit',A(T.colorHit,{cards:cl.map(function(p){return p.id;}),chips:T.chipsSize.slice(1).concat(T.chips0.slice(0,1))});}}
  if(R.colors.test(s)&&!pp.col){var ls=lines().filter(function(l){return (!pp.ser||l.ser===pp.ser)&&(pp.warm==null||l.warm===pp.warm)&&(!curLine()||pp.any||l.lk===curLine());});
   if(!ls.length)ls=lines();
