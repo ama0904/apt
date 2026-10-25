@@ -931,16 +931,20 @@ function ask(q,chip){q=String(q||'').trim();if(!q||busy)return;busy=true;sendBtn
    if(spec){var same=b===a||(b.text===a.text&&b.kind===a.kind);go(same);if(same)return;}
    if(!chip&&useAI(b,q))aiAnswer(q,b,stop,fin);else{stop();addBot(b,false,function(){fin(b);});}});
  }).catch(function(){busy=false;sendBtn.disabled=false;});}
-// the small AI model on the server writes most replies, in context and in its own words, using the rule answer as a reference;
-// answers with numbers or product cards (sizes, prices, shipping...) stay exactly as the rules wrote them.
-// if the model is slow to start or anything fails, the rule answer is shown instead
-var KEEP=/^(size|chart|reco|price|colors|compare|kg|measure|ship|pay|time|ret|contact|pending)$/;
-// a short, direct question gets the exact rule answer; a longer, chatty one goes to the AI with that answer as its reference
-// product cards are kept only when the question is about clothes or shopping: "小狗取什麼名字好" picks the small-dog
-// series by its words, but it is small talk, so the AI answers it
+// the small AI model on the server writes the reply to every typed question, in its own words, with the rule answer
+// (prices, product names, shipping...) as its reference; product cards from the rules are still shown under it.
+// Kept exactly as the rules wrote them: suggestion buttons, the size calculation and the size chart (a wrong size
+// means a wrong purchase), and questions waiting for the shop's answer. If the model is down or slow, the rule answer is shown.
+var EXACT=/^(size|chart|pending)$/;
+// product cards are shown only when the question is about clothes or shopping: "小狗取什麼名字好" picks the small-dog
+// series by its words, but it is small talk
 var SHOP=/(雨衣|衣服|外套|斗篷|大衣|背心|穿|買|款|推薦|適合|哪件|價|錢|顏色|色|尺寸|號|size|coat|jacket|cape|rain|wear|buy|price|cost|colou?r|recommend|レイン|コート|服|着|買|色|サイズ|おすすめ|mantel|jacke|regen|kauf|preis|farbe|größe|empfehl)/i;
 function hasCards(b){return !!(b.cards&&b.cards.length);}
-function useAI(b,q){if(!LLM)return false;if(hasCards(b))return !SHOP.test(String(q||''));return !KEEP.test(b.kind||'')||String(q||'').replace(/\s/g,'').length>14;}
+function useAI(b,q){return !!LLM&&!EXACT.test(b.kind||'');}
+// what the AI gets as reference: the rule answer, plus the shown products with their prices
+function aiRef(fb,q){if(/^(unknown|error)$/.test(fb.kind||''))return '';if(hasCards(fb)&&!SHOP.test(String(q||'')))return '';
+ var r=String(fb.text||'');if(hasCards(fb))r+='\n'+fb.cards.map(function(id){var p=prodById(id);return p?'• '+priceLine(p).replace(/\*\*/g,''):'';}).filter(Boolean).join('\n');
+ return r.slice(0,600);}
 function aiHist(){var o=[];HIST.slice(0,-1).slice(-4).forEach(function(h){if(h.me)o.push({r:'u',t:String(h.me).slice(0,300)});else if(h.bot)o.push({r:'a',t:String(h.bot.text||'').slice(0,400)});});return o;}
 // gate (optional): a promise; nothing is shown until it resolves true, and the request is dropped if it resolves false
 function aiAnswer(q,fb,stop,fin,gate){var ctl=new AbortController(),d=null,txt='',tm=setTimeout(function(){ctl.abort();},20000),cap=setTimeout(function(){ctl.abort();},90000),cut=false,
@@ -950,9 +954,10 @@ function aiAnswer(q,fb,stop,fin,gate){var ctl=new AbortController(),d=null,txt='
  var end=function(){if(!show||!done||ended)return;ended=true;clearTimeout(tm);clearTimeout(cap);
   if(!d){stop();addBot(fb,false,function(){fin(fb);});return;}
   // a reply cut off mid-sentence (dropped connection, time cap) ends with an ellipsis rather than just stopping
-  var t=txt.trim();if(cut&&!/[。！？!?.～~）)」🐾]$/.test(t))t+='…';var a={text:t,chips:T.chipsAfter,kind:'ai',via:'ai'};d.innerHTML=md(t);scroll();fin(a);};
+  var t=txt.trim();if(cut&&!/[。！？!?.～~）)」🐾]$/.test(t))t+='…';var cards=hasCards(fb)&&SHOP.test(q)?fb.cards:null;
+  var a={text:t,cards:cards,chips:cards?fb.chips||T.chipsAfter:T.chipsAfter,kind:'ai',via:'ai'};d.innerHTML=md(t);addCards(cards);scroll();fin(a);};
  if(gate)gate.then(function(ok){if(!ok){ended=true;clearTimeout(tm);clearTimeout(cap);ctl.abort();return;}show=true;draw();end();});
- fetch(API+'/api/helper/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:q.slice(0,300),lang:LANG,hist:aiHist(),ref:/^(unknown|error)$/.test(fb.kind||'')||hasCards(fb)?'':String(fb.text||'').slice(0,600)}),signal:ctl.signal})
+ fetch(API+'/api/helper/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:q.slice(0,300),lang:LANG,hist:aiHist(),ref:aiRef(fb,q)}),signal:ctl.signal})
  .then(function(r){if(!r.ok||!r.body)throw new Error('ai');var rd=r.body.getReader(),dec=new TextDecoder();
   return (function pump(){return rd.read().then(function(x){if(x.done)return;txt+=dec.decode(x.value,{stream:true});draw();return pump();});})();})
  .then(function(){done=true;end();},function(){cut=true;done=true;end();});}
