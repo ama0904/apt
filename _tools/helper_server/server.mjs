@@ -146,23 +146,41 @@ function setFacts(kb) {
 }
 
 // fill both model slots with the shop facts once, so each question only has to read the new part
+// a POST with no time limit: reading the facts on a slow CPU can take longer than fetch()'s 5-minute limit
+function postLong(url, body) {
+  return new Promise((resolve, reject) => {
+    const data = Buffer.from(JSON.stringify(body));
+    const req = http.request(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Length': data.length } }, res => {
+      res.resume();
+      res.on('end', () => (res.statusCode === 200 ? resolve() : reject(new Error('llm ' + res.statusCode))));
+    });
+    req.on('error', reject);
+    req.end(data);
+  });
+}
+// Read the shop facts into the model's cache. Also run every few minutes as a check: if the model was restarted
+// it has lost the cache, the request is slow, and the AI is reported as not ready until it is warm again.
 async function warmLLM() {
-  if (!llmUp || !PREFIX || llmWarm === prefixV || warming) return;
+  if (!llmUp || !PREFIX || warming) return;
   const v = prefixV, t0 = Date.now();
   warming = true;
+  const cold = setTimeout(() => { if (llmWarm === v) { llmWarm = ''; log('ai cache lost, re-reading the facts'); } }, 15000);
   try {
-    await Promise.all([0].map(() => fetch(LLM + '/v1/chat/completions', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'system', content: PREFIX }, { role: 'user', content: '你好' }], max_tokens: 1, cache_prompt: true }),
-    }).then(r => { if (!r.ok) throw new Error("llm " + r.status); return r.text(); })));
-    if (v === prefixV) { llmWarm = v; log(`ai warm in ${Date.now() - t0} ms`); }
+    await postLong(LLM + '/v1/chat/completions',
+      { messages: [{ role: 'system', content: PREFIX }, { role: 'user', content: '你好' }], max_tokens: 1, cache_prompt: true });
+    if (v === prefixV) { if (llmWarm !== v) log(`ai warm in ${Date.now() - t0} ms`); llmWarm = v; }
   } catch (e) { log('ai warm failed', e.message); }
-  finally { warming = false; }
-  if (llmWarm !== prefixV) warmLLM(); // the facts changed while warming
+  finally { clearTimeout(cold); warming = false; }
+  if (llmUp && llmWarm !== prefixV) setTimeout(warmLLM, 5000); // the facts changed while warming, or it failed
 }
+let lastProbe = 0;
 async function checkLLM() {
+  const was = llmUp;
   try { llmUp = (await fetch(LLM + '/health', { signal: AbortSignal.timeout(3000) })).ok; } catch { llmUp = false; }
-  if (llmUp) warmLLM();
+  if (!llmUp && was) { llmWarm = ''; log('ai model down'); }
+  if (!llmUp) return;
+  if (llmWarm !== prefixV) return warmLLM();
+  if (Date.now() - lastProbe > 5 * 60e3 && !inflight) { lastProbe = Date.now(); warmLLM(); }
 }
 setInterval(checkLLM, 30e3).unref();
 checkLLM();

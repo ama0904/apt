@@ -81,7 +81,8 @@ if [ -f "$FIT/src/server.js" ] && [ -f "$FIT/src/.env" ]; then
   fi
   if [ -z "$FPID" ]; then
     pkill -u "$USER" -f "$FRT/playwright_session" 2>/dev/null
-    (cd "$FIT/src" && nohup nice -n 5 node "$FIT/src/server.js" >> "$FRT/logs/server.log" 2>&1 < /dev/null 9>&- &)
+    # exec, and the lock closed for the whole subshell: a waiting shell copy would hold the lock forever
+    (cd "$FIT/src" && exec nohup nice -n 5 node "$FIT/src/server.js") >> "$FRT/logs/server.log" 2>&1 < /dev/null 9>&- &
     say "fit server started"
   fi
 fi
