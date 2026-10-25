@@ -475,7 +475,7 @@ CSS = r"""
 .ai-hd span i{width:8px;height:8px;border-radius:50%;background:#2fb344;display:inline-block}
 .ai-hd .ai-x,.ai-hd .ai-rs{margin-left:auto;border:0;background:none;width:38px;height:38px;border-radius:50%;cursor:pointer;color:var(--ink2);display:grid;place-items:center}
 .ai-hd .ai-rs{margin-left:auto}.ai-hd .ai-rs+.ai-x{margin-left:0}.ai-hd button:hover{background:var(--sand)}.ai-hd svg{width:18px;height:18px}
-@media (max-width:980px){.ai-hd .ai-x,.ai-hd .ai-rs{width:46px;height:46px;background:var(--sand);color:var(--ink)}.ai-hd .ai-rs+.ai-x{margin-left:4px}.ai-hd svg{width:24px;height:24px;stroke-width:2.4}}
+@media (max-width:980px){.ai-hd .ai-x,.ai-hd .ai-rs{width:40px;height:40px;background:var(--sand);color:var(--ink)}.ai-hd .ai-rs+.ai-x{margin-left:4px}.ai-hd svg{width:20px;height:20px;stroke-width:2.2}}
 .ai-log{flex:1;overflow-y:auto;padding:16px 14px 8px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}.ai-log>*{flex-shrink:0}
 .ai-m{max-width:86%;font-size:15px;line-height:1.6;word-wrap:break-word}
 .ai-m.me{align-self:flex-end;background:var(--ink);color:#fff;padding:9px 14px;border-radius:18px 18px 4px 18px;white-space:pre-wrap}
