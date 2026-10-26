@@ -70,6 +70,12 @@
   .pal-mock .pm-card i:nth-child(1) { width:70%; } .pal-mock .pm-card i:nth-child(2) { width:45%; opacity:.8; }
   .pal-mock .pm-card b { display:block; width:38px; height:12px; border-radius:6px; background:#ff2414; margin-top:2px; }
   .pal-mock .pm-band { border-radius:6px; }
+  .pal-custom { margin-top:14px; padding:16px; border:1px solid var(--line); border-radius:14px; background:#fafbfc; display:grid; gap:12px; }
+  .pal-pick { display:flex; flex-wrap:wrap; gap:18px; }
+  .pal-pick label { display:flex; align-items:center; gap:10px; font-size:14px; font-weight:600; cursor:pointer; }
+  .pal-pick input[type=color] { width:52px; height:52px; padding:0; border:1px solid var(--line); border-radius:12px; background:none; cursor:pointer; }
+  .pal-pick code { font-weight:400; color:#777; font-size:12px; }
+  .pal-from { display:flex; flex-wrap:wrap; gap:4px 12px; align-items:center; font-size:13px; color:#666; }
   .pal-sw { display:flex; gap:4px; } .pal-sw i { width:18px; height:18px; border-radius:50%; border:1px solid rgba(0,0,0,.15); }
   .pal-name { font-weight:700; font-size:14px; } .pal-name em { font-style:normal; font-size:12px; color:#fff; background:#2e7d32; border-radius:999px; padding:1px 8px; margin-left:6px; }
   .content-view b { display:block; font-size:18px; margin-bottom:4px; } .content-view p { margin:4px 0 0; color:var(--mute); }
@@ -373,8 +379,9 @@
 
     <div class="pane" data-pane="content">
     <h2 class="sec-title" style="margin-top:8px">網站配色</h2>
-    <p class="hint" style="margin:-6px 0 12px">整個網站的底色、卡片和文字顏色，紅色 logo 不變。點一張色卡選擇，可以先「在網站上預覽」逛逛看，確定後按「套用到網站」，約 1～2 分鐘後生效。</p>
+    <p class="hint" style="margin:-6px 0 12px">整個網站的底色、卡片和文字顏色，紅色 logo 不變。點一張色卡選擇，或點「自訂」自己挑四個顏色；可以先「在網站上預覽」逛逛看，確定後按「套用到網站」，約 1～2 分鐘後生效。</p>
     <div class="pal-grid" id="pal-grid"></div>
+    <div class="pal-custom" id="pal-custom" hidden></div>
     <div class="toolbar" style="margin-top:12px"><button id="btn-pal-preview">在網站上預覽</button><button class="primary" id="btn-pal-save">套用到網站</button><span class="count" id="pal-state"></span></div>
 
     <h2 class="sec-title">首頁主視覺與頁面文字</h2>
@@ -2132,23 +2139,74 @@ const PALETTES = [
   ['4', '鼠尾草', { bg: '#e6e8d6', card: '#f8f7ee', sand: '#d3d8bb', ink: '#2f3526', mute: '#737a63', line: '#cbd0b3' }],
   ['5', '焦糖', { bg: '#e6cdaa', card: '#f7ecdb', sand: '#d6b285', ink: '#3a2213', mute: '#7f6249', line: '#d3b48c' }],
 ];
-let palSel = null;
+let palSel = null, palCustom = null;
+const PAL_KEYS = [['bg', '底色'], ['card', '卡片'], ['sand', '區塊'], ['ink', '文字和深色按鈕']];
 const palCur = () => String(SITE.palette || '0');
-const palName = v => { const p = PALETTES.find(x => x[0] === v) || PALETTES[0]; return t(p[1]); };
-function renderPalettes() {
-  const cur = palCur(); if (palSel === null) palSel = cur;
-  const g = $('#pal-grid');
-  g.innerHTML = PALETTES.map(([v, name, c]) => `<button type="button" class="pal-card${v === palSel ? ' sel' : ''}" data-v="${v}" aria-pressed="${v === palSel}">
-    <span class="pal-mock" style="background:${c.bg}"><span class="pm-card" style="background:${c.card};border-color:${c.line}"><i style="background:${c.ink}"></i><i style="background:${c.mute}"></i><b></b></span><span class="pm-band" style="background:${c.sand}"></span></span>
-    <span class="pal-sw">${[c.bg, c.card, c.sand, c.ink, '#ff2414'].map(x => `<i style="background:${x}"></i>`).join('')}</span>
-    <span class="pal-name">${v === '0' ? '' : v + '. '}${escHtml(t(name))}${v === cur ? `<em>${t('使用中')}</em>` : ''}</span></button>`).join('');
-  g.querySelectorAll('.pal-card').forEach(b => b.onclick = () => { palSel = b.dataset.v; renderPalettes(); });
-  $('#pal-state').textContent = palSel === cur ? t('目前使用：{n}', { n: palName(cur) }) : t('已選「{n}」，尚未套用', { n: palName(palSel) });
-  $('#btn-pal-save').disabled = palSel === cur;
+const palName = v => v === 'c' ? t('自訂') : t((PALETTES.find(x => x[0] === v) || PALETTES[0])[1]);
+const hexMix = (a, b, w) => '#' + [0, 2, 4].map(i => Math.round(parseInt(a.slice(1 + i, 3 + i), 16) * (1 - w) + parseInt(b.slice(1 + i, 3 + i), 16) * w).toString(16).padStart(2, '0')).join('');
+const palColors = v => v === 'c' ? palCustom : Object.assign({}, (PALETTES.find(x => x[0] === v) || PALETTES[0])[2]);
+const lum = h => { const c = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(x => x <= .03928 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
+const contrast = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+function palMock(c) {
+  const line = hexMix(c.bg, c.ink, .12), mute = hexMix(c.ink, c.bg, .5);
+  return `<span class="pal-mock" style="background:${c.bg}"><span class="pm-card" style="background:${c.card};border-color:${line}"><i style="background:${c.ink}"></i><i style="background:${mute}"></i><b></b></span><span class="pm-band" style="background:${c.sand}"></span></span>
+    <span class="pal-sw">${[c.bg, c.card, c.sand, c.ink, '#ff2414'].map(x => `<i style="background:${x}"></i>`).join('')}</span>`;
 }
-$('#btn-pal-preview').onclick = () => { window.open(siteUrl() + '?palette=' + (palSel || palCur()), '_blank', 'noopener'); };
+function palDirty() {
+  const cur = palCur(); if (palSel !== cur) return true;
+  if (cur !== 'c') return false;
+  const s = SITE.palette_colors || {}; return PAL_KEYS.some(([k]) => ('#' + String(s[k] || '').replace('#', '')).toLowerCase() !== palCustom[k].toLowerCase());
+}
+function renderPalettes() {
+  const cur = palCur();
+  if (palSel === null) palSel = cur;
+  if (palCustom === null) {
+    const s = SITE.palette_colors || {};
+    palCustom = PAL_KEYS.every(([k]) => /^#?[0-9a-f]{6}$/i.test(s[k] || '')) ? Object.fromEntries(PAL_KEYS.map(([k]) => [k, '#' + s[k].replace('#', '').toLowerCase()])) : palColors(cur === 'c' ? '0' : cur);
+  }
+  const cards = PALETTES.map(([v, name, c]) => [v, name, c]).concat([['c', '自訂', palCustom]]);
+  const g = $('#pal-grid');
+  g.innerHTML = cards.map(([v, name, c]) => `<button type="button" class="pal-card${v === palSel ? ' sel' : ''}" data-v="${v}" aria-pressed="${v === palSel}">
+    ${palMock(c)}<span class="pal-name">${v === '0' || v === 'c' ? '' : v + '. '}${escHtml(t(name))}${v === cur ? `<em>${t('使用中')}</em>` : ''}</span></button>`).join('');
+  g.querySelectorAll('.pal-card').forEach(b => b.onclick = () => {
+    const v = b.dataset.v;
+    if (v === 'c' && palSel !== 'c' && palSel !== cur) palCustom = palColors(palSel);  // start the custom scheme from the card picked last
+    palSel = v; renderPalettes();
+  });
+  const box = $('#pal-custom'); box.hidden = palSel !== 'c';
+  if (palSel === 'c') {
+    box.innerHTML = `<div class="pal-pick">${PAL_KEYS.map(([k, label]) => `<label><input type="color" id="pal-in-${k}" value="${palCustom[k]}"><span>${t(label)}<br><code>${palCustom[k]}</code></span></label>`).join('')}</div>
+      <div class="pal-from">${t('從現成色卡開始：')}${PALETTES.map(([v, name]) => `<button type="button" class="link" data-from="${v}">${escHtml(t(name))}</button>`).join('')}</div>
+      <p class="hint" id="pal-warn"></p>`;
+    PAL_KEYS.forEach(([k]) => { const inp = $('#pal-in-' + k); inp.oninput = () => { palCustom[k] = inp.value.toLowerCase(); inp.nextElementSibling.querySelector('code').textContent = palCustom[k]; palUpdateCustomCard(); }; });
+    box.querySelectorAll('[data-from]').forEach(b => b.onclick = () => { palCustom = palColors(b.dataset.from); renderPalettes(); });
+    palWarn();
+  }
+  palState();
+}
+function palUpdateCustomCard() {
+  const b = $('#pal-grid .pal-card[data-v="c"]'); if (!b) return;
+  const name = b.querySelector('.pal-name').outerHTML; b.innerHTML = palMock(palCustom) + name; palWarn(); palState();
+}
+function palWarn() {
+  const w = $('#pal-warn'); if (!w) return;
+  const r = contrast(palCustom.ink, palCustom.bg), r2 = contrast(palCustom.ink, palCustom.card);
+  w.textContent = Math.min(r, r2) < 4.5 ? t('注意：文字和底色太接近，客人可能看不清楚，建議把文字調深一點或底色調淺一點。') : t('線條和淡色文字會依這四個顏色自動調配。');
+  w.style.color = Math.min(r, r2) < 4.5 ? '#c62828' : '';
+}
+function palState() {
+  const cur = palCur(), dirty = palDirty();
+  $('#pal-state').textContent = dirty ? t('已選「{n}」，尚未套用', { n: palName(palSel) }) : t('目前使用：{n}', { n: palName(cur) });
+  $('#btn-pal-save').disabled = !dirty;
+}
+$('#btn-pal-preview').onclick = () => {
+  const v = palSel || palCur();
+  const q = v === 'c' ? 'palette=c&pc=' + PAL_KEYS.map(([k]) => palCustom[k].replace('#', '')).join('') : 'palette=' + v;
+  window.open(siteUrl() + '?' + q, '_blank', 'noopener');
+};
 $('#btn-pal-save').onclick = () => runAct(async () => {
   const v = palSel; SITE.palette = v;
+  if (v === 'c') SITE.palette_colors = Object.fromEntries(PAL_KEYS.map(([k]) => [k, palCustom[k].replace('#', '')]));
   await saveSite(t('網站配色改為「{n}」', { n: palName(v) }));
   toast(t('已套用，網站重新部署中（約 1～2 分鐘）'));
 });

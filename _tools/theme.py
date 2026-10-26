@@ -52,7 +52,7 @@ def load_site():
     feats = site.get("features") or {}
     feats.setdefault("intro", "每一個細節，都為了雨天也能自在奔跑。")
     feats["items"] = [f for f in feats.get("items", []) if f.get("visible", True) and f.get("image")]
-    return {"hero": hero, "features": feats, "palette": str(site.get("palette") or "0")}
+    return {"hero": hero, "features": feats, "palette": str(site.get("palette") or "0"), "palette_colors": site.get("palette_colors") or {}}
 
 
 def groups_of(data):
@@ -550,13 +550,13 @@ body.menu-open .bars i:nth-child(1){transform:translateY(6px) rotate(45deg)}body
 """
 
 JS = r"""/* colour-scheme preview bar: only appears after visiting a page with ?palette=N */
-(function(){var cur;try{cur=sessionStorage.getItem('apetto_palette');}catch(e){}if(cur===null||cur===undefined)return;
- var P=[['0','原本','#fbfaf7'],['1','杏仁奶茶','#efe0c9'],['2','蜜桃','#ffe4d4'],['3','奶油黃','#fbeebb'],['4','鼠尾草','#e6e8d6'],['5','焦糖','#e6cdaa']];
+(function(){var cur;try{cur=sessionStorage.getItem('apetto_palette');}catch(e){}if(cur===null||cur===undefined)return;var H=document.documentElement;
+ var P=[['0','原本','#fbfaf7'],['1','杏仁奶茶','#efe0c9'],['2','蜜桃','#ffe4d4'],['3','奶油黃','#fbeebb'],['4','鼠尾草','#e6e8d6'],['5','焦糖','#e6cdaa']];if(window.apPcStyle){var pcb=(sessionStorage.getItem('apetto_pc')||'').slice(0,6);P.push(['c','自訂','#'+pcb]);}
  var bar=document.createElement('div');bar.className='pal-bar';bar.innerHTML='<b>配色預覽</b>';
- function set(v){try{sessionStorage.setItem('apetto_palette',v);}catch(e){}if(v==='0')document.documentElement.removeAttribute('data-palette');else document.documentElement.setAttribute('data-palette',v);
+ function set(v){try{sessionStorage.setItem('apetto_palette',v);}catch(e){}H.removeAttribute('style');if(v==='0')H.removeAttribute('data-palette');else{H.setAttribute('data-palette',v);if(v==='c'&&window.apPcStyle)H.setAttribute('style',window.apPcStyle);}
   [].forEach.call(bar.querySelectorAll('button[data-v]'),function(b){b.classList.toggle('cur',b.getAttribute('data-v')===v);});}
- P.forEach(function(p){var b=document.createElement('button');b.type='button';b.setAttribute('data-v',p[0]);b.innerHTML='<i style="background:'+p[2]+'"></i>'+(p[0]==='0'?'':p[0]+' ')+p[1];b.onclick=function(){set(p[0]);};bar.appendChild(b);});
- var x=document.createElement('button');x.type='button';x.className='x';x.textContent='關閉預覽 ✕';x.onclick=function(){try{sessionStorage.removeItem('apetto_palette');}catch(e){}document.documentElement.removeAttribute('data-palette');bar.remove();};bar.appendChild(x);
+ P.forEach(function(p){var b=document.createElement('button');b.type='button';b.setAttribute('data-v',p[0]);b.innerHTML='<i style="background:'+p[2]+'"></i>'+(p[0]==='0'||p[0]==='c'?'':p[0]+' ')+p[1];b.onclick=function(){set(p[0]);};bar.appendChild(b);});
+ var x=document.createElement('button');x.type='button';x.className='x';x.textContent='關閉預覽 ✕';x.onclick=function(){try{sessionStorage.removeItem('apetto_palette');sessionStorage.removeItem('apetto_pc');}catch(e){}location.href=location.pathname+location.hash;};bar.appendChild(x);
  document.body.appendChild(bar);set(cur);})();
 (function(){
 var b=document.querySelector('.burger'),mm=document.querySelector('.mobile-menu');
@@ -673,14 +673,42 @@ def footer(data, site_rel, lang):
 </footer>"""
 
 
+# Runs first in <head>: applies a colour-scheme preview (?palette=0-5, or ?palette=c&pc=<4 hex colours>) for this tab.
+# The secondary colours of a custom scheme are mixed from its four colours (same formula as custom_vars below).
+HEAD_JS = ('document.documentElement.className+=" js";'
+    'function apX(a,b,t){var r="#";for(var i=0;i<6;i+=2){var v=Math.round(parseInt(a.substr(i,2),16)*(1-t)+parseInt(b.substr(i,2),16)*t);r+=(v<16?"0":"")+v.toString(16);}return r;}'
+    'function apV(c){var bg=c[0],k=c[3];return "--bg:#"+bg+";--card:#"+c[1]+";--sand:#"+c[2]+";--ink:#"+k+";--line:"+apX(bg,k,.12)+";--line2:"+apX(bg,k,.2)+";--ink2:"+apX(k,bg,.25)+";--mute:"+apX(k,bg,.5)+";--brand-soft:"+apX(bg,"ff2414",.1);}'
+    'try{var h=document.documentElement,ss=sessionStorage,L=location.search,m=L.match(/[?&]palette=([0-5c])/),q=L.match(/[?&]pc=([0-9a-fA-F]{24})/);'
+    'if(q)ss.setItem("apetto_pc",q[1].toLowerCase());if(m)ss.setItem("apetto_palette",m[1]);var pv=ss.getItem("apetto_palette"),pc=(ss.getItem("apetto_pc")||"").match(/.{6}/g);'
+    'if(pc&&pc.length===4)window.apPcStyle=apV(pc);'
+    'if(pv){h.removeAttribute("style");if(pv==="0")h.removeAttribute("data-palette");else{h.setAttribute("data-palette",pv);if(pv==="c"&&window.apPcStyle)h.setAttribute("style",window.apPcStyle);}}}catch(e){}')
+
+
+def _mix(a, b, t):
+    a, b = a.lstrip("#"), b.lstrip("#")
+    return "#" + "".join("%02x" % round(int(a[i:i + 2], 16) * (1 - t) + int(b[i:i + 2], 16) * t) for i in (0, 2, 4))
+
+
+def custom_vars(c):
+    """CSS variables for a custom scheme {bg, card, sand, ink} chosen in the admin."""
+    bg, card, sand, ink = (str(c.get(k) or "").lstrip("#").lower() for k in ("bg", "card", "sand", "ink"))
+    if not all(re.fullmatch(r"[0-9a-f]{6}", x) for x in (bg, card, sand, ink)):
+        return ""
+    return (f"--bg:#{bg};--card:#{card};--sand:#{sand};--ink:#{ink};--line:{_mix(bg, ink, .12)};--line2:{_mix(bg, ink, .2)};"
+            f"--ink2:{_mix(ink, bg, .25)};--mute:{_mix(ink, bg, .5)};--brand-soft:{_mix(bg, 'ff2414', .1)}")
+
+
 def page(data, site_rel, lang, title, body, desc="", og_image=None, current="", body_class="", extra_head=""):
     d = rel_dir(site_rel)
     base = posixpath.basename(site_rel)
     alts = "".join(f'<link rel="alternate" hreflang="{HTML_LANG[c]}" href="{sb.lang_variant(base, c)}">' for c in LANG_CODES)
     og = f'<meta property="og:image" content="{esc(PUBLIC + og_image)}">' if og_image else ""
     cls = f' class="{body_class}"' if body_class else ""
-    pal = str(load_site().get("palette") or "0")
+    site_cfg = load_site()
+    pal = site_cfg["palette"]
     pal_attr = f' data-palette="{pal}"' if pal in ("1", "2", "3", "4", "5") else ""
+    if pal == "c" and custom_vars(site_cfg["palette_colors"]):
+        pal_attr = f' data-palette="c" style="{custom_vars(site_cfg["palette_colors"])}"'
     return f"""<!DOCTYPE html>
 <html lang="{HTML_LANG[lang]}"{pal_attr}>
 <head>
@@ -692,7 +720,7 @@ def page(data, site_rel, lang, title, body, desc="", og_image=None, current="", 
 <meta property="og:title" content="{esc(title)}"><meta property="og:description" content="{esc(desc)}"><meta property="og:type" content="website">{og}
 <link rel="icon" href="{asset(d, 'favicon.ico')}">
 <link rel="apple-touch-icon" href="{asset(d, 'assets/icon-192.png')}">
-<script>document.documentElement.className+=" js";try{{var m=location.search.match(/[?&]palette=([0-5])/);if(m)sessionStorage.setItem("apetto_palette",m[1]);var pv=sessionStorage.getItem("apetto_palette");if(pv==="0")document.documentElement.removeAttribute("data-palette");else if(pv)document.documentElement.setAttribute("data-palette",pv);}}catch(e){{}}</script>
+<script>{HEAD_JS}</script>
 <link rel="canonical" href="{esc(base)}">{alts}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="{FONTS}">
