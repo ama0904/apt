@@ -207,7 +207,7 @@ CSS = r"""
 .fit-demo button{display:inline-flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;border-radius:999px;border:1.5px solid var(--line2);background:#fff;font:inherit;font-size:14px;font-weight:600;color:var(--ink2);cursor:pointer}
 .fit-demo button img{width:34px;height:34px;border-radius:50%;object-fit:cover}.fit-demo button:hover{border-color:var(--ink);color:var(--ink)}.fit-demo button.cur{border-color:var(--ink);background:var(--ink);color:#fff}
 .fit-coats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.fit-coat{position:relative;border:2px solid var(--line);border-radius:16px;background:#fff;padding:10px 10px 12px;text-align:left;cursor:pointer;font:inherit;color:var(--ink);transition:border-color .15s,transform .15s,box-shadow .15s}
+.fit-coat{position:relative;border:2px solid var(--line);border-radius:16px;background:var(--card);padding:10px 10px 12px;text-align:left;cursor:pointer;font:inherit;color:var(--ink);transition:border-color .15s,transform .15s,box-shadow .15s}
 .fit-coat:hover{border-color:var(--ink2);transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.06)}.fit-coat.cur{border-color:var(--ink);box-shadow:0 0 0 3px rgba(23,24,26,.12)}
 .fit-coat .img{aspect-ratio:1;border-radius:10px;overflow:hidden;background:#fff;display:grid;place-items:center}.fit-coat img{width:100%;height:100%;object-fit:contain}
 .fit-coat .nm{display:block;font-weight:700;font-size:14.5px;margin-top:10px;line-height:1.3}.fit-coat .sub{display:block;font-size:12.5px;color:var(--mute);line-height:1.35;margin-top:2px}
@@ -275,7 +275,7 @@ CSS = r"""
 .fit-size-out .big b{font-size:28px;color:var(--ink);line-height:1}.fit-size-out .big span{font-size:13px;color:var(--brand-ink);font-weight:700;letter-spacing:.06em}
 .fit-size-out p{margin:0 0 4px}.fit-size-out .btn{margin-top:10px;width:100%}
 @media (max-width:480px){.fit-size .fields{grid-template-columns:1fr 1fr 1fr;gap:6px}.fit-size label{font-size:12px}.fit-size label>div{padding:0 8px}}
-.fit-promo{background:#fff;border:1px solid var(--line);border-radius:28px;padding:40px 44px;display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center}
+.fit-promo{background:var(--card);border:1px solid var(--line);border-radius:28px;padding:40px 44px;display:grid;grid-template-columns:1fr auto;gap:28px;align-items:center}
 .fit-promo h2{font-size:clamp(22px,2.6vw,30px);margin:0 0 8px}.fit-promo p{margin:0;color:var(--ink2);font-size:16.5px;max-width:52ch}
 .fit-promo .coats{display:flex;gap:-6px}.fit-promo .coats img{width:84px;height:84px;border-radius:50%;object-fit:cover;object-position:60% 50%;border:3px solid #fff;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.08);margin-left:-14px}
 .fit-promo .coats img:first-child{margin-left:0}.fit-promo .side{display:flex;align-items:center;gap:22px}
