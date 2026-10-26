@@ -52,7 +52,7 @@ def load_site():
     feats = site.get("features") or {}
     feats.setdefault("intro", "每一個細節，都為了雨天也能自在奔跑。")
     feats["items"] = [f for f in feats.get("items", []) if f.get("visible", True) and f.get("image")]
-    return {"hero": hero, "features": feats}
+    return {"hero": hero, "features": feats, "palette": str(site.get("palette") or "0")}
 
 
 def groups_of(data):
@@ -679,8 +679,10 @@ def page(data, site_rel, lang, title, body, desc="", og_image=None, current="", 
     alts = "".join(f'<link rel="alternate" hreflang="{HTML_LANG[c]}" href="{sb.lang_variant(base, c)}">' for c in LANG_CODES)
     og = f'<meta property="og:image" content="{esc(PUBLIC + og_image)}">' if og_image else ""
     cls = f' class="{body_class}"' if body_class else ""
+    pal = str(load_site().get("palette") or "0")
+    pal_attr = f' data-palette="{pal}"' if pal in ("1", "2", "3", "4", "5") else ""
     return f"""<!DOCTYPE html>
-<html lang="{HTML_LANG[lang]}">
+<html lang="{HTML_LANG[lang]}"{pal_attr}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -690,7 +692,7 @@ def page(data, site_rel, lang, title, body, desc="", og_image=None, current="", 
 <meta property="og:title" content="{esc(title)}"><meta property="og:description" content="{esc(desc)}"><meta property="og:type" content="website">{og}
 <link rel="icon" href="{asset(d, 'favicon.ico')}">
 <link rel="apple-touch-icon" href="{asset(d, 'assets/icon-192.png')}">
-<script>document.documentElement.className+=" js";try{{var m=location.search.match(/[?&]palette=([0-5])/);if(m)sessionStorage.setItem("apetto_palette",m[1]);var pv=sessionStorage.getItem("apetto_palette");if(pv&&pv!=="0")document.documentElement.setAttribute("data-palette",pv);}}catch(e){{}}</script>
+<script>document.documentElement.className+=" js";try{{var m=location.search.match(/[?&]palette=([0-5])/);if(m)sessionStorage.setItem("apetto_palette",m[1]);var pv=sessionStorage.getItem("apetto_palette");if(pv==="0")document.documentElement.removeAttribute("data-palette");else if(pv)document.documentElement.setAttribute("data-palette",pv);}}catch(e){{}}</script>
 <link rel="canonical" href="{esc(base)}">{alts}
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="{FONTS}">
