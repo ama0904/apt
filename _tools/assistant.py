@@ -875,7 +875,7 @@ function srvMatch(q){return srvOn().then(function(on){if(!on||!KB.v)return null;
  return fetch(API+'/api/helper/match',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:q.slice(0,300),lang:LANG,v:KB.v}),signal:ctl.signal})
   .then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}).then(function(j){clearTimeout(tm);return j;});});}
 function srvLog(q,a){if(!SRV)return;try{fetch(API+'/api/helper/log',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},
- body:JSON.stringify({sid:SID,q:q.slice(0,300),lang:LANG,page:decodeURIComponent(location.pathname.slice(new URL(BASE||'./',location.href).pathname.length)),kind:a.kind||'',via:a.via||'rule',score:a.score||null,ans:a.text.slice(0,160),t:new Date().toISOString()})}).catch(function(){});}catch(e){}}
+ body:JSON.stringify({sid:SID,q:q.slice(0,300),lang:LANG,page:decodeURIComponent(location.pathname.slice(new URL(BASE||'./',location.href).pathname.length)),kind:a.kind||'',via:a.via||'rule',score:a.score||null,ans:a.text.slice(0,200),t:new Date().toISOString()})}).catch(function(){});}catch(e){}}
 // use the server's match when the rules had nothing good, or when the server is very sure and the rules picked something else
 function refine(q,a,mr){if(!mr||mr.v!==KB.v||!KB.sem)return a;var th=mr.th||{},weak=a.kind==='unknown'||a.kind==='doc';
  var ex=(mr.ex||[]).filter(function(e){return KB.sem.ex[e.i];}),top=ex[0];
