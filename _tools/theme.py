@@ -878,6 +878,8 @@ CSS += """
 CSS = CSS + '''
 /* Shop-in-Shop page */
 .store-head{padding:28px 0 22px}.store-head h1{font-size:clamp(30px,4.4vw,46px);line-height:1.12;margin:0 0 12px;letter-spacing:-.01em}.store-head .lead{font-size:17px;color:var(--ink2);max-width:62ch;margin:0}
+.store-photo{border-radius:20px;overflow:hidden;aspect-ratio:16/8;margin:0 0 20px;background:var(--sand)}.store-photo img{width:100%;height:100%;object-fit:cover;object-position:50% 60%;display:block}
+@media (max-width:860px){.store-photo{aspect-ratio:4/3}}
 .store-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px;align-items:stretch;margin-bottom:12px}
 .store-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px 26px 22px;display:flex;flex-direction:column;gap:10px}.store-card h2{margin:0;font-size:24px;line-height:1.25}.store-card .store-sub{margin:-4px 0 6px;color:var(--mute);font-size:14px}
 .store-card address{display:flex;gap:12px;align-items:flex-start;font-style:normal;font-size:18px;line-height:1.5;padding:14px 16px;border-radius:14px;background:var(--sand)}.store-card address svg{width:26px;height:26px;flex:0 0 auto;color:var(--brand)}.store-card address em{font-style:normal;color:var(--mute);font-size:14px}
@@ -1220,6 +1222,7 @@ STORE_HOST = "陳美英中文書屋 × bis Buchladen"
 STORE_STREET, STORE_CITY = "Weidenallee 4", "20357 Hamburg"
 STORE_FB = "https://www.facebook.com/bisBuchladen/"
 STORE_Q = "Weidenallee+4,+20357+Hamburg"
+STORE_PHOTO = "assets/store/hamburg-1.jpg"   # inside the bookshop, from the owner
 
 
 def render_store(data, lang):
@@ -1234,6 +1237,7 @@ def render_store(data, lang):
     body = f"""<div class="wrap"><ol class="breadcrumb">{crumbs}</ol>
 <div class="store-head rv in"><span class="eyebrow">apetto 在德國</span><h1>{esc(STORE_NAME)}</h1>
  <p class="lead">apetto 的機能狗衣，現在可以在漢堡親手摸到、現場試穿。店中店位於 Eimsbüttel 的「陳美英中文書屋 × bis Buchladen」。</p></div>
+<div class="store-photo rv in"><img src="{asset(d, STORE_PHOTO)}" alt="{esc(STORE_HOST)}"></div>
 <div class="store-grid rv in">
  <div class="store-card">
   <span class="eyebrow">地址</span>
@@ -1264,7 +1268,7 @@ def render_store(data, lang):
  </div>
 </div></section>"""
     return page(data, rel, lang, "漢堡店中店 | apetto", body, "apetto 在漢堡的店中店：Weidenallee 4, 20357 Hamburg。親手感受機能狗衣，帶毛孩現場試穿、直接購買。",
-                og_image=IMG["rain"], current=rel, extra_head=f'<script type="application/ld+json">{ld}</script>')
+                og_image=STORE_PHOTO, current=rel, extra_head=f'<script type="application/ld+json">{ld}</script>')
 
 
 ICON_CART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11h11l2-7H6.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>'
