@@ -531,6 +531,9 @@ function rcFetch(i){var c=cfg.coats[coatKey],cols=c.colors,key=coatKey+':'+i,src
  if(!rcCache[key])rcCache[key]=compress(src,1024,.9).then(function(img){var t0=Date.now();return fetch(cfg.api+'/api/recolor',{method:'POST',headers:auth({'Content-Type':'application/json'}),body:JSON.stringify({image:img,from:cols[0].hex,to:cols[i].hex})})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(function(d){d.rt=Date.now()-t0;return d;});}).catch(function(e){delete rcCache[key];throw e;});
  return rcCache[key];}
+function rcAsk(){var c=rcOn&&coatKey&&cfg.coats[coatKey];if(!c||!c.colors||c.colors.length<2)return null;return {from:c.colors[0].hex,to:c.colors.slice(1).map(function(x){return x.hex;})};}
+function rcTake(v){var c=coatKey&&cfg.coats[coatKey];if(!c||!c.colors||!v||!v.length)return;
+ c.colors.forEach(function(x,i){if(!i)return;var hit=v.filter(function(y){return y&&y.hex===x.hex&&y.image;})[0];if(hit){hit.withPicture=true;rcCache[coatKey+':'+i]=Promise.resolve(hit);}});}
 function rcPrefetch(){var c=coatKey&&cfg.coats[coatKey];if(!rcOn||!c||!c.colors)return;var i=1,n=c.colors.length,orig=rcOrig;
  (function next(){if(i>=n||rcOrig!==orig)return;rcFetch(i++).catch(function(){}).then(next);})();}
 function rcPick(i){var c=cfg.coats[coatKey],cols=c.colors,info=rcBox.querySelector('p');
@@ -538,7 +541,7 @@ function rcPick(i){var c=cfg.coats[coatKey],cols=c.colors,info=rcBox.querySelect
  if(i===0){shot.src=rcOrig;resultUrl=rcOrig;info.textContent='';return;}
  info.textContent='換色中…';var t0=Date.now(),orig=rcOrig;
  rcFetch(i).then(function(d){if(rcOrig!==orig)return;shot.src=d.image;resultUrl=d.image;var wait=Date.now()-t0;
-   info.textContent=cols[i].name+'：zbook 換色 '+d.ms+' ms'+(wait<150?'（已預先換好，立即顯示）':'，等了 '+wait+' ms')+(d.share<0.01?'（幾乎沒找到原本的衣服顏色）':'');})
+   info.textContent=cols[i].name+'：zbook 換色 '+d.ms+' ms'+(d.withPicture?'（和試穿圖一起送來）':wait<150?'（已預先換好，立即顯示）':'，等了 '+wait+' ms')+(d.share<0.01?'（幾乎沒找到原本的衣服顏色）':'');})
   .catch(function(e){info.textContent='換色失敗：'+(e&&e.message||e);});}
 function finish(){if(running){clearInterval(running.poll);clearInterval(running.tick);clearTimeout(running.tm);running=null;}update();}
 go.addEventListener('click',function(){
@@ -559,7 +562,7 @@ go.addEventListener('click',function(){
    if(d.key==='srv.retrying'){progT.textContent=txt;return;}
    if(st>=6)step(2,txt||t('step.draw'));else if(st>=3)step(1,txt||t('step.send'));else if(txt&&st>=2)progT.textContent=txt;}).catch(function(){});},1000);
   return fetch(cfg.api+'/api/stylist',{method:'POST',signal:ctl.signal,headers:auth({'Content-Type':'application/json'}),
-   body:JSON.stringify({dogImage:imgs[0],clothesImage:imgs[1],lang:cfg.serverLang,jobId:jobId,coat:coatKey||null,coatName:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].name)||null,product:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].product)||null})});
+   body:JSON.stringify({dogImage:imgs[0],clothesImage:imgs[1],lang:cfg.serverLang,jobId:jobId,coat:coatKey||null,coatName:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].name)||null,product:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].product)||null,recolor:rcAsk()})});
  }).then(function(r){
   if(!r.ok){return r.json().catch(function(){return {};}).then(function(d){
    if(r.status===429)throw new Error(t(d.errorKey||'err.busy'));if(r.status===503)throw new Error(t(d.errorKey||'err.allAccountsExhausted'));
@@ -567,7 +570,7 @@ go.addEventListener('click',function(){
   return r.json();
  }).then(function(d){
   if(running!==run)return;var src=d&&d.image;if(!src||!(/^data:image|^https?:/.test(src)))throw new Error(t('err.noImage'));
-  step(3,t('step.done'));return loadImg(src).then(function(){resultUrl=src;shot.src=src;stage.dataset.state='done';finish();sizeOut();celebrate();rcOrig=src;rcCache={};rcShow();rcPrefetch();
+  step(3,t('step.done'));return loadImg(src).then(function(){resultUrl=src;shot.src=src;stage.dataset.state='done';finish();sizeOut();celebrate();rcOrig=src;rcCache={};rcTake(d.variants);rcShow();rcPrefetch();
    try{document.dispatchEvent(new CustomEvent('apetto:fitdone',{detail:{image:src,dog:dog,coat:coatKey,coatName:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].name)||''}}));}catch(e){}
    if(d.caption&&String(d.caption).trim())showNote(d.caption);else pollCaption(d.captionId);});
  }).catch(function(e){

@@ -10,6 +10,7 @@
 // share = part of the picture recoloured (0..1); near 0 means the garment colour was not found.
 // Needs: sharp (comes with @huggingface/transformers).
 import sharp from 'sharp';
+import { Worker, isMainThread, parentPort } from 'node:worker_threads';
 
 const WHITE = [0.95047, 1.0, 1.08883];
 function toLab(r, g, b, out, i) {
@@ -86,22 +87,54 @@ export async function recolor(buf, fromHex, toHex, { tol = 34, maxSide = 1024 } 
   return { jpg, share: cnt / N };
 }
 
-// one picture at a time, like dogsize
-let chain = Promise.resolve();
-export function recolorDataUrl(dataUrl, fromHex, toHex) {
-  const run = async () => {
-    const m = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl || '');
-    if (!m) throw Object.assign(new Error('bad image'), { status: 400 });
-    const buf = Buffer.from(m[2], 'base64');
-    if (buf.length > 6 * 1024 * 1024) throw Object.assign(new Error('image too large'), { status: 413 });
-    const t0 = Date.now();
-    let r;
-    try { r = await recolor(buf, fromHex, toHex); } catch (e) { if (e.status) throw e; throw Object.assign(new Error('bad image'), { status: 400 }); }
-    return { image: 'data:image/jpeg;base64,' + r.jpg.toString('base64'), share: +r.share.toFixed(3), ms: Date.now() - t0 };
-  };
-  const p = chain.then(run, run);
-  chain = p.catch(() => {});
-  return p;
+// The pixel work runs in one worker thread, so the server's main thread (Gemini browser jobs) is never blocked.
+if (!isMainThread && parentPort) {
+  parentPort.on('message', async ({ id, buf, from, to }) => {
+    try { const r = await recolor(Buffer.from(buf), from, to); parentPort.postMessage({ id, jpg: r.jpg, share: r.share }); }
+    catch (e) { parentPort.postMessage({ id, error: e.message, status: e.status || 0 }); }
+  });
+}
+let worker = null, seq = 0;
+const waiting = new Map();
+function getWorker() {
+  if (worker) return worker;
+  worker = new Worker(new URL(import.meta.url));
+  worker.on('message', m => { const w = waiting.get(m.id); if (!w) return; waiting.delete(m.id); m.error ? w.reject(Object.assign(new Error(m.error), { status: m.status || undefined })) : w.resolve(m); });
+  worker.on('error', e => { for (const w of waiting.values()) w.reject(e); waiting.clear(); worker = null; });
+  worker.on('exit', () => { worker = null; });
+  worker.unref();
+  return worker;
+}
+function inWorker(buf, from, to) {
+  return new Promise((resolve, reject) => { const id = ++seq; waiting.set(id, { resolve, reject }); getWorker().postMessage({ id, buf, from, to }); });
+}
+function decode(dataUrl) {
+  const m = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl || '');
+  if (!m) throw Object.assign(new Error('bad image'), { status: 400 });
+  const buf = Buffer.from(m[2], 'base64');
+  if (buf.length > 6 * 1024 * 1024) throw Object.assign(new Error('image too large'), { status: 413 });
+  return buf;
+}
+const asResult = (r, t0) => ({ image: 'data:image/jpeg;base64,' + Buffer.from(r.jpg).toString('base64'), share: +r.share.toFixed(3), ms: Date.now() - t0 });
+
+export async function recolorDataUrl(dataUrl, fromHex, toHex) {
+  const buf = decode(dataUrl), t0 = Date.now();
+  return asResult(await inWorker(buf, fromHex, toHex), t0);
+}
+
+// For /api/stylist: recolour the finished picture into every colour the page asked for, in the same response.
+// image: data URL or Buffer; recolor: {from: "#hex", to: ["#hex", ...]} (at most 6). Never throws; bad input -> [].
+export async function recolorVariants(image, recolor) {
+  try {
+    if (!recolor || !recolor.from || !Array.isArray(recolor.to)) return [];
+    const buf = Buffer.isBuffer(image) ? image : decode(image);
+    const out = [];
+    for (const to of recolor.to.slice(0, 6)) {
+      const t0 = Date.now();
+      try { out.push({ hex: to, ...asResult(await inWorker(buf, recolor.from, to), t0) }); } catch (e) { /* skip that colour */ }
+    }
+    return out;
+  } catch (e) { return []; }
 }
 
 export function recolorHandler(req, res) {

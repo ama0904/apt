@@ -36,3 +36,8 @@
 回傳 `{image: JPEG data URL, ms, share}`，`share` 是被換色的面積比例，接近 0 代表沒找到原本的衣服顏色。
 server.js：`const { recolorHandler } = await import('./recolor.mjs'); app.post('/api/recolor', recolorHandler);`（同樣放在 API 金鑰驗證後面）。
 網站上用 `fitstudio.html?recolor=1` 測：試穿完會出現同款其他顏色的按鈕。
+
+**和試穿圖一起送（建議）**：網頁在 `/api/stylist` 的 body 多帶 `recolor: {from: "#2346b5", to: ["#e0306e", "#cfe23f"]}`（只有 `?recolor=1` 時才帶）。
+server.js 在拿到 Gemini 的圖、回傳之前呼叫 `const { recolorVariants } = await import('./recolor.mjs'); const variants = await recolorVariants(imageDataUrlOrBuffer, req.body.recolor);`，
+把 `variants`（`[{hex, image, ms, share}]`）放進回應：`res.json({ ...原本的欄位, variants })`。沒帶 `recolor` 時回 `[]`，不影響原本流程；不會丟錯。
+換色在獨立的 worker thread 跑，不會卡住主執行緒（Gemini 的瀏覽器工作）。兩個顏色約多 0.5～1 秒才回傳。
