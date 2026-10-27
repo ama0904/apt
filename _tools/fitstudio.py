@@ -426,7 +426,7 @@ function aiShow(state,r,ms){if(!aiBox||!aiDebug)return;aiBox.hidden=false;var h=
  if(state==='wait')h+='<p>'+t('ai.wait')+'</p>';else if(state==='error')h+='<p>'+t('ai.err')+'</p>';
  else{h+='<p><b>'+t('ai.breed')+'</b>：'+(r.top||[]).map(function(x){return escHtml(breedName(x))+' '+Math.round(x.p*100)+'%';}).join('、')+(r.breedSure===false?'（'+t('ai.unsure')+'）':'')+'</p>';
   if(r.P)h+='<p><b>'+t('ai.size')+'</b>：'+t('ai.sizes',{s:Math.round(r.P[0]*100),m:Math.round(r.P[1]*100),l:Math.round(r.P[2]*100)})+'</p>';
-  h+='<p><b>'+t('ai.verdict')+'</b>：'+t(!r.P?'ai.nodog':r.guess?'ai.'+r.guess:'ai.none')+'</p><small>'+t('ai.time',{s:(ms/1000).toFixed(1)})+'<br>'+t('ai.note')+'</small>';}
+  h+='<p><b>'+t('ai.verdict')+'</b>：'+t(!r.P?'ai.nodog':guess?'ai.'+guess:'ai.none')+'</p><small>'+t('ai.time',{s:(ms/1000).toFixed(1)})+'<br>'+t('ai.note')+'</small>';}
  aiBox.innerHTML=h;}
 function guessSize(src,demo){guess=null;guessFor=src;guessDemo=!!demo;guessMark('');guessOut();
  if(guessCtl){guessCtl.abort();guessCtl=null;}
