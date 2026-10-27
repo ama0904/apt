@@ -125,6 +125,7 @@ UI = {
     "尺寸怎麼量": {"en": "How to measure", "ja": "サイズの測り方", "de": "So wird gemessen"},
     "線上試衣間": {"en": "Online fitting room", "ja": "オンライン試着室", "de": "Online-Anprobe"},
     "營業時間與庫存可能變動，出發前建議先透過 Facebook 聯絡店家。": {"en": "Opening hours and stock may change; check with the shop via Facebook before you go.", "ja": "営業時間と在庫は変わることがあります。来店前に Facebook でお店にご確認ください。", "de": "Öffnungszeiten und Bestand können sich ändern; fragt am besten vorher über Facebook beim Laden nach."},
+    "帶毛孩一起來，可以現場試穿、直接購買。營業時間請先透過 Facebook 向店家確認。": {"en": "Bring your dog: try it on and buy on the spot. Please check the opening hours with the shop on Facebook first.", "ja": "愛犬と一緒にどうぞ。その場で試着・購入できます。営業時間は Facebook でお店に事前にご確認ください。", "de": "Bringt euren Hund mit: vor Ort anprobieren und direkt kaufen. Die Öffnungszeiten bitte vorher über Facebook beim Laden erfragen."},
     "漢堡 · 德國": {"en": "Hamburg · Germany", "ja": "ハンブルク・ドイツ", "de": "Hamburg · Deutschland"},
     "漢堡店中店 | apetto": {"en": "Store in Hamburg | apetto", "ja": "ハンブルク店 | apetto", "de": "Shop-in-Shop Hamburg | apetto"},
     "apetto 在漢堡的店中店：Weidenallee 4, 20357 Hamburg。親手感受機能狗衣，帶毛孩現場試穿、直接購買。": {
@@ -880,6 +881,7 @@ CSS = CSS + '''
 .store-head{padding:28px 0 22px}.store-head h1{font-size:clamp(30px,4.4vw,46px);line-height:1.12;margin:0 0 12px;letter-spacing:-.01em}.store-head .lead{font-size:17px;color:var(--ink2);max-width:62ch;margin:0}
 .store-photo{border-radius:20px;overflow:hidden;aspect-ratio:16/8;margin:0 0 20px;background:var(--sand)}.store-photo img{width:100%;height:100%;object-fit:cover;object-position:50% 60%;display:block}
 @media (max-width:860px){.store-photo{aspect-ratio:4/3}}
+.store-foot{margin:4px 0 40px;padding:18px 22px;border-radius:16px;background:var(--sand);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px}.store-foot p{margin:0;font-size:15.5px;color:var(--ink2);max-width:60ch}.store-foot nav{display:flex;gap:14px;font-size:14.5px}.store-foot nav a{color:var(--ink);border-bottom:1px solid var(--line2)}.store-foot nav a:hover{color:var(--brand);border-color:var(--brand)}
 .store-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px;align-items:stretch;margin-bottom:12px}
 .store-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px 26px 22px;display:flex;flex-direction:column;gap:10px}.store-card h2{margin:0;font-size:24px;line-height:1.25}.store-card .store-sub{margin:-4px 0 6px;color:var(--mute);font-size:14px}
 .store-card address{display:flex;gap:12px;align-items:flex-start;font-style:normal;font-size:18px;line-height:1.5;padding:14px 16px;border-radius:14px;background:var(--sand)}.store-card address svg{width:26px;height:26px;flex:0 0 auto;color:var(--brand)}.store-card address em{font-style:normal;color:var(--mute);font-size:14px}
@@ -1249,24 +1251,11 @@ def render_store(data, lang):
    <a class="btn ghost" href="https://www.google.com/maps/search/?api=1&query={STORE_Q}" target="_blank" rel="noopener">在 Google 地圖開啟</a>
    <a class="btn ghost" href="{STORE_FB}" target="_blank" rel="noopener">Facebook 專頁</a>
   </div>
-  <p class="store-note">營業時間與庫存可能變動，出發前建議先透過 Facebook 聯絡店家。</p>
  </div>
  <div class="store-map"><button type="button" class="map-load" data-src="{esc(embed)}">{ICON_PIN}<b>載入地圖</b><span>{esc(STORE_STREET)}, {esc(STORE_CITY)}</span><small>地圖由 Google 提供，點擊後才會載入。</small></button></div>
 </div></div>
-<section class="sec tight"><div class="wrap">
- <div class="sec-head rv"><div><h2>在店裡可以做什麼</h2></div></div>
- <div class="cards3 rv">
-  <div>{ICON_HEART}<h3>親手感受布料與做工</h3><p>耐水壓 10000mmH2O 的防水布料、3M 反光條、領口可上牽繩的設計，現場看最清楚。</p></div>
-  <div>{ICON_PAW}<h3>讓毛孩現場試穿</h3><p>帶毛孩一起來，直接試穿找到合身的尺寸，不用猜。</p></div>
-  <div>{ICON_CART}<h3>現場購買，馬上帶走</h3><p>不用等從台灣寄送，喜歡就直接帶回家。</p></div>
- </div>
- <div class="story flip rv">
-  <div class="story-img"><img src="{asset(d, IMG['rain'])}" alt="" loading="lazy"></div>
-  <div><span class="eyebrow">{esc(BRAND)}</span><h2>出門前先量一下</h2>
-   <p>量毛孩的背長（脖子根部到尾巴根）、領圍和腹圍，到店裡就能很快找到尺寸。想先看看穿起來的樣子，也可以用線上試衣間。</p>
-   <div class="store-acts"><a class="btn" href="{link(d, GUIDES, lang)}">尺寸怎麼量</a><a class="btn ghost" href="{link(d, fit.PAGE, lang)}">線上試衣間</a></div></div>
- </div>
-</div></section>"""
+<div class="store-foot rv in"><p>帶毛孩一起來，可以現場試穿、直接購買。營業時間請先透過 Facebook 向店家確認。</p>
+ <nav><a href="{link(d, GUIDES, lang)}">尺寸怎麼量</a><a href="{link(d, fit.PAGE, lang)}">線上試衣間</a></nav></div></div>"""
     return page(data, rel, lang, "漢堡店中店 | apetto", body, "apetto 在漢堡的店中店：Weidenallee 4, 20357 Hamburg。親手感受機能狗衣，帶毛孩現場試穿、直接購買。",
                 og_image=STORE_PHOTO, current=rel, extra_head=f'<script type="application/ld+json">{ld}</script>')
 
