@@ -10,7 +10,7 @@
 - `size_head.json`：體型分類器的權重。第二版用約 5,300 張標好大小的狗照片訓練，輸入是品種分數加模型的 768 維影像特徵；
   重新訓練只要換這個檔（`features` 欄位說明用哪種輸入）。
 
-模型檔不會自動下載：從 GitHub release `dogsize-v2` 下載 `dogsize-v2.zip`（約 22 MB），解壓到 `FIT_MODEL_DIR`（預設 `fit\models`），
+模型檔不會自動下載：下載這個資料夾裡的 `dogsize-v2.zip`（約 22 MB，SHA256 0b4c9061…bed5），解壓到 `FIT_MODEL_DIR`（預設 `fit\models`），
 變成 `fit\models\dogsize-v2\onnx\model_quantized.onnx`。它是 `facebook/convnext-tiny-224`（ImageNet，Apache-2.0）的 8-bit ONNX
 （Xenova 轉換），多加了一個 `pooled` 輸出（768 維影像特徵）；這個修改檔是用 `onnx` 套件在 Python 裡做的，所以不能直接從 Hugging Face 抓。
 
