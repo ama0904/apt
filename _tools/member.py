@@ -118,7 +118,7 @@ CSS = r"""
 .mem-out{max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px}.mem-out p{margin:0 0 16px;font-size:16px;color:var(--ink2);line-height:1.6}.mem-out .mem-fine{margin:16px 0 0;font-size:13px;color:var(--mute)}
 .mem-who{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:22px;font-size:15px}.mem-who img{width:44px;height:44px;border-radius:50%;object-fit:cover}.mem-who b{display:block;font-size:17px;color:var(--ink)}.mem-who span{color:var(--mute);font-size:13.5px}
 .mem-who .out{margin-left:auto;background:none;border:0;font:inherit;font-size:14px;color:var(--mute);text-decoration:underline;cursor:pointer}
-.mem-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.mem-head h2{margin:0;font-size:22px}.mem-head .btn{min-height:42px;padding:0 16px;font-size:14.5px}
+.mem-head{display:flex;align-items:center;justify-content:flex-start;gap:16px;margin-bottom:12px}.mem-head h2{margin:0;font-size:22px}.mem-head .btn{min-height:42px;padding:0 16px;font-size:14.5px}
 .mem-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
 .mem-dog{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:16px 18px;display:grid;gap:8px}
 .mem-dog h3{margin:0;font-size:18px;display:flex;align-items:center;gap:8px}.mem-dog h3 em{font-style:normal;font-size:12px;font-weight:700;color:#fff;background:var(--brand);border-radius:999px;padding:2px 8px}
@@ -136,12 +136,12 @@ CSS = r"""
 .fit-member select{min-height:38px;border-radius:999px;border:1.5px solid var(--line2);background:var(--card);color:var(--ink);font:inherit;font-weight:600;padding:0 12px}
 .fit-member a,.fit-member .lnk{color:var(--ink2);font-size:13.5px;text-decoration:underline;background:none;border:0;padding:0;font-family:inherit;cursor:pointer}
 .fit-saved{margin:10px 0 0;font-size:13.5px;color:var(--ink2);display:flex;align-items:center;gap:8px;flex-wrap:wrap}.fit-saved button{background:none;border:0;padding:0;font:inherit;color:var(--brand-ink);text-decoration:underline;cursor:pointer}
-.fit-history{margin:36px 0 10px}.fit-history-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px;margin-bottom:14px}
-.fit-history-head h2{margin:0;font-size:22px}.fit-history-head p{margin:0;font-size:13.5px;color:var(--mute)}
-.fit-history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
-.fit-history .item{position:relative;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+.fit-history{margin:40px 0 16px;padding:22px 24px 24px;border:1px solid var(--line);border-radius:20px;background:var(--card)}.fit-history-head{display:grid;gap:4px;margin-bottom:16px}
+.fit-history-head h2{margin:0;font-size:22px}.fit-history-head p{margin:0;font-size:14px;color:var(--mute)}
+.fit-history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}@media (max-width:560px){.fit-history{padding:16px}.fit-history-grid{grid-template-columns:1fr 1fr;gap:10px}}
+.fit-history .item{position:relative;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--bg)}
 .fit-history .item a{display:block;aspect-ratio:1;background:#fff}.fit-history .item img{width:100%;height:100%;object-fit:cover;display:block}
-.fit-history .item .meta{padding:8px 10px 10px;font-size:13px;line-height:1.4}.fit-history .item .meta b{display:block;color:var(--ink)}.fit-history .item .meta span{color:var(--mute);font-size:12px}
+.fit-history .item .meta{padding:10px 12px 12px;font-size:13.5px;line-height:1.45}.fit-history .item .meta b{display:block;color:var(--ink)}.fit-history .item .meta span{color:var(--mute);font-size:12px}
 .fit-history .item .del{position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:15px;line-height:30px;cursor:pointer}
 .fit-history .empty{color:var(--mute);font-size:14px}
 .dog-modal{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(23,24,26,.55)}

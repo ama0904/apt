@@ -2521,7 +2521,7 @@ async function mbInit() {
   const conf = await r.json();
   const base = `https://www.gstatic.com/firebasejs/${FB_VER}/`;
   const [{ initializeApp }, A, F] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
-  const app = initializeApp(conf, 'apetto-admin');
+  const app = initializeApp(conf);   // default app: shares the Google session with the site's member page (same origin)
   const auth = A.getAuth(app);
   MB = { A, F, auth, db: F.getFirestore(app), user: null };
   await new Promise(res => { const off = A.onAuthStateChanged(auth, u => { MB.user = u; off(); res(); }); });
