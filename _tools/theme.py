@@ -689,6 +689,7 @@ def lang_links(site_rel, lang, cls=""):
 def header(data, site_rel, lang, current=""):
     d = rel_dir(site_rel)
     member_link = f'<a href="{link(d, mem.PAGE, lang)}">會員專區</a>' if mem.config() else ""
+    store_link = f'<a href="{link(d, STORE, lang)}">漢堡店中店</a>' if lang == "de" else ""   # the Hamburg shop only matters to German visitors
     search = link(d, "search.html", lang)
     return f"""<div class="lang-row" aria-label="語言">{lang_links(site_rel, lang)}</div>
 <header class="hd">
@@ -702,7 +703,7 @@ def header(data, site_rel, lang, current=""):
 <div class="mobile-menu" role="dialog" aria-label="選單"><div class="mm-panel">
   <div class="mm-top"><a href="{link(d, 'index.html', lang)}" aria-label="apetto"><img src="{asset(d, LOGO)}" alt="apetto"></a><button class="mm-close" aria-label="關閉">✕</button></div>
   <nav class="mm-nav">{nav_links(data, d, lang, current)}</nav>
-  <nav class="mm-more"><a href="{link(d, "pages/5.html", lang)}">購物流程</a><a href="{link(d, "information/news.html", lang)}">最新消息</a><a href="{link(d, STORE, lang)}">漢堡店中店</a>{member_link}</nav>
+  <nav class="mm-more"><a href="{link(d, "pages/5.html", lang)}">購物流程</a><a href="{link(d, "information/news.html", lang)}">最新消息</a>{store_link}{member_link}</nav>
   <div class="mm-social"><a href="{INSTAGRAM}" target="_blank" rel="noopener">Instagram</a><a href="{PINKOI}" target="_blank" rel="noopener">Pinkoi</a></div>
 </div></div>"""
 
@@ -710,7 +711,7 @@ def header(data, site_rel, lang, current=""):
 def footer(data, site_rel, lang):
     d = rel_dir(site_rel)
     links = [(SHOP, "商品分類"), ("search.html", "全系列"), (GUIDES, "商品指南"), (fit.PAGE, "試衣間"),
-             ("pages/5.html", "購物流程"), ("information/news.html", "最新消息"), (ABOUT, "品牌故事"), (STORE, "漢堡店中店")] + ([(mem.PAGE, "會員專區")] if mem.config() else [])
+             ("pages/5.html", "購物流程"), ("information/news.html", "最新消息"), (ABOUT, "品牌故事")] + ([(STORE, "漢堡店中店")] if lang == "de" else []) + ([(mem.PAGE, "會員專區")] if mem.config() else [])
     small = "".join(f'<a href="{link(d, sp, lang)}">{esc(t)}</a>' for sp, t in links)
     return f"""<footer class="ft">
  <div class="wrap">
