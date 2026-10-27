@@ -216,6 +216,14 @@ STR = {
     "guess.large": {"zh": "照片看起來是中大型犬，這件是小型犬款，可能會太小。", "en": "Your dog looks medium or large; this one is cut for small dogs and may be too small.", "ja": "写真では中・大型犬のようです。こちらは小型犬向けなので小さすぎるかもしれません。", "de": "Dein Hund wirkt mittelgroß oder groß; dieses Modell ist für kleine Hunde und könnte zu klein sein."},
     "guess.note": {"zh": "這是 AI 從照片估計的，幼犬或混種請以背長為準，也可以照樣試穿。", "en": "This is an AI guess from the photo; for puppies and mixed breeds go by the back length. You can still try it on.", "ja": "写真からの AI の推定です。子犬やミックス犬は背丈を目安に。このまま試着もできます。", "de": "KI-Schätzung nach dem Foto; bei Welpen und Mischlingen zählt die Rückenlänge. Anprobieren geht trotzdem."},
     "guess.pick": {"zh": "改選 {name}（{kind}）", "en": "Pick {name} ({kind})", "ja": "{name}（{kind}）にする", "de": "{name} wählen ({kind})"},
+    "warn.title": {"zh": "這件可能不合身", "en": "This one may not fit", "ja": "サイズが合わないかもしれません", "de": "Das passt vielleicht nicht"},
+    "warn.guess": {"zh": "AI 從照片判斷你家毛孩是{dog}，而這件是{coat}款。試穿圖一定會畫得剛好合身，不代表實際尺寸，購買前請以背長和尺寸表為準。", "en": "From the photo, your dog looks like a {dog}, but this one is cut for {coat}. The try-on picture always fits perfectly and does not show the real size; check the back length and size chart before buying.", "ja": "写真から愛犬は{dog}と推定されますが、こちらは{coat}向けです。試着画像は必ずぴったりに描かれ、実際のサイズを示しません。購入前に背丈とサイズ表をご確認ください。", "de": "Laut Foto ist dein Hund ein {dog}, dieses Modell ist aber für {coat}. Das Anprobe-Bild passt immer perfekt und zeigt nicht die echte Größe; prüfe vor dem Kauf Rückenlänge und Größentabelle."},
+    "warn.back": {"zh": "依你填的背長，這件的尺寸對你家毛孩{bad}。試穿圖一定會畫得剛好合身，不代表實際尺寸。", "en": "By the back length you entered, this one is {bad} for your dog. The try-on picture always fits perfectly and does not show the real size.", "ja": "入力した背丈では、こちらは愛犬に{bad}。試着画像は必ずぴったりに描かれ、実際のサイズを示しません。", "de": "Nach der eingegebenen Rückenlänge ist dieses Modell für deinen Hund {bad}. Das Anprobe-Bild passt immer perfekt und zeigt nicht die echte Größe."},
+    "warn.big": {"zh": "太大", "en": "too big", "ja": "大きすぎます", "de": "zu groß"},
+    "warn.smallB": {"zh": "太小", "en": "too small", "ja": "小さすぎます", "de": "zu klein"},
+    "warn.go": {"zh": "我知道了，還是要試穿", "en": "I understand, try it anyway", "ja": "了解して、このまま試着", "de": "Verstanden, trotzdem anprobieren"},
+    "warn.switch": {"zh": "改選 {name}（{kind}）", "en": "Switch to {name} ({kind})", "ja": "{name}（{kind}）にする", "de": "Zu {name} wechseln ({kind})"},
+    "warn.cancel": {"zh": "取消", "en": "Cancel", "ja": "キャンセル", "de": "Abbrechen"},
     "fit.tooBig": {"zh": "這件對你家毛孩太大了", "en": "This one is too big for your dog", "ja": "このウェアは大きすぎます", "de": "Das ist zu groß für deinen Hund"},
     "fit.tooBigP": {"zh": "這件最小號適合背長約 {min} cm 以上的狗狗。", "en": "Its smallest size fits a back of about {min} cm or more.", "ja": "最小サイズでも背丈 約{min} cm 以上向けです。", "de": "Die kleinste Größe passt ab etwa {min} cm Rückenlänge."},
     "fit.tooSmall": {"zh": "這件對你家毛孩太小了", "en": "This one is too small for your dog", "ja": "このウェアは小さすぎます", "de": "Das ist zu klein für deinen Hund"},
@@ -268,6 +276,10 @@ CSS = r"""
 .fit-guess{display:none;margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--brand-soft);border:1px solid #ffc9bf;font-size:14.5px;color:var(--ink2)}.fit-guess.show{display:block}
 .fit-guess b{display:block;color:var(--brand-ink);margin-bottom:4px}.fit-guess p{margin:0;font-size:13px;color:var(--mute)}
 .fit-guess .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.fit-guess button{min-height:40px;padding:0 16px;border-radius:999px;border:1.5px solid var(--ink);background:var(--card);color:var(--ink);font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.fit-modal{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(23,24,26,.55)}
+.fit-modal .box{width:min(440px,100%);background:var(--card);border-radius:18px;padding:22px 22px 18px;box-shadow:0 24px 60px rgba(0,0,0,.25)}
+.fit-modal h3{margin:0 0 8px;font-size:19px;color:var(--brand-ink)}.fit-modal p{margin:0 0 14px;font-size:15px;line-height:1.6;color:var(--ink2)}
+.fit-modal .acts{display:grid;gap:8px}.fit-modal .acts .btn{width:100%}.fit-modal .acts .cancel{background:none;border:0;font:inherit;font-size:14px;color:var(--mute);text-decoration:underline;cursor:pointer;padding:6px}
 .fit-go{margin-top:16px}.fit-go .btn{width:100%}.fit-go .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
 .fit-go p{margin:10px 0 0;font-size:13.5px;color:var(--mute);text-align:center}
 .fit-stage{position:sticky;top:96px}
@@ -361,7 +373,7 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden)heal
 function loadImg(src){return new Promise(function(res,rej){var i=new Image();i.onload=function(){res(i);};i.onerror=rej;i.src=src;});}
 function compress(src,max,q){return loadImg(src).then(function(i){var r=Math.min(max/i.width,max/i.height,1),c=document.createElement('canvas');
  c.width=Math.max(1,Math.round(i.width*r));c.height=Math.max(1,Math.round(i.height*r));var g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(i,0,0,c.width,c.height);return c.toDataURL('image/jpeg',q);});}
-function setDog(src,demo){setErr('');return loadImg(src).then(function(){dog=src;pv.src=src;drop.classList.add('has');guessSize(src,demo);
+function setDog(src,demo){setErr('');warnOk=false;return loadImg(src).then(function(){dog=src;pv.src=src;drop.classList.add('has');guessSize(src,demo);
  document.querySelectorAll('.fit-demo button').forEach(function(b){b.classList.toggle('cur',b.dataset.dog===demo);});update();}).catch(function(){setErr(t('err.badFile'));});}
 function pick(f){if(!f)return;if(!/^image\//.test(f.type)&&!/\.(heic|heif|jpe?g|png|webp|gif|bmp)$/i.test(f.name)){setErr(t('err.badFile'));return;}
  var rd=new FileReader();rd.onload=function(){setDog(rd.result,null);};rd.onerror=function(){setErr(t('err.badFile'));};rd.readAsDataURL(f);}
@@ -372,13 +384,27 @@ drop.addEventListener('drop',function(e){pick(e.dataTransfer.files&&e.dataTransf
 document.querySelectorAll('.fit-demo button').forEach(function(b){b.addEventListener('click',function(){setDog(b.dataset.src,b.dataset.dog);});});
 /* coat */
 var coatKey=null;
-document.querySelectorAll('.fit-coat').forEach(function(b){b.addEventListener('click',function(){coat=b.dataset.src;coatKey=b.dataset.coat;
+document.querySelectorAll('.fit-coat').forEach(function(b){b.addEventListener('click',function(){coat=b.dataset.src;coatKey=b.dataset.coat;warnOk=false;
  document.querySelectorAll('.fit-coat').forEach(function(x){x.classList.toggle('cur',x===b);});update();sizeOut();guessOut();});});
 /* small or large dog? The photo (shrunk to 384 px) goes to the fitting-room server, which runs an image model on the
    laptop and answers with the closest breeds and small / medium / large (trained on ~2,300 labelled dog photos).
    A hint is shown only when fairly sure; ?dogai=1 shows the breeds and numbers under the photo (test mode). */
 var aiDebug=false;try{var dq=/[?&]dogai=([01])/.exec(location.search);if(dq)sessionStorage.setItem('apetto_dogai',dq[1]);aiDebug=sessionStorage.getItem('apetto_dogai')==='1';}catch(e){aiDebug=/[?&]dogai=1/.test(location.search);}
-var guess=null,guessFor=null,guessDemo=false,guessCtl=null,aiBox=$('.fit-ai');
+var guess=null,guessFor=null,guessDemo=false,guessCtl=null,aiBox=$('.fit-ai'),warnOk=false;
+/* the chosen coat does not fit (AI guess from the photo, or the typed back length): ask once before generating */
+function misfit(){var c=coatKey&&cfg.coats[coatKey];if(!c||!c.cut)return null;
+ var fw=typeof fitWarn==='function'?fitWarn(c):null;if(fw&&fw.bad)return {why:'back',bad:mval('back')<c.min?t('warn.big'):t('warn.smallB'),alts:altCoats(mval('back'),c,mval('back')<c.min?-1:1)};
+ if(guess&&!guessDemo&&dog&&dog===guessFor&&c.cut!==guess){var alts=Object.keys(cfg.coats).filter(function(k){return cfg.coats[k].cut===guess;});
+  return {why:'guess',dog:alts.length?cfg.coats[alts[0]].kind:'',coat:c.kind,alts:alts};}
+ return null;}
+function showWarn(m){var old=$('.fit-modal');if(old)old.remove();var d=document.createElement('div');d.className='fit-modal';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');
+ var txt=m.why==='back'?t('warn.back',{bad:m.bad}):t('warn.guess',{dog:m.dog,coat:m.coat});
+ d.innerHTML='<div class="box"><h3>'+t('warn.title')+'</h3><p>'+escHtml(txt)+'</p><div class="acts">'+m.alts.map(function(k){var o=cfg.coats[k];return '<button type="button" class="btn" data-k="'+k+'">'+escHtml(t('warn.switch',{name:o.label,kind:o.kind}))+'</button>';}).join('')+
+  '<button type="button" class="btn ghost" data-go="1">'+t('warn.go')+'</button><button type="button" class="cancel">'+t('warn.cancel')+'</button></div></div>';
+ d.addEventListener('click',function(e){var b=e.target.closest('button');if(e.target===d){d.remove();return;}if(!b)return;d.remove();
+  if(b.dataset.k){var card=$('.fit-coat[data-coat="'+b.dataset.k+'"]');if(card){card.click();setTimeout(function(){go.click();},50);}}
+  else if(b.dataset.go){warnOk=true;go.click();}});
+ document.body.appendChild(d);var f=d.querySelector('.btn');if(f)f.focus();}
 function escHtml(x){return String(x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function breedName(x){return (cfg.serverLang==='zh'&&x.zh)||x.name||'';}
 function aiShow(state,r,ms){if(!aiBox||!aiDebug)return;aiBox.hidden=false;var h='<h4>'+t('ai.title')+'</h4>';
@@ -467,6 +493,7 @@ function celebrate(){stage.classList.remove('flash');void stage.offsetWidth;stag
 function finish(){if(running){clearInterval(running.poll);clearInterval(running.tick);clearTimeout(running.tm);running=null;}update();}
 go.addEventListener('click',function(){
  if(!dog||!coat){setErr(t('err.pickFirst'));return;}if(online===false){setErr(t('err.offline'));return;}
+ if(!warnOk){var mf=misfit();if(mf){showWarn(mf);return;}}
  setErr('');showNote('');resultUrl='';var jobId=(crypto.randomUUID&&crypto.randomUUID())||(Date.now()+'-'+Math.random().toString(36).slice(2));
  var ctl=new AbortController(),t0=Date.now(),run={ctl:ctl};running=run;update();
  busyImg.src=dog;stage.dataset.state='busy';step(0,t('step.prepare'));progS.textContent=t('elapsed',{sec:0});sizeOut();
