@@ -50,6 +50,34 @@ function dilate3(src, w, h) {
   }
   return out;
 }
+// keep only the big connected pieces of the mask: the garment (possibly split by straps or legs), not small blobs of a
+// similar colour elsewhere (a pink tongue, a red collar, a flower in the grass)
+function keepLargeParts(mask, w, h) {
+  const N = w * h, label = new Int32Array(N), stack = new Int32Array(N), areas = [0];
+  let n = 0;
+  for (let s = 0; s < N; s++) {
+    if (label[s] || mask[s] <= 0.5) continue;
+    const id = ++n; let top = 0, area = 0; stack[top++] = s; label[s] = id;
+    while (top) {
+      const p = stack[--top]; area++;
+      const x = p % w, y = (p - x) / w;
+      if (x > 0 && !label[p - 1] && mask[p - 1] > 0.5) { label[p - 1] = id; stack[top++] = p - 1; }
+      if (x < w - 1 && !label[p + 1] && mask[p + 1] > 0.5) { label[p + 1] = id; stack[top++] = p + 1; }
+      if (y > 0 && !label[p - w] && mask[p - w] > 0.5) { label[p - w] = id; stack[top++] = p - w; }
+      if (y < h - 1 && !label[p + w] && mask[p + w] > 0.5) { label[p + w] = id; stack[top++] = p + w; }
+    }
+    areas.push(area);
+  }
+  if (n === 0) return mask;
+  const largest = Math.max(...areas), minArea = Math.max(0.08 * largest, 0.003 * N);
+  const keep = areas.map(a => a >= minArea);
+  let core = new Float32Array(N);
+  for (let p = 0; p < N; p++) if (label[p] && keep[label[p]]) core[p] = 1;
+  core = boxBlur(dilate3(dilate3(core, w, h), w, h), w, h, 2);   // soft edge around the kept pieces
+  const out = new Float32Array(N);
+  for (let p = 0; p < N; p++) out[p] = mask[p] * Math.min(1, core[p] * 1.5);
+  return out;
+}
 const median = arr => { if (!arr.length) return NaN; const s = Float64Array.from(arr).sort(); return s[s.length >> 1]; };
 
 export async function recolor(buf, fromHex, toHex, { tol = 34, maxSide = 1024 } = {}) {
@@ -69,6 +97,7 @@ export async function recolor(buf, fromHex, toHex, { tol = 34, maxSide = 1024 } 
     mask[p] = Math.min(1, Math.max(0, (tol - ang) / 10)) * Math.min(1, Math.max(0, (ch - 0.18 * sc) / (0.12 * sc)));
   }
   mask = boxBlur(boxBlur(dilate3(mask, w, h), w, h, 1), w, h, 1);
+  mask = keepLargeParts(mask, w, h);
   // statistics of the garment
   const Ls = [], Cs = []; let cnt = 0;
   for (let p = 0; p < N; p++) if (mask[p] > 0.5) { cnt++; if ((p & 3) === 0) { Ls.push(lab[p * 3]); Cs.push(Math.hypot(lab[p * 3 + 1], lab[p * 3 + 2])); } }
@@ -99,14 +128,14 @@ const waiting = new Map();
 function getWorker() {
   if (worker) return worker;
   worker = new Worker(new URL(import.meta.url));
-  worker.on('message', m => { const w = waiting.get(m.id); if (!w) return; waiting.delete(m.id); m.error ? w.reject(Object.assign(new Error(m.error), { status: m.status || undefined })) : w.resolve(m); });
+  worker.on('message', m => { const w = waiting.get(m.id); if (!w) return; waiting.delete(m.id); if (!waiting.size && worker) worker.unref(); m.error ? w.reject(Object.assign(new Error(m.error), { status: m.status || undefined })) : w.resolve(m); });
   worker.on('error', e => { for (const w of waiting.values()) w.reject(e); waiting.clear(); worker = null; });
   worker.on('exit', () => { worker = null; });
   worker.unref();
   return worker;
 }
 function inWorker(buf, from, to) {
-  return new Promise((resolve, reject) => { const id = ++seq; waiting.set(id, { resolve, reject }); getWorker().postMessage({ id, buf, from, to }); });
+  return new Promise((resolve, reject) => { const id = ++seq; waiting.set(id, { resolve, reject }); const wk = getWorker(); wk.ref(); wk.postMessage({ id, buf, from, to }); });   // ref while busy, so a short-lived process waits for the answer
 }
 function decode(dataUrl) {
   const m = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl || '');
