@@ -394,7 +394,7 @@ var guess=null,guessFor=null,guessDemo=false,guessCtl=null,aiBox=$('.fit-ai'),wa
 /* the chosen coat does not fit (AI guess from the photo, or the typed back length): ask once before generating */
 function misfit(){var c=coatKey&&cfg.coats[coatKey];if(!c||!c.cut)return null;
  var fw=typeof fitWarn==='function'?fitWarn(c):null;if(fw&&fw.bad)return {why:'back',bad:mval('back')<c.min?t('warn.big'):t('warn.smallB'),alts:altCoats(mval('back'),c,mval('back')<c.min?-1:1)};
- if(guess&&!guessDemo&&dog&&dog===guessFor&&c.cut!==guess){var alts=Object.keys(cfg.coats).filter(function(k){return cfg.coats[k].cut===guess;});
+ if(guess&&dog&&dog===guessFor&&c.cut!==guess){var alts=Object.keys(cfg.coats).filter(function(k){return cfg.coats[k].cut===guess;});
   return {why:'guess',dog:alts.length?cfg.coats[alts[0]].kind:'',coat:c.kind,alts:alts};}
  return null;}
 function showWarn(m){var old=$('.fit-modal');if(old)old.remove();var d=document.createElement('div');d.className='fit-modal';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');
@@ -415,7 +415,7 @@ function aiShow(state,r,ms){if(!aiBox||!aiDebug)return;aiBox.hidden=false;var h=
  aiBox.innerHTML=h;}
 function guessSize(src,demo){guess=null;guessFor=src;guessDemo=!!demo;guessMark('');guessOut();
  if(guessCtl){guessCtl.abort();guessCtl=null;}
- if(!src||(demo&&!aiDebug)){if(aiBox)aiBox.hidden=true;return;}
+ if(!src){if(aiBox)aiBox.hidden=true;return;}
  var t0=Date.now(),ctl=new AbortController();guessCtl=ctl;aiShow('wait');
  compress(src,384,.85).then(function(img){return fetch(cfg.api+'/api/dogsize',{method:'POST',signal:ctl.signal,headers:auth({'Content-Type':'application/json'}),body:JSON.stringify({image:img})});})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
@@ -428,7 +428,7 @@ function guessOut(){var c=coatKey&&cfg.coats[coatKey];if(!guessBox)return;
  var rec=guess&&dog&&dog===guessFor?guess:null,grid=$('.fit-coats');
  document.querySelectorAll('.fit-coat').forEach(function(b){var o=cfg.coats[b.dataset.coat];b.classList.toggle('rec-coat',!!(rec&&o&&o.cut===rec));});
  if(grid)grid.classList.toggle('has-rec',!!rec);
- if(!guess||guessDemo||!c||!c.cut||c.cut===guess||!dog||dog!==guessFor){guessBox.classList.remove('show');guessBox.innerHTML='';return;}
+ if(!guess||!c||!c.cut||c.cut===guess||!dog||dog!==guessFor){guessBox.classList.remove('show');guessBox.innerHTML='';return;}
  var alts=Object.keys(cfg.coats).filter(function(k){return cfg.coats[k].cut===guess;});
  guessBox.innerHTML='<b>'+t(guess==='S'?'guess.small':'guess.large')+'</b><p>'+t('guess.note')+'</p>'+(alts.length?'<div class="row">'+alts.map(function(k){var o=cfg.coats[k];
   return '<button type="button" data-k="'+k+'">'+t('guess.pick',{name:o.label,kind:o.kind})+'</button>';}).join('')+'</div>':'');
