@@ -93,6 +93,44 @@ FONTS = ("https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800"
 
 # UI strings of the theme (the content strings live in _data/i18n.json)
 UI = {
+    "漢堡店中店": {"en": "Store in Hamburg", "ja": "ハンブルク店", "de": "Shop-in-Shop Hamburg"},
+    "漢堡店": {"en": "Hamburg store", "ja": "ハンブルク店", "de": "Laden Hamburg"},
+    "apetto 在德國": {"en": "apetto in Germany", "ja": "ドイツの apetto", "de": "apetto in Deutschland"},
+    "apetto 的機能狗衣，現在可以在漢堡親手摸到、現場試穿。店中店位於 Eimsbüttel 的「陳美英中文書屋 × bis Buchladen」。": {
+        "en": "apetto's functional dog wear can now be seen, touched and tried on in Hamburg: at the shop-in-shop inside 陳美英中文書屋 × bis Buchladen in Eimsbüttel.",
+        "ja": "apetto の機能ドッグウェアを、ハンブルクで実際に手に取って試着できます。Eimsbüttel の「陳美英中文書屋 × bis Buchladen」内のショップインショップです。",
+        "de": "apettos funktionale Hundebekleidung gibt es jetzt auch zum Anfassen und Anprobieren in Hamburg: im Shop-in-Shop bei „陳美英中文書屋 × bis Buchladen“ in Eimsbüttel."},
+    "地址": {"en": "Address", "ja": "住所", "de": "Adresse"},
+    "店中店位於書店內": {"en": "Shop-in-shop inside the bookshop", "ja": "書店内のショップインショップ", "de": "Shop-in-Shop in der Buchhandlung"},
+    "在 Google 地圖開啟": {"en": "Open in Google Maps", "ja": "Google マップで開く", "de": "In Google Maps öffnen"},
+    "規劃路線": {"en": "Directions", "ja": "経路を調べる", "de": "Route planen"},
+    "Facebook 專頁": {"en": "Facebook page", "ja": "Facebook ページ", "de": "Facebook-Seite"},
+    "載入地圖": {"en": "Load map", "ja": "地図を読み込む", "de": "Karte laden"},
+    "地圖由 Google 提供，點擊後才會載入。": {"en": "The map is provided by Google and loads only when you tap.", "ja": "地図は Google 提供で、タップ後に読み込まれます。", "de": "Die Karte kommt von Google und wird erst nach dem Klick geladen."},
+    "在店裡可以做什麼": {"en": "What you can do there", "ja": "お店でできること", "de": "Das erwartet euch vor Ort"},
+    "親手感受布料與做工": {"en": "Feel the fabric and the finish", "ja": "生地と仕上がりを手に取って", "de": "Stoff und Verarbeitung anfassen"},
+    "耐水壓 10000mmH2O 的防水布料、3M 反光條、領口可上牽繩的設計，現場看最清楚。": {
+        "en": "Waterproof fabric rated 10,000 mm, 3M reflective strips and the leash opening at the collar: best seen in person.",
+        "ja": "耐水圧 10,000mm の防水生地、3M 反射テープ、襟元のリード穴。実物で見るのがいちばんです。",
+        "de": "Wasserdichtes Gewebe mit 10.000 mm Wassersäule, 3M-Reflexstreifen und die Leinenöffnung am Kragen: vor Ort sieht man es am besten."},
+    "讓毛孩現場試穿": {"en": "Try it on your dog", "ja": "愛犬に試着", "de": "Direkt am Hund anprobieren"},
+    "帶毛孩一起來，直接試穿找到合身的尺寸，不用猜。": {"en": "Bring your dog along, try it on and find the right size without guessing.", "ja": "愛犬と一緒に来て、その場で試着してぴったりのサイズを。", "de": "Bringt euren Hund mit: anprobieren, passende Größe finden, kein Raten."},
+    "現場購買，馬上帶走": {"en": "Buy on the spot", "ja": "その場で購入", "de": "Vor Ort kaufen und mitnehmen"},
+    "不用等從台灣寄送，喜歡就直接帶回家。": {"en": "No waiting for shipping from Taiwan: if you like it, take it home right away.", "ja": "台湾からの配送を待たずに、気に入ったらそのまま持ち帰れます。", "de": "Kein Warten auf den Versand aus Taiwan: gefällt es, nehmt ihr es gleich mit."},
+    "出門前先量一下": {"en": "Measure before you come", "ja": "来店前にサイズを測ろう", "de": "Vorher kurz messen"},
+    "量毛孩的背長（脖子根部到尾巴根）、領圍和腹圍，到店裡就能很快找到尺寸。想先看看穿起來的樣子，也可以用線上試衣間。": {
+        "en": "Measure the back length (base of the neck to the base of the tail), neck and girth, and the right size is found quickly in the shop. Curious how it looks? Try the online fitting room first.",
+        "ja": "背丈（首の付け根から尻尾の付け根）、首回り、胴回りを測っておくと、お店で素早くサイズが決まります。先に着た様子を見たいなら、オンライン試着室もどうぞ。",
+        "de": "Messt Rückenlänge (Halsansatz bis Rutenansatz), Halsumfang und Bauchumfang, dann geht es im Laden schnell. Wer vorher sehen will, wie es aussieht, probiert die Online-Anprobe."},
+    "尺寸怎麼量": {"en": "How to measure", "ja": "サイズの測り方", "de": "So wird gemessen"},
+    "線上試衣間": {"en": "Online fitting room", "ja": "オンライン試着室", "de": "Online-Anprobe"},
+    "營業時間與庫存可能變動，出發前建議先透過 Facebook 聯絡店家。": {"en": "Opening hours and stock may change; check with the shop via Facebook before you go.", "ja": "営業時間と在庫は変わることがあります。来店前に Facebook でお店にご確認ください。", "de": "Öffnungszeiten und Bestand können sich ändern; fragt am besten vorher über Facebook beim Laden nach."},
+    "漢堡 · 德國": {"en": "Hamburg · Germany", "ja": "ハンブルク・ドイツ", "de": "Hamburg · Deutschland"},
+    "漢堡店中店 | apetto": {"en": "Store in Hamburg | apetto", "ja": "ハンブルク店 | apetto", "de": "Shop-in-Shop Hamburg | apetto"},
+    "apetto 在漢堡的店中店：Weidenallee 4, 20357 Hamburg。親手感受機能狗衣，帶毛孩現場試穿、直接購買。": {
+        "en": "apetto's shop-in-shop in Hamburg: Weidenallee 4, 20357 Hamburg. See the functional dog wear, try it on your dog and buy on the spot.",
+        "ja": "apetto のハンブルク店：Weidenallee 4, 20357 Hamburg。機能ドッグウェアを手に取り、愛犬に試着してその場で購入。",
+        "de": "apettos Shop-in-Shop in Hamburg: Weidenallee 4, 20357 Hamburg. Funktionale Hundebekleidung anfassen, am Hund anprobieren und direkt mitnehmen."},
     "瀏覽全系列": {"en": "Shop the collection", "ja": "全ラインナップを見る", "de": "Zur Kollektion"},
     # navigation (Website Strategy deck)
     "商品分類": {"en": "Shop All", "ja": "ショップ", "de": "Shop"},
@@ -551,6 +589,8 @@ body.menu-open .bars i:nth-child(1){transform:translateY(6px) rotate(45deg)}body
 
 JS = r"""/* a language link click is a deliberate choice: remember it so the region-based pick never overrides it */
 document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[hreflang]');if(a)try{localStorage.setItem('apetto_lang',a.getAttribute('hreflang'));}catch(x){}});
+/* Shop-in-Shop page: the Google map is embedded only after a click */
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.map-load');if(!b)return;var f=document.createElement('iframe');f.src=b.dataset.src;f.loading='lazy';f.referrerPolicy='no-referrer-when-downgrade';f.setAttribute('allowfullscreen','');f.title='Google Maps';b.parentNode.appendChild(f);b.remove();});
 /* colour-scheme preview bar: only appears after visiting a page with ?palette=N */
 (function(){var cur;try{cur=sessionStorage.getItem('apetto_palette');}catch(e){}if(cur===null||cur===undefined)return;var H=document.documentElement;
  var P=[['0','原本','#fbfaf7'],['1','杏仁奶茶','#efe0c9'],['2','蜜桃','#ffe4d4'],['3','奶油黃','#fbeebb'],['4','鼠尾草','#e6e8d6'],['5','焦糖','#e6cdaa']];if(window.apPcStyle){var pcb=(sessionStorage.getItem('apetto_pc')||'').slice(0,6);P.push(['c','自訂','#'+pcb]);}
@@ -619,8 +659,13 @@ ICON_ARROW = ('<svg width="18" height="18" viewBox="0 0 24 24" fill="none" strok
 NAV = [("index.html", "首頁"), (SHOP, "商品分類"), (GUIDES, "商品指南"), (FEATURES, "機能與設計細節"), (fit.PAGE, "試衣間"), (ABOUT, "品牌故事")]
 
 
+STORE = "pages/hamburg.html"
+
+
 def nav_links(data, page_dir, lang, current=""):
     items = list(NAV)
+    if lang == "de":
+        items.append((STORE, "漢堡店"))
     out = []
     for site_path, label in items:
         cls = ' class="cur"' if site_path == current else ""
@@ -653,7 +698,7 @@ def header(data, site_rel, lang, current=""):
 <div class="mobile-menu" role="dialog" aria-label="選單"><div class="mm-panel">
   <div class="mm-top"><a href="{link(d, 'index.html', lang)}" aria-label="apetto"><img src="{asset(d, LOGO)}" alt="apetto"></a><button class="mm-close" aria-label="關閉">✕</button></div>
   <nav class="mm-nav">{nav_links(data, d, lang, current)}</nav>
-  <nav class="mm-more"><a href="{link(d, "pages/5.html", lang)}">購物流程</a><a href="{link(d, "information/news.html", lang)}">最新消息</a></nav>
+  <nav class="mm-more"><a href="{link(d, "pages/5.html", lang)}">購物流程</a><a href="{link(d, "information/news.html", lang)}">最新消息</a><a href="{link(d, STORE, lang)}">漢堡店中店</a></nav>
   <div class="mm-social"><a href="{INSTAGRAM}" target="_blank" rel="noopener">Instagram</a><a href="{PINKOI}" target="_blank" rel="noopener">Pinkoi</a></div>
 </div></div>"""
 
@@ -661,7 +706,7 @@ def header(data, site_rel, lang, current=""):
 def footer(data, site_rel, lang):
     d = rel_dir(site_rel)
     links = [(SHOP, "商品分類"), ("search.html", "全系列"), (GUIDES, "商品指南"), (fit.PAGE, "試衣間"),
-             ("pages/5.html", "購物流程"), ("information/news.html", "最新消息"), (ABOUT, "品牌故事")]
+             ("pages/5.html", "購物流程"), ("information/news.html", "最新消息"), (ABOUT, "品牌故事"), (STORE, "漢堡店中店")]
     small = "".join(f'<a href="{link(d, sp, lang)}">{esc(t)}</a>' for sp, t in links)
     return f"""<footer class="ft">
  <div class="wrap">
@@ -830,7 +875,18 @@ CSS += """
 .fit-coat span{text-wrap:balance}
 :lang(ja){line-break:strict}
 """
-CSS = CSS + fit.CSS + ai.CSS + '\n/* warmer colour schemes, previewed with ?palette=1..5 (the red logo colour stays the same) */\nhtml[data-palette="1"]{--bg:#efe0c9;--card:#fbf3e6;--sand:#e2caa6;--line:#dbc4a2;--line2:#cdb08a;--ink:#3a2a1e;--ink2:#5c4636;--mute:#86705c;--brand-soft:#fbe3d6}\nhtml[data-palette="2"]{--bg:#ffe4d4;--card:#fff4ec;--sand:#ffcfb5;--line:#f6c3a6;--line2:#ebac8b;--ink:#3d211a;--ink2:#64392e;--mute:#93665a;--brand-soft:#ffd9cc}\nhtml[data-palette="3"]{--bg:#fbeebb;--card:#fffaea;--sand:#f4dc8e;--line:#ead48a;--line2:#dcc070;--ink:#3a3115;--ink2:#5d5128;--mute:#857a4f;--brand-soft:#ffe6cf}\nhtml[data-palette="4"]{--bg:#e6e8d6;--card:#f8f7ee;--sand:#d3d8bb;--line:#cbd0b3;--line2:#b7bd9a;--ink:#2f3526;--ink2:#4c533f;--mute:#737a63;--brand-soft:#fbe5dc}\nhtml[data-palette="5"]{--bg:#e6cdaa;--card:#f7ecdb;--sand:#d6b285;--line:#d3b48c;--line2:#c19b6c;--ink:#3a2213;--ink2:#5e3f2a;--mute:#7f6249;--brand-soft:#f8dccb}\n.pal-bar{position:fixed;left:12px;top:50%;transform:translateY(-50%);z-index:9998;display:flex;flex-direction:column;gap:6px;background:#fff;color:#17181a;border:1px solid #ddd;border-radius:16px;padding:10px;box-shadow:0 8px 30px rgba(0,0,0,.18);font:600 13px/1.2 system-ui,"Noto Sans TC",sans-serif}\n.pal-bar b{font-size:12px;color:#666;padding:0 4px 2px}\n.pal-bar button{display:flex;align-items:center;gap:8px;border:1.5px solid #ddd;background:#fff;color:#17181a;border-radius:999px;padding:6px 12px 6px 6px;cursor:pointer;font:inherit;text-align:left}\n.pal-bar button i{width:22px;height:22px;border-radius:50%;flex:0 0 auto;border:1px solid rgba(0,0,0,.15)}\n.pal-bar button.cur{border-color:#ff2414;box-shadow:0 0 0 2px #ff2414 inset}\n.pal-bar .x{justify-content:center;padding:6px;color:#666}\n@media (max-width:700px){.pal-bar{top:auto;bottom:12px;transform:none;left:8px;right:8px;flex-direction:row;flex-wrap:wrap;justify-content:center;padding:8px}.pal-bar b{width:100%;text-align:center}.pal-bar button{padding:5px 10px 5px 5px}}\n'
+CSS = CSS + '''
+/* Shop-in-Shop page */
+.store-head{padding:28px 0 22px}.store-head h1{font-size:clamp(30px,4.4vw,46px);line-height:1.12;margin:0 0 12px;letter-spacing:-.01em}.store-head .lead{font-size:17px;color:var(--ink2);max-width:62ch;margin:0}
+.store-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px;align-items:stretch;margin-bottom:12px}
+.store-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px 26px 22px;display:flex;flex-direction:column;gap:10px}.store-card h2{margin:0;font-size:24px;line-height:1.25}.store-card .store-sub{margin:-4px 0 6px;color:var(--mute);font-size:14px}
+.store-card address{display:flex;gap:12px;align-items:flex-start;font-style:normal;font-size:18px;line-height:1.5;padding:14px 16px;border-radius:14px;background:var(--sand)}.store-card address svg{width:26px;height:26px;flex:0 0 auto;color:var(--brand)}.store-card address em{font-style:normal;color:var(--mute);font-size:14px}
+.store-acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}.store-acts .btn{min-height:44px;padding:0 18px;font-size:15px}
+.store-note{margin:10px 0 0;font-size:13.5px;color:var(--mute);line-height:1.55}
+.store-map{position:relative;min-height:320px;border-radius:20px;overflow:hidden;border:1px solid var(--line);background:var(--sand)}.store-map iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.store-map .map-load{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:0;background:var(--sand);color:var(--ink);font:inherit;cursor:pointer;padding:24px;text-align:center}.store-map .map-load svg{width:40px;height:40px;color:var(--brand)}.store-map .map-load b{font-size:18px}.store-map .map-load span{color:var(--ink2)}.store-map .map-load small{color:var(--mute);font-size:12.5px;max-width:36ch}.store-map .map-load:hover{background:var(--line)}
+@media (max-width:860px){.store-grid{grid-template-columns:1fr}.store-map{min-height:260px}}
+''' + fit.CSS + ai.CSS + '\n/* warmer colour schemes, previewed with ?palette=1..5 (the red logo colour stays the same) */\nhtml[data-palette="1"]{--bg:#efe0c9;--card:#fbf3e6;--sand:#e2caa6;--line:#dbc4a2;--line2:#cdb08a;--ink:#3a2a1e;--ink2:#5c4636;--mute:#86705c;--brand-soft:#fbe3d6}\nhtml[data-palette="2"]{--bg:#ffe4d4;--card:#fff4ec;--sand:#ffcfb5;--line:#f6c3a6;--line2:#ebac8b;--ink:#3d211a;--ink2:#64392e;--mute:#93665a;--brand-soft:#ffd9cc}\nhtml[data-palette="3"]{--bg:#fbeebb;--card:#fffaea;--sand:#f4dc8e;--line:#ead48a;--line2:#dcc070;--ink:#3a3115;--ink2:#5d5128;--mute:#857a4f;--brand-soft:#ffe6cf}\nhtml[data-palette="4"]{--bg:#e6e8d6;--card:#f8f7ee;--sand:#d3d8bb;--line:#cbd0b3;--line2:#b7bd9a;--ink:#2f3526;--ink2:#4c533f;--mute:#737a63;--brand-soft:#fbe5dc}\nhtml[data-palette="5"]{--bg:#e6cdaa;--card:#f7ecdb;--sand:#d6b285;--line:#d3b48c;--line2:#c19b6c;--ink:#3a2213;--ink2:#5e3f2a;--mute:#7f6249;--brand-soft:#f8dccb}\n.pal-bar{position:fixed;left:12px;top:50%;transform:translateY(-50%);z-index:9998;display:flex;flex-direction:column;gap:6px;background:#fff;color:#17181a;border:1px solid #ddd;border-radius:16px;padding:10px;box-shadow:0 8px 30px rgba(0,0,0,.18);font:600 13px/1.2 system-ui,"Noto Sans TC",sans-serif}\n.pal-bar b{font-size:12px;color:#666;padding:0 4px 2px}\n.pal-bar button{display:flex;align-items:center;gap:8px;border:1.5px solid #ddd;background:#fff;color:#17181a;border-radius:999px;padding:6px 12px 6px 6px;cursor:pointer;font:inherit;text-align:left}\n.pal-bar button i{width:22px;height:22px;border-radius:50%;flex:0 0 auto;border:1px solid rgba(0,0,0,.15)}\n.pal-bar button.cur{border-color:#ff2414;box-shadow:0 0 0 2px #ff2414 inset}\n.pal-bar .x{justify-content:center;padding:6px;color:#666}\n@media (max-width:700px){.pal-bar{top:auto;bottom:12px;transform:none;left:8px;right:8px;flex-direction:row;flex-wrap:wrap;justify-content:center;padding:8px}.pal-bar b{width:100%;text-align:center}.pal-bar button{padding:5px 10px 5px 5px}}\n'
 ASSET_VER = {"css": digest(CSS), "js": digest(JS), "fit": digest(fit.JS), "ai": digest(ai.JS)}
 
 
@@ -990,7 +1046,7 @@ def render_product(data, visible, p, lang, overrides):
 
 
 # ----------------------------------------------------------------- info pages (about / terms / news / announcements)
-INFO_TITLES = {"pages/4.html": "品牌故事", "pages/5.html": "購物流程", "information/news.html": "最新消息", "information/notice.html": "最新消息"}
+INFO_TITLES = {"pages/4.html": "品牌故事", "pages/5.html": "購物流程", "pages/hamburg.html": "漢堡店中店", "information/news.html": "最新消息", "information/notice.html": "最新消息"}
 INFO_PARENT = {"information/news&news_id=1.html": "information/news.html", "information/notice&notice_id=1.html": "information/news.html"}
 
 
@@ -1156,6 +1212,59 @@ def render_about(data, rel, lang, crumbs):
  <p class="about-foot">apetto © 匯得興業有限公司</p>
 </div></section>"""
     return page(data, rel, lang, f"品牌故事 | {BRAND}", body, "關於 apetto", og_image=IMG["story"], current=rel)
+
+
+ICON_PIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.4-6-10a6 6 0 0 1 12 0c0 4.6-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg>'
+STORE_NAME = "Shop-in-Shop in Hamburg"
+STORE_HOST = "陳美英中文書屋 × bis Buchladen"
+STORE_STREET, STORE_CITY = "Weidenallee 4", "20357 Hamburg"
+STORE_FB = "https://www.facebook.com/bisBuchladen/"
+STORE_Q = "Weidenallee+4,+20357+Hamburg"
+
+
+def render_store(data, lang):
+    rel = STORE
+    d = rel_dir(rel)
+    crumbs = f'<li><a href="{link(d, "index.html", lang)}">首頁</a></li><li><span>漢堡店中店</span></li>'
+    hl = {"zh": "zh-TW", "en": "en", "ja": "ja", "de": "de"}[lang]
+    embed = f"https://www.google.com/maps?q={STORE_Q}&z=16&hl={hl}&output=embed"
+    ld = json.dumps({"@context": "https://schema.org", "@type": "Store", "name": "apetto " + STORE_NAME,
+                     "address": {"@type": "PostalAddress", "streetAddress": STORE_STREET, "postalCode": "20357", "addressLocality": "Hamburg", "addressCountry": "DE"},
+                     "containedInPlace": {"@type": "BookStore", "name": STORE_HOST, "sameAs": STORE_FB}}, ensure_ascii=False)
+    body = f"""<div class="wrap"><ol class="breadcrumb">{crumbs}</ol>
+<div class="store-head rv in"><span class="eyebrow">apetto 在德國</span><h1>{esc(STORE_NAME)}</h1>
+ <p class="lead">apetto 的機能狗衣，現在可以在漢堡親手摸到、現場試穿。店中店位於 Eimsbüttel 的「陳美英中文書屋 × bis Buchladen」。</p></div>
+<div class="store-grid rv in">
+ <div class="store-card">
+  <span class="eyebrow">地址</span>
+  <h2>{esc(STORE_HOST)}</h2>
+  <p class="store-sub">店中店位於書店內</p>
+  <address>{ICON_PIN}<span>{esc(STORE_STREET)}<br>{esc(STORE_CITY)}<br><em>漢堡 · 德國</em></span></address>
+  <div class="store-acts">
+   <a class="btn" href="https://www.google.com/maps/dir/?api=1&destination={STORE_Q}" target="_blank" rel="noopener">規劃路線</a>
+   <a class="btn ghost" href="https://www.google.com/maps/search/?api=1&query={STORE_Q}" target="_blank" rel="noopener">在 Google 地圖開啟</a>
+   <a class="btn ghost" href="{STORE_FB}" target="_blank" rel="noopener">Facebook 專頁</a>
+  </div>
+  <p class="store-note">營業時間與庫存可能變動，出發前建議先透過 Facebook 聯絡店家。</p>
+ </div>
+ <div class="store-map"><button type="button" class="map-load" data-src="{esc(embed)}">{ICON_PIN}<b>載入地圖</b><span>{esc(STORE_STREET)}, {esc(STORE_CITY)}</span><small>地圖由 Google 提供，點擊後才會載入。</small></button></div>
+</div></div>
+<section class="sec tight"><div class="wrap">
+ <div class="sec-head rv"><div><h2>在店裡可以做什麼</h2></div></div>
+ <div class="cards3 rv">
+  <div>{ICON_HEART}<h3>親手感受布料與做工</h3><p>耐水壓 10000mmH2O 的防水布料、3M 反光條、領口可上牽繩的設計，現場看最清楚。</p></div>
+  <div>{ICON_PAW}<h3>讓毛孩現場試穿</h3><p>帶毛孩一起來，直接試穿找到合身的尺寸，不用猜。</p></div>
+  <div>{ICON_CART}<h3>現場購買，馬上帶走</h3><p>不用等從台灣寄送，喜歡就直接帶回家。</p></div>
+ </div>
+ <div class="story flip rv">
+  <div class="story-img"><img src="{asset(d, IMG['rain'])}" alt="" loading="lazy"></div>
+  <div><span class="eyebrow">{esc(BRAND)}</span><h2>出門前先量一下</h2>
+   <p>量毛孩的背長（脖子根部到尾巴根）、領圍和腹圍，到店裡就能很快找到尺寸。想先看看穿起來的樣子，也可以用線上試衣間。</p>
+   <div class="store-acts"><a class="btn" href="{link(d, GUIDES, lang)}">尺寸怎麼量</a><a class="btn ghost" href="{link(d, fit.PAGE, lang)}">線上試衣間</a></div></div>
+ </div>
+</div></section>"""
+    return page(data, rel, lang, "漢堡店中店 | apetto", body, "apetto 在漢堡的店中店：Weidenallee 4, 20357 Hamburg。親手感受機能狗衣，帶毛孩現場試穿、直接購買。",
+                og_image=IMG["rain"], current=rel, extra_head=f'<script type="application/ld+json">{ld}</script>')
 
 
 ICON_CART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11h11l2-7H6.5"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>'
@@ -1633,6 +1742,7 @@ def build_all(data, visible):
             out = render_info(data, rel, lang)
             if out:
                 write_page(out, rel, lang, table)
+        write_page(render_store(data, lang), STORE, lang, table)
         write_page(render_news_list(data, lang), "information/news.html", lang, table)
         write_page(render_news_list(data, lang, "information/notice.html"), "information/notice.html", lang, table)  # old link
         for n in load_news():
