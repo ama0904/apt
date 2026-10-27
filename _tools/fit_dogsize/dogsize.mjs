@@ -40,6 +40,12 @@ const ZH = ("吉娃娃 日本狆 馬爾濟斯 北京犬 西施犬 查理士王�
   + "阿拉斯加雪橇犬 西伯利亞哈士奇 大麥町 猴㹴 巴仙吉犬 巴哥犬 蘭伯格犬 紐芬蘭犬 大白熊犬 薩摩耶 博美 鬆獅犬 荷蘭毛獅犬 布魯塞爾格林芬犬 "
   + "柯基（潘布魯克） 柯基（卡提根） 玩具貴賓 迷你貴賓 標準貴賓 墨西哥無毛犬 灰狼 白狼 紅狼 郊狼 澳洲野犬 豺 非洲野犬").split(' ');
 
+// ImageNet classes the breed classifier has no photos of, but whose size is never in doubt. When the ImageNet model is
+// sure about one of them (>= 60 % of its dog probability), its name and size win over the trained heads.
+const GIANT = new Set([160, 163, 170, 177, 222, 228, 229, 233, 238, 243, 244, 246, 247, 255, 256, 257]);   // hounds, mastiffs, mountain dogs
+const TINY = new Set([151, 152, 153, 154, 155, 156, 157, 158, 185, 186, 187, 193, 194, 201, 252, 259, 262, 265]);   // toy breeds
+const SURE = 0.6;
+
 let modelP = null;
 function load() {
   if (!modelP) modelP = (async () => {
@@ -93,6 +99,12 @@ function analyze(logits, pooled, labels) {
   const m = Math.max(...z), e = z.map(v => Math.exp(v - m)), s = e[0] + e[1] + e[2];
   r.P = e.map(v => +(v / s).toFixed(3));
   r.guess = r.P[0] >= 0.7 ? 'S' : r.P[2] >= 0.7 ? 'L' : null;   // S = small capes, L = big raincoat, null = no hint
+  const [tid, tp] = inTop[0], share = tp / dog;
+  if (share >= SURE && (GIANT.has(tid) || TINY.has(tid))) {
+    r.guess = GIANT.has(tid) ? 'L' : 'S';
+    r.top = [imagenet[0], ...r.top.filter(x => x.zh !== imagenet[0].zh)].slice(0, 3);
+    r.breedSure = true; r.byImagenet = true;
+  }
   return r;
 }
 
