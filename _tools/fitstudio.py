@@ -86,6 +86,7 @@ def coat_label(c, lang):
 # Markup strings (zh key -> translations); merged into theme.UI so translate_soup handles the page.
 UI = {
     "試衣間": {"en": "Fitting Studio", "ja": "試着室", "de": "Anprobe"},
+    "AI 建議": {"en": "AI pick", "ja": "AI おすすめ", "de": "KI-Tipp"},
     "AI 試衣間": {"en": "AI Fitting Studio", "ja": "AI 試着室", "de": "KI-Anprobe"},
     "讓毛孩先試穿，再決定": {"en": "Let your dog try it on first", "ja": "まず試着、それから決める", "de": "Erst anprobieren, dann entscheiden"},
     "上傳一張毛孩的照片，挑一件 apetto，AI 會畫出牠穿上的樣子。": {
@@ -258,6 +259,8 @@ CSS = r"""
 .fit-coat .fitfor{display:block;margin-top:8px;font-size:12px;line-height:1.35;color:var(--ink2)}.fit-coat .fitfor b{display:inline-block;padding:2px 9px;border-radius:999px;background:var(--sand);font-weight:700}.fit-coat .fitfor i{display:block;font-style:normal;margin-top:4px;color:var(--mute)}
 .fit-warn{margin:0 0 12px;padding:12px 14px;border-radius:12px;background:var(--brand-soft);border:1px solid #ffc9bf}.fit-warn b{display:block;font-size:15.5px;color:var(--brand-ink);margin-bottom:4px}
 .fit-also{margin:10px 0 0;padding-top:10px;border-top:1px dashed var(--line2)}.fit-size-out .fit-alt{margin-top:8px;min-height:44px;font-size:15px}
+.fit-coat .rec{display:none;position:absolute;top:8px;left:8px;background:var(--brand);color:#fff;font-size:11.5px;font-weight:800;letter-spacing:.03em;padding:3px 8px;border-radius:999px;box-shadow:0 2px 8px rgba(255,36,20,.3)}
+.fit-coats.has-rec .fit-coat.rec-coat{border-color:var(--brand)}.fit-coats.has-rec .fit-coat.rec-coat .rec{display:inline-block}.fit-coats.has-rec .fit-coat:not(.rec-coat):not(.cur){opacity:.62}
 .fit-coat .chk{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;display:none;place-items:center}.fit-coat.cur .chk{display:grid}
 .fit-coat-links{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0 0;font-size:13.5px}.fit-coat-links a{color:var(--ink2);border-bottom:1px solid var(--line2)}.fit-coat-links a:hover{color:var(--ink);border-color:var(--ink)}
 .fit-ai{margin-top:14px;padding:12px 14px;border-radius:12px;border:1.5px dashed var(--line2);background:var(--card);font-size:14px;color:var(--ink2);line-height:1.55}
@@ -396,6 +399,9 @@ var guessBox=$('.fit-guess');
 /* data-guess shows the last result (S / L / none / error), handy when checking the page */
 function guessMark(v){if(guessBox)guessBox.setAttribute('data-guess',v);}
 function guessOut(){var c=coatKey&&cfg.coats[coatKey];if(!guessBox)return;
+ var rec=guess&&dog&&dog===guessFor?guess:null,grid=$('.fit-coats');
+ document.querySelectorAll('.fit-coat').forEach(function(b){var o=cfg.coats[b.dataset.coat];b.classList.toggle('rec-coat',!!(rec&&o&&o.cut===rec));});
+ if(grid)grid.classList.toggle('has-rec',!!rec);
  if(!guess||guessDemo||!c||!c.cut||c.cut===guess||!dog||dog!==guessFor){guessBox.classList.remove('show');guessBox.innerHTML='';return;}
  var alts=Object.keys(cfg.coats).filter(function(k){return cfg.coats[k].cut===guess;});
  guessBox.innerHTML='<b>'+t(guess==='S'?'guess.small':'guess.large')+'</b><p>'+t('guess.note')+'</p>'+(alts.length?'<div class="row">'+alts.map(function(k){var o=cfg.coats[k];
@@ -550,7 +556,7 @@ def render(data, lang):
         fit = coat_fit(coat, charts, lang)
         fitfor = f'<span class="fitfor"><b>{th.esc(fit["kind"])}</b><i>{th.esc(fit["range"])}</i></span>' if fit else ""
         coats += (f'<button type="button" class="fit-coat" data-coat="{th.esc(k)}" data-src="{src}">'
-                  f'<span class="chk">{ICON_CHECK}</span><span class="img"><img src="{src}" alt="{th.esc(colour)}" loading="lazy"></span>'
+                  f'<span class="chk">{ICON_CHECK}</span><span class="rec">AI 建議</span><span class="img"><img src="{src}" alt="{th.esc(colour)}" loading="lazy"></span>'
                   f'<span class="nm">{th.esc(colour)}</span>{sub}{fitfor}</button>')
         if p and p.get("visible", True):
             links += f'<a href="{th.link(d, th.sb.product_page(p), lang)}">{th.esc(colour)}<span aria-hidden="true"> · </span>查看商品</a>'
