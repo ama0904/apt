@@ -95,10 +95,10 @@ def img_url(d, site_path):
 
 # colourways of each fitting-room coat for the recolour test (?recolor=1); the first is the colour Gemini draws.
 # (name, hex, product id). Hex values were picked from try-on pictures and product photos.
-COLORWAYS = {
-    "blue": [("普魯士藍", "#2346b5", 8), ("檸檬螢光黃", "#cfe23f", 6), ("太空灰", "#4a4f55", 7)],
-    "yellow": [("檸檬螢光黃", "#cfe23f", 16), ("普魯士藍", "#2346b5", 9), ("太空灰", "#4a4f55", 10)],
-    "pink": [("莓果桃", "#e0306e", 15), ("萊姆綠", "#8cc63f", 14)],
+COLORWAYS = {   # every coat offers 藍 / 紅 / 黃 in the test (the owner's call); product id 0 = no matching product page
+    "blue": [("普魯士藍", "#2346b5", 8), ("莓果桃", "#e0306e", 0), ("檸檬螢光黃", "#cfe23f", 6)],
+    "yellow": [("檸檬螢光黃", "#cfe23f", 16), ("普魯士藍", "#2346b5", 9), ("莓果桃", "#e0306e", 0)],
+    "pink": [("莓果桃", "#e0306e", 15), ("普魯士藍", "#2346b5", 0), ("檸檬螢光黃", "#cfe23f", 0)],
 }
 
 
