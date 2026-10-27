@@ -534,6 +534,7 @@ go.addEventListener('click',function(){
  }).then(function(d){
   if(running!==run)return;var src=d&&d.image;if(!src||!(/^data:image|^https?:/.test(src)))throw new Error(t('err.noImage'));
   step(3,t('step.done'));return loadImg(src).then(function(){resultUrl=src;shot.src=src;stage.dataset.state='done';finish();sizeOut();celebrate();
+   try{document.dispatchEvent(new CustomEvent('apetto:fitdone',{detail:{image:src,dog:dog,coat:coatKey,coatName:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].name)||''}}));}catch(e){}
    if(d.caption&&String(d.caption).trim())showNote(d.caption);else pollCaption(d.captionId);});
  }).catch(function(e){
   if(running!==run&&!(e&&e.name==='AbortError'))return;var msg;
@@ -603,11 +604,13 @@ def render(data, lang):
                   f'<span class="nm">{th.esc(colour)}</span>{sub}{fitfor}</button>')
         if p and p.get("visible", True):
             links += f'<a href="{th.link(d, th.sb.product_page(p), lang)}">{th.esc(colour)}<span aria-hidden="true"> · </span>查看商品</a>'
+    import member as mem
+    mcfg = mem.config()
     crumbs = f'<li><a href="{th.link(d, "index.html", lang)}">首頁</a></li><li>試衣間</li>'
     body = f"""<div class="wrap"><ol class="breadcrumb">{crumbs}</ol>
 <div class="fit-head rv in"><span class="eyebrow">試衣間</span><h1>讓毛孩先試穿，再決定</h1>
  <p class="lead">上傳一張毛孩的照片，挑一件 apetto，AI 會畫出牠穿上的樣子。</p>
- <div class="fit-status" role="status"><i></i><span>連線中…</span></div></div>
+ <div class="fit-status" role="status"><i></i><span>連線中…</span></div>{mem.fit_bar() if mcfg else ""}</div>
 <div class="fit-grid">
  <div class="fit-col rv in">
   <section class="fit-card"><h2><b>1</b>毛孩照片</h2>
@@ -644,9 +647,9 @@ def render(data, lang):
   <div class="fit-actions"><button type="button" class="btn fit-dl">{ICON_DL}下載照片</button><button type="button" class="btn ghost fit-share">分享</button><button type="button" class="btn ghost fit-again">再試一件</button></div>
   <p class="fit-fine">試穿圖由 AI 生成，顏色與版型以實際商品為準。</p>
  </section>
-</div></div>
+</div>{mem.history_block() if mcfg else ""}</div>
 <script id="apt-fit" type="application/json">{config_json(data, lang)}</script>
-<script src="{th.asset(d, 'assets/fitstudio.js')}?v={th.ASSET_VER['fit']}" defer></script>"""
+<script src="{th.asset(d, 'assets/fitstudio.js')}?v={th.ASSET_VER['fit']}" defer></script>{mem.script_tag(d, mcfg, lang) if mcfg else ""}"""
     title = {"zh": "試衣間", "en": "Fitting Studio", "ja": "試着室", "de": "Anprobe"}[lang]
     return th.page(data, PAGE, lang, f"{title} | {th.BRAND}", body, "上傳一張毛孩的照片，挑一件 apetto，AI 會畫出牠穿上的樣子。",
                    og_image=(load_coats() or [{"image": ASSET_DIR + COATS[1][1]}])[0]["image"], current=PAGE,

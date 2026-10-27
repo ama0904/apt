@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup, Comment, NavigableString
 import site_builder as sb
 import fitstudio as fit
 import assistant as ai
+import member as mem
 
 CDN = "_ext/image-cdn-flare.qdm.cloud/q60f738cbd6a9c/image/data/"
 LOGO = "assets/logo.png"  # transparent version of the shop logo (made from the original PNG; works on dark backgrounds too)
@@ -259,6 +260,7 @@ UI = {
 }
 
 UI.update(fit.UI)
+UI.update(mem.UI)
 
 LANG_CODES = [c for c, _, _, _ in sb.LANGS]
 HTML_LANG = {c: hl for c, _, _, hl in sb.LANGS}
@@ -686,6 +688,7 @@ def lang_links(site_rel, lang, cls=""):
 
 def header(data, site_rel, lang, current=""):
     d = rel_dir(site_rel)
+    member_link = f'<a href="{link(d, mem.PAGE, lang)}">會員專區</a>' if mem.config() else ""
     search = link(d, "search.html", lang)
     return f"""<div class="lang-row" aria-label="語言">{lang_links(site_rel, lang)}</div>
 <header class="hd">
@@ -699,7 +702,7 @@ def header(data, site_rel, lang, current=""):
 <div class="mobile-menu" role="dialog" aria-label="選單"><div class="mm-panel">
   <div class="mm-top"><a href="{link(d, 'index.html', lang)}" aria-label="apetto"><img src="{asset(d, LOGO)}" alt="apetto"></a><button class="mm-close" aria-label="關閉">✕</button></div>
   <nav class="mm-nav">{nav_links(data, d, lang, current)}</nav>
-  <nav class="mm-more"><a href="{link(d, "pages/5.html", lang)}">購物流程</a><a href="{link(d, "information/news.html", lang)}">最新消息</a><a href="{link(d, STORE, lang)}">漢堡店中店</a></nav>
+  <nav class="mm-more"><a href="{link(d, "pages/5.html", lang)}">購物流程</a><a href="{link(d, "information/news.html", lang)}">最新消息</a><a href="{link(d, STORE, lang)}">漢堡店中店</a>{member_link}</nav>
   <div class="mm-social"><a href="{INSTAGRAM}" target="_blank" rel="noopener">Instagram</a><a href="{PINKOI}" target="_blank" rel="noopener">Pinkoi</a></div>
 </div></div>"""
 
@@ -707,7 +710,7 @@ def header(data, site_rel, lang, current=""):
 def footer(data, site_rel, lang):
     d = rel_dir(site_rel)
     links = [(SHOP, "商品分類"), ("search.html", "全系列"), (GUIDES, "商品指南"), (fit.PAGE, "試衣間"),
-             ("pages/5.html", "購物流程"), ("information/news.html", "最新消息"), (ABOUT, "品牌故事"), (STORE, "漢堡店中店")]
+             ("pages/5.html", "購物流程"), ("information/news.html", "最新消息"), (ABOUT, "品牌故事"), (STORE, "漢堡店中店")] + ([(mem.PAGE, "會員專區")] if mem.config() else [])
     small = "".join(f'<a href="{link(d, sp, lang)}">{esc(t)}</a>' for sp, t in links)
     return f"""<footer class="ft">
  <div class="wrap">
@@ -876,7 +879,7 @@ CSS += """
 .fit-coat span{text-wrap:balance}
 :lang(ja){line-break:strict}
 """
-CSS = CSS + '''
+CSS = CSS + mem.CSS + '''
 /* Shop-in-Shop page */
 .store-head{padding:28px 0 22px}.store-head h1{font-size:clamp(30px,4.4vw,46px);line-height:1.12;margin:0 0 12px;letter-spacing:-.01em}.store-head .lead{font-size:17px;color:var(--ink2);max-width:62ch;margin:0}
 .store-photo{border-radius:20px;overflow:hidden;aspect-ratio:16/8;margin:0 0 20px;background:var(--sand)}.store-photo img{width:100%;height:100%;object-fit:cover;object-position:50% 60%;display:block}
@@ -1715,6 +1718,7 @@ def build_all(data, visible):
     (assets / "theme.js").write_text(JS + "\n", encoding="utf-8")
     (assets / "fitstudio.js").write_text(fit.JS + "\n", encoding="utf-8")
     (assets / "assistant.js").write_text(ai.JS + "\n", encoding="utf-8")
+    (assets / "member.js").write_text(mem.JS + "\n", encoding="utf-8")
     for lang in LANG_CODES:
         write_page(render_home(data, visible, lang), "index.html", lang, table)
         for c in data["categories"]:
@@ -1736,6 +1740,8 @@ def build_all(data, visible):
             if out:
                 write_page(out, rel, lang, table)
         write_page(render_store(data, lang), STORE, lang, table)
+        if mem.config():
+            write_page(mem.render_page(data, lang), mem.PAGE, lang, table)
         write_page(render_news_list(data, lang), "information/news.html", lang, table)
         write_page(render_news_list(data, lang, "information/notice.html"), "information/notice.html", lang, table)  # old link
         for n in load_news():
