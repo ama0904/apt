@@ -718,7 +718,9 @@ def page(data, site_rel, lang, title, body, desc="", og_image=None, current="", 
 <title>{esc(title)}</title>
 <meta name="description" content="{esc(desc)}">
 <meta property="og:title" content="{esc(title)}"><meta property="og:description" content="{esc(desc)}"><meta property="og:type" content="website">{og}
-<link rel="icon" href="{asset(d, 'favicon.ico')}">
+<link rel="icon" href="{asset(d, 'favicon.ico')}" sizes="48x48">
+<link rel="icon" type="image/png" sizes="32x32" href="{asset(d, 'assets/favicon-32.png')}">
+<link rel="icon" type="image/png" sizes="192x192" href="{asset(d, 'assets/icon-192.png')}">
 <link rel="apple-touch-icon" href="{asset(d, 'assets/icon-192.png')}">
 <script>{HEAD_JS}</script>
 <link rel="canonical" href="{esc(base)}">{alts}
