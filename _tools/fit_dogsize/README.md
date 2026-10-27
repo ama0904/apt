@@ -29,7 +29,7 @@
 準確度（第二版，留出的 1,031 張沒訓練過的照片，門檻 0.7）：小型／大型狗給對提醒 78%，大小搞反 1.5%，中型犬或大型犬幼犬誤給提醒 7%。
 完全沒看過的品種會差很多（約四成給對、5% 搞反），所以提醒文字一律寫「AI 從照片估計」並附「照樣試穿」。
 
-## 換色（測試中）：`recolor.mjs`
+## 換色（測試中）：`recolor.mjs`（第三版）
 
 `POST /api/recolor {image, from, to}`：把試穿圖裡的衣服從 `from` 顏色換成 `to`（hex），不用 AI、不吃 Gemini 額度，CPU 一張約 0.2～0.3 秒。
 用顏色找出衣服（Lab 色相接近原色、且夠鮮豔），在 Lab 空間換成目標色並保留原本的明暗（皺摺、陰影、反光），黑色滾邊、反光條、狗和背景不動。
@@ -41,3 +41,8 @@ server.js：`const { recolorHandler } = await import('./recolor.mjs'); app.post(
 server.js 在拿到 Gemini 的圖、回傳之前呼叫 `const { recolorVariants } = await import('./recolor.mjs'); const variants = await recolorVariants(imageDataUrlOrBuffer, req.body.recolor);`，
 把 `variants`（`[{hex, image, ms, share}]`）放進回應：`res.json({ ...原本的欄位, variants })`。沒帶 `recolor` 時回 `[]`，不影響原本流程；不會丟錯。
 換色在獨立的 worker thread 跑，不會卡住主執行緒（Gemini 的瀏覽器工作）。兩個顏色約多 0.5～1 秒才回傳。
+
+**第三版找衣服的方法**：拿客人的原圖和試穿圖比對，Gemini 只會改衣服那一塊，所以「有變化的地方」就是衣服；再在這個範圍裡只換有顏色的布料。
+草地、舌頭、項圈這些同色的東西不會動。所以呼叫時請把客人的狗圖一起給：`recolorVariants(試穿圖, recolor, dogImage)`，
+`/api/recolor` 也可帶 `original`（狗圖 data URL）。沒有原圖、或 Gemini 把整張都重畫（差異面積超過 35%）時，自動退回只看顏色的做法。
+回傳多一個 `how`：`diff`（用原圖比對）或 `colour`（只看顏色）。

@@ -1,17 +1,22 @@
-// Recolour the garment in a finished try-on picture, on the server, without AI (about 0.1-0.3 s on CPU).
+// Recolour the garment in a finished try-on picture, on the server, without AI (about 0.2-0.4 s on CPU). Version 3.
 //
-//   const { recolorHandler } = await import('./recolor.mjs');
+//   const { recolorHandler, recolorVariants } = await import('./recolor.mjs');
 //   app.post('/api/recolor', recolorHandler);     // behind the same auth / CORS as /api/stylist
 //
-// POST {image: data URL (jpeg/png/webp), from: "#2346b5", to: "#cfe23f"} -> {image: JPEG data URL, ms, share}
-// The garment is found by colour: pixels whose colour direction (Lab a/b angle) is close to the garment's known colour
-// and clearly saturated. They are recoloured in Lab around the target colour, keeping the original lightness variation
-// (folds, shadows, highlights) and leaving black trim, reflective strips, the dog and the background alone.
-// share = part of the picture recoloured (0..1); near 0 means the garment colour was not found.
+// POST {image: data URL, from: "#2346b5", to: "#cfe23f", original?: data URL of the customer's dog photo}
+//   -> {image: JPEG data URL, ms, share, how: "diff" | "colour"}
+//
+// How the garment is found (v3): Gemini only changes the dog where the garment goes, so the difference between the
+// customer's original photo and the try-on picture is the garment ("diff"). Inside that region the coloured fabric is
+// recoloured in Lab around the target colour, keeping folds, shadows and highlights; black trim, reflective strips,
+// the dog, and same-coloured things elsewhere (grass under a yellow cape, a pink tongue) are untouched.
+// Without the original photo, or when Gemini changed the whole picture (difference region too big), it falls back to
+// the colour-only mask of v2 (hue + chroma, biggest connected parts). All pixel work runs in one worker thread.
 // Needs: sharp (comes with @huggingface/transformers).
 import sharp from 'sharp';
 import { Worker, isMainThread, parentPort } from 'node:worker_threads';
 
+// ---------- colour maths
 const WHITE = [0.95047, 1.0, 1.08883];
 function toLab(r, g, b, out, i) {
   const lin = v => (v /= 255, v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
@@ -33,7 +38,9 @@ function hexLab(h) {
   const n = parseInt(m[1], 16), o = new Float64Array(3);
   toLab(n >> 16 & 255, n >> 8 & 255, n & 255, o, 0); return o;
 }
-// separable box blur of a float mask (radius r), run twice ~ gaussian
+const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
+
+// ---------- small ops on float masks
 function boxBlur(src, w, h, r) {
   const tmp = new Float32Array(src.length), dst = new Float32Array(src.length), n = 2 * r + 1;
   for (let y = 0; y < h; y++) { let s = 0; for (let x = -r; x <= r; x++) s += src[y * w + Math.min(w - 1, Math.max(0, x))];
@@ -42,63 +49,96 @@ function boxBlur(src, w, h, r) {
     for (let y = 0; y < h; y++) { dst[y * w + x] = s / n; s += tmp[Math.min(h - 1, y + r + 1) * w + x] - tmp[Math.max(0, y - r) * w + x]; } }
   return dst;
 }
-function dilate3(src, w, h) {
-  const out = new Float32Array(src.length);
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    let m = 0; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const yy = y + dy, xx = x + dx; if (yy >= 0 && yy < h && xx >= 0 && xx < w) { const v = src[yy * w + xx]; if (v > m) m = v; } }
-    out[y * w + x] = m;
-  }
-  return out;
+// grow a mask by r pixels (square), separable max filter
+function dilate(src, w, h, r) {
+  const tmp = new Float32Array(src.length), dst = new Float32Array(src.length);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { let m = 0; for (let k = -r; k <= r; k++) { const xx = x + k; if (xx >= 0 && xx < w) { const v = src[y * w + xx]; if (v > m) m = v; } } tmp[y * w + x] = m; }
+  for (let x = 0; x < w; x++) for (let y = 0; y < h; y++) { let m = 0; for (let k = -r; k <= r; k++) { const yy = y + k; if (yy >= 0 && yy < h) { const v = tmp[yy * w + x]; if (v > m) m = v; } } dst[y * w + x] = m; }
+  return dst;
 }
-// keep only the big connected pieces of the mask: the garment (possibly split by straps or legs), not small blobs of a
-// similar colour elsewhere (a pink tongue, a red collar, a flower in the grass)
-function keepLargeParts(mask, w, h) {
+// connected components of mask > thr: {label (0 = none), areas (index 1..n), n}
+function components(mask, w, h, thr) {
   const N = w * h, label = new Int32Array(N), stack = new Int32Array(N), areas = [0];
   let n = 0;
   for (let s = 0; s < N; s++) {
-    if (label[s] || mask[s] <= 0.5) continue;
+    if (label[s] || mask[s] <= thr) continue;
     const id = ++n; let top = 0, area = 0; stack[top++] = s; label[s] = id;
     while (top) {
       const p = stack[--top]; area++;
       const x = p % w, y = (p - x) / w;
-      if (x > 0 && !label[p - 1] && mask[p - 1] > 0.5) { label[p - 1] = id; stack[top++] = p - 1; }
-      if (x < w - 1 && !label[p + 1] && mask[p + 1] > 0.5) { label[p + 1] = id; stack[top++] = p + 1; }
-      if (y > 0 && !label[p - w] && mask[p - w] > 0.5) { label[p - w] = id; stack[top++] = p - w; }
-      if (y < h - 1 && !label[p + w] && mask[p + w] > 0.5) { label[p + w] = id; stack[top++] = p + w; }
+      if (x > 0 && !label[p - 1] && mask[p - 1] > thr) { label[p - 1] = id; stack[top++] = p - 1; }
+      if (x < w - 1 && !label[p + 1] && mask[p + 1] > thr) { label[p + 1] = id; stack[top++] = p + 1; }
+      if (y > 0 && !label[p - w] && mask[p - w] > thr) { label[p - w] = id; stack[top++] = p - w; }
+      if (y < h - 1 && !label[p + w] && mask[p + w] > thr) { label[p + w] = id; stack[top++] = p + w; }
     }
     areas.push(area);
   }
+  return { label, areas, n };
+}
+// keep only the big connected pieces of a mask (the garment, possibly split by straps), not small same-coloured blobs
+function keepLargeParts(mask, w, h) {
+  const N = w * h, { label, areas, n } = components(mask, w, h, 0.5);
   if (n === 0) return mask;
   const largest = Math.max(...areas), minArea = Math.max(0.08 * largest, 0.003 * N);
   const keep = areas.map(a => a >= minArea);
   let core = new Float32Array(N);
   for (let p = 0; p < N; p++) if (label[p] && keep[label[p]]) core[p] = 1;
-  core = boxBlur(dilate3(dilate3(core, w, h), w, h), w, h, 2);   // soft edge around the kept pieces
+  core = boxBlur(dilate(core, w, h, 2), w, h, 2);
   const out = new Float32Array(N);
   for (let p = 0; p < N; p++) out[p] = mask[p] * Math.min(1, core[p] * 1.5);
   return out;
 }
 const median = arr => { if (!arr.length) return NaN; const s = Float64Array.from(arr).sort(); return s[s.length >> 1]; };
 
-export async function recolor(buf, fromHex, toHex, { tol = 34, maxSide = 1024 } = {}) {
+// where the try-on differs from the customer's photo = where the garment was painted. null when unusable.
+async function changedRegion(original, w, h, tryon) {
+  const a = await sharp(original).rotate().resize(w, h, { fit: 'fill' }).blur(3).removeAlpha().raw().toBuffer();
+  const b = await sharp(tryon, { raw: { width: w, height: h, channels: 3 } }).blur(3).raw().toBuffer();
+  const N = w * h, m = new Float32Array(N);
+  let hot = 0;
+  for (let p = 0; p < N; p++) {
+    const d = Math.abs(a[p * 3] - b[p * 3]) + Math.abs(a[p * 3 + 1] - b[p * 3 + 1]) + Math.abs(a[p * 3 + 2] - b[p * 3 + 2]);
+    m[p] = clamp01((d - 40) / 64);
+    if (m[p] > 0.5) hot++;
+  }
+  const share = hot / N;
+  if (share < 0.004 || share > 0.35) return null;   // nothing changed, or Gemini redrew the whole picture (a real garment is ~5-20 %)
+  // the garment is one or two big pieces; scattered specks are regenerated texture (grass, bokeh) and are dropped
+  const cs = components(boxBlur(dilate(m, w, h, 2), w, h, 1), w, h, 0.5), big = new Float32Array(N);
+  if (!cs.n) return null;
+  const largest = Math.max(...cs.areas), minArea = Math.max(0.15 * largest, 0.004 * N);
+  for (let p = 0; p < N; p++) if (cs.label[p] && cs.areas[cs.label[p]] >= minArea) big[p] = 1;
+  return boxBlur(dilate(big, w, h, 6), w, h, 3);
+}
+
+// ---------- the recolour itself
+export async function recolor(buf, fromHex, toHex, opts = {}) {
   const src = hexLab(fromHex), dst = hexLab(toHex);
   if (!src || !dst) throw Object.assign(new Error('bad colour'), { status: 400 });
+  const maxSide = opts.maxSide || 1024, tol = opts.tol || 34;
   const { data, info } = await sharp(buf).rotate().resize(maxSide, maxSide, { fit: 'inside', withoutEnlargement: true }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const w = info.width, h = info.height, N = w * h;
   const lab = new Float64Array(N * 3);
   for (let p = 0; p < N; p++) toLab(data[p * 3], data[p * 3 + 1], data[p * 3 + 2], lab, p * 3);
-  // mask
+  // the garment's region: from the original photo when we have one (computed once per picture, shared by all colours)
+  let region = opts.region === undefined ? null : opts.region;
+  if (opts.region === undefined && opts.original) { try { region = await changedRegion(opts.original, w, h, data); } catch (e) { region = null; } }
+  const how = region ? 'diff' : 'colour';
+  // colour gate: pixels whose colour direction is close to the garment's and clearly saturated; looser inside the region
   const sc = Math.hypot(src[1], src[2]), sang = Math.atan2(src[2], src[1]);
+  const hueTol = region ? 60 : tol, hueSoft = region ? 15 : 10, chromaMin = region ? 0.10 : 0.18, chromaSoft = region ? 0.10 : 0.12;
   let mask = new Float32Array(N);
   for (let p = 0; p < N; p++) {
+    if (region && region[p] < 0.01) continue;
     const a = lab[p * 3 + 1], b = lab[p * 3 + 2], ch = Math.hypot(a, b);
     let d = Math.abs(Math.atan2(b, a) - sang); if (d > Math.PI) d = 2 * Math.PI - d;
     const ang = d * 180 / Math.PI;
-    mask[p] = Math.min(1, Math.max(0, (tol - ang) / 10)) * Math.min(1, Math.max(0, (ch - 0.18 * sc) / (0.12 * sc)));
+    let g = clamp01((hueTol - ang) / hueSoft) * clamp01((ch - chromaMin * sc) / (chromaSoft * sc));
+    if (region) g *= clamp01((50 - Math.abs(lab[p * 3] - src[0])) / 15);
+    mask[p] = region ? g * Math.min(1, region[p] * 1.5) : g;
   }
-  mask = boxBlur(boxBlur(dilate3(mask, w, h), w, h, 1), w, h, 1);
-  mask = keepLargeParts(mask, w, h);
-  // statistics of the garment
+  mask = boxBlur(boxBlur(dilate(mask, w, h, 1), w, h, 1), w, h, 1);
+  if (!region) mask = keepLargeParts(mask, w, h);
   const Ls = [], Cs = []; let cnt = 0;
   for (let p = 0; p < N; p++) if (mask[p] > 0.5) { cnt++; if ((p & 3) === 0) { Ls.push(lab[p * 3]); Cs.push(Math.hypot(lab[p * 3 + 1], lab[p * 3 + 2])); } }
   const Lm = Ls.length ? median(Ls) : src[0], cm = Math.max(1, Cs.length ? median(Cs) : sc);
@@ -113,14 +153,20 @@ export async function recolor(buf, fromHex, toHex, { tol = 34, maxSide = 1024 } 
     out[p * 3] = r * (1 - m) + px[0] * m; out[p * 3 + 1] = g * (1 - m) + px[1] * m; out[p * 3 + 2] = b * (1 - m) + px[2] * m;
   }
   const jpg = await sharp(out, { raw: { width: w, height: h, channels: 3 } }).jpeg({ quality: 88 }).toBuffer();
-  return { jpg, share: cnt / N };
+  return { jpg, share: cnt / N, how, region };
 }
 
-// The pixel work runs in one worker thread, so the server's main thread (Gemini browser jobs) is never blocked.
+// ---------- worker plumbing: all pixel work lives in one worker thread, so the server's main thread is never blocked
 if (!isMainThread && parentPort) {
-  parentPort.on('message', async ({ id, buf, from, to }) => {
-    try { const r = await recolor(Buffer.from(buf), from, to); parentPort.postMessage({ id, jpg: r.jpg, share: r.share }); }
-    catch (e) { parentPort.postMessage({ id, error: e.message, status: e.status || 0 }); }
+  const regions = new Map();   // per batch (one try-on, several colours): the garment region, computed once
+  parentPort.on('message', async ({ id, buf, original, from, to, batch }) => {
+    try {
+      const opts = { original: original ? Buffer.from(original) : null };
+      if (batch && regions.has(batch)) opts.region = regions.get(batch);
+      const r = await recolor(Buffer.from(buf), from, to, opts);
+      if (batch && !regions.has(batch)) { regions.set(batch, r.region); setTimeout(() => regions.delete(batch), 60000); }
+      parentPort.postMessage({ id, jpg: r.jpg, share: r.share, how: r.how });
+    } catch (e) { parentPort.postMessage({ id, error: e.message, status: e.status || 0 }); }
   });
 }
 let worker = null, seq = 0;
@@ -134,33 +180,37 @@ function getWorker() {
   worker.unref();
   return worker;
 }
-function inWorker(buf, from, to) {
-  return new Promise((resolve, reject) => { const id = ++seq; waiting.set(id, { resolve, reject }); const wk = getWorker(); wk.ref(); wk.postMessage({ id, buf, from, to }); });   // ref while busy, so a short-lived process waits for the answer
+function inWorker(buf, original, from, to, batch) {
+  return new Promise((resolve, reject) => { const id = ++seq; waiting.set(id, { resolve, reject }); const wk = getWorker(); wk.ref(); wk.postMessage({ id, buf, original, from, to, batch }); });   // ref while busy
 }
-function decode(dataUrl) {
+function decode(dataUrl, limit = 6) {
   const m = /^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl || '');
   if (!m) throw Object.assign(new Error('bad image'), { status: 400 });
   const buf = Buffer.from(m[2], 'base64');
-  if (buf.length > 6 * 1024 * 1024) throw Object.assign(new Error('image too large'), { status: 413 });
+  if (buf.length > limit * 1024 * 1024) throw Object.assign(new Error('image too large'), { status: 413 });
   return buf;
 }
-const asResult = (r, t0) => ({ image: 'data:image/jpeg;base64,' + Buffer.from(r.jpg).toString('base64'), share: +r.share.toFixed(3), ms: Date.now() - t0 });
+const maybeDecode = img => !img ? null : Buffer.isBuffer(img) ? img : (() => { try { return decode(img); } catch (e) { return null; } })();
+const asResult = (r, t0) => ({ image: 'data:image/jpeg;base64,' + Buffer.from(r.jpg).toString('base64'), share: +r.share.toFixed(3), how: r.how, ms: Date.now() - t0 });
 
-export async function recolorDataUrl(dataUrl, fromHex, toHex) {
+export async function recolorDataUrl(dataUrl, fromHex, toHex, original) {
   const buf = decode(dataUrl), t0 = Date.now();
-  return asResult(await inWorker(buf, fromHex, toHex), t0);
+  return asResult(await inWorker(buf, maybeDecode(original), fromHex, toHex, null), t0);
 }
 
 // For /api/stylist: recolour the finished picture into every colour the page asked for, in the same response.
-// image: data URL or Buffer; recolor: {from: "#hex", to: ["#hex", ...]} (at most 6). Never throws; bad input -> [].
-export async function recolorVariants(image, recolor) {
+// image: the try-on (data URL or Buffer); recolor: {from: "#hex", to: ["#hex", ...]} (at most 6);
+// original: the customer's dog photo (data URL or Buffer), optional but what makes the garment region exact.
+// Never throws; bad input -> [].
+export async function recolorVariants(image, recolor, original) {
   try {
     if (!recolor || !recolor.from || !Array.isArray(recolor.to)) return [];
-    const buf = Buffer.isBuffer(image) ? image : decode(image);
+    const buf = Buffer.isBuffer(image) ? image : decode(image), orig = maybeDecode(original);
+    const batch = 'b' + Date.now() + Math.random().toString(36).slice(2);   // the region is found once for all colours
     const out = [];
     for (const to of recolor.to.slice(0, 6)) {
       const t0 = Date.now();
-      try { out.push({ hex: to, ...asResult(await inWorker(buf, recolor.from, to), t0) }); } catch (e) { /* skip that colour */ }
+      try { out.push({ hex: to, ...asResult(await inWorker(buf, orig, recolor.from, to, batch), t0) }); } catch (e) { /* skip that colour */ }
     }
     return out;
   } catch (e) { return []; }
@@ -168,7 +218,7 @@ export async function recolorVariants(image, recolor) {
 
 export function recolorHandler(req, res) {
   const b = req.body || {};
-  recolorDataUrl(b.image, b.from, b.to)
+  recolorDataUrl(b.image, b.from, b.to, b.original)
     .then(r => res.json(r))
     .catch(e => res.status(e.status || 500).json({ error: e.status ? e.message : 'recolor unavailable' }));
 }

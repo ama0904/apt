@@ -528,7 +528,7 @@ function rcShow(){if(!rcBox)return;var c=coatKey&&cfg.coats[coatKey],cols=c&&c.c
  rcBox.classList.add('on');
  rcBox.querySelectorAll('button').forEach(function(b){b.onclick=function(){rcPick(+b.dataset.i);};});}
 function rcFetch(i){var c=cfg.coats[coatKey],cols=c.colors,key=coatKey+':'+i,src=rcOrig;
- if(!rcCache[key])rcCache[key]=compress(src,1024,.9).then(function(img){var t0=Date.now();return fetch(cfg.api+'/api/recolor',{method:'POST',headers:auth({'Content-Type':'application/json'}),body:JSON.stringify({image:img,from:cols[0].hex,to:cols[i].hex})})
+ if(!rcCache[key])rcCache[key]=Promise.all([compress(src,1024,.9),dog?compress(dog,800,.82):null]).then(function(a){var t0=Date.now();return fetch(cfg.api+'/api/recolor',{method:'POST',headers:auth({'Content-Type':'application/json'}),body:JSON.stringify({image:a[0],from:cols[0].hex,to:cols[i].hex,original:a[1]})})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(function(d){d.rt=Date.now()-t0;return d;});}).catch(function(e){delete rcCache[key];throw e;});
  return rcCache[key];}
 function rcAsk(){var c=rcOn&&coatKey&&cfg.coats[coatKey];if(!c||!c.colors||c.colors.length<2)return null;return {from:c.colors[0].hex,to:c.colors.slice(1).map(function(x){return x.hex;})};}
