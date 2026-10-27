@@ -18,6 +18,7 @@ anyway; the bridge's owner uses it only to turn away stray requests. With no key
 the header (the bridge can allow the site's origin instead). The clothes pictures must be the prepared
 "garment on a black dog silhouette, white background" composites in assets/fitstudio/, not product photos.
 """
+import hashlib
 import json
 import os
 
@@ -80,6 +81,16 @@ def load_coats():
 
 def load_dogs():
     return _load_items("dogs", [{"key": k, "image": ASSET_DIR + fn, "label": n} for k, fn, n in DOGS])
+
+
+def img_url(d, site_path):
+    """Asset URL plus ?v=<content hash>: swapping a demo dog or coat picture never shows the old cached file."""
+    import theme as th
+    f = th.sb.SITE / site_path
+    try:
+        return th.asset(d, site_path) + "?v=" + hashlib.md5(f.read_bytes()).hexdigest()[:8]
+    except OSError:
+        return th.asset(d, site_path)
 
 
 def coat_label(c, lang):
@@ -574,13 +585,13 @@ def render(data, lang):
     import theme as th
     d = th.rel_dir(PAGE)
     by_id = {p["id"]: p for p in data["products"]}
-    demo = "".join(f'<button type="button" data-dog="{th.esc(g["key"])}" data-src="{th.asset(d, g["image"])}"><img src="{th.asset(d, g["image"])}" alt="">{th.esc(coat_label(g, lang))}</button>'
+    demo = "".join(f'<button type="button" data-dog="{th.esc(g["key"])}" data-src="{img_url(d, g["image"])}"><img src="{img_url(d, g["image"])}" alt="">{th.esc(coat_label(g, lang))}</button>'
                    for g in load_dogs())
     coats, links = "", ""
     charts = th.sb.load_image_text().get("charts", {})
     for coat in load_coats():
         p = by_id.get(coat.get("product"))
-        k, src, colour = coat["key"], th.asset(d, coat["image"]), coat_label(coat, lang)
+        k, src, colour = coat["key"], img_url(d, coat["image"]), coat_label(coat, lang)
         sub = f'<span class="sub">{th.esc(p["name"])}</span>' if p else ""
         fit = coat_fit(coat, charts, lang)
         fitfor = f'<span class="fitfor"><b>{th.esc(fit["kind"])}</b><i>{th.esc(fit["range"])}</i></span>' if fit else ""
