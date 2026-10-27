@@ -1,6 +1,23 @@
 {
  "dogs": [
   {
+   "key": "shihtzu",
+   "label": "西施犬",
+   "image": "assets/fitstudio/dog_shihtzu.jpg",
+   "visible": true,
+   "i18n": {
+    "en": {
+     "label": "Shih Tzu"
+    },
+    "ja": {
+     "label": "シーズー"
+    },
+    "de": {
+     "label": "Shih Tzu"
+    }
+   }
+  },
+  {
    "key": "labrador",
    "label": "拉布拉多",
    "image": "assets/fitstudio/dog_labrador.webp",
@@ -16,23 +33,6 @@
      "label": "Labrador"
     }
    }
-  },
-  {
-   "key": "dmvi24azc",
-   "label": "黃金獵犬",
-   "visible": true,
-   "i18n": {
-    "en": {
-     "label": "Golden retriever"
-    },
-    "ja": {
-     "label": "ゴールデン"
-    },
-    "de": {
-     "label": "Golden Retriever"
-    }
-   },
-   "image": "assets/fitstudio/dog_dmvi24azc_crop43.jpg"
   }
  ],
  "coats": [
