@@ -527,16 +527,19 @@ function rcShow(){if(!rcBox)return;var c=coatKey&&cfg.coats[coatKey],cols=c&&c.c
  rcBox.innerHTML='<h4>換色測試（zbook）</h4><div class="row">'+cols.map(function(x,i){return '<button type="button" data-i="'+i+'"'+(i===0?' class="cur"':'')+'><i style="background:'+x.hex+'"></i>'+x.name+(i===0?'（原圖）':'')+'</button>';}).join('')+'</div><p></p>';
  rcBox.classList.add('on');
  rcBox.querySelectorAll('button').forEach(function(b){b.onclick=function(){rcPick(+b.dataset.i);};});}
+function rcFetch(i){var c=cfg.coats[coatKey],cols=c.colors,key=coatKey+':'+i,src=rcOrig;
+ if(!rcCache[key])rcCache[key]=compress(src,1024,.9).then(function(img){var t0=Date.now();return fetch(cfg.api+'/api/recolor',{method:'POST',headers:auth({'Content-Type':'application/json'}),body:JSON.stringify({image:img,from:cols[0].hex,to:cols[i].hex})})
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).then(function(d){d.rt=Date.now()-t0;return d;});}).catch(function(e){delete rcCache[key];throw e;});
+ return rcCache[key];}
+function rcPrefetch(){var c=coatKey&&cfg.coats[coatKey];if(!rcOn||!c||!c.colors)return;var i=1,n=c.colors.length,orig=rcOrig;
+ (function next(){if(i>=n||rcOrig!==orig)return;rcFetch(i++).catch(function(){}).then(next);})();}
 function rcPick(i){var c=cfg.coats[coatKey],cols=c.colors,info=rcBox.querySelector('p');
  rcBox.querySelectorAll('button').forEach(function(b){b.classList.toggle('cur',+b.dataset.i===i);});
  if(i===0){shot.src=rcOrig;resultUrl=rcOrig;info.textContent='';return;}
- var key=coatKey+':'+i;if(rcCache[key]){shot.src=rcCache[key].image;resultUrl=rcCache[key].image;info.textContent=cols[i].name+'：zbook 換色 '+rcCache[key].ms+' ms（已快取）';return;}
- rcBox.querySelectorAll('button').forEach(function(b){b.disabled=true;});info.textContent='換色中…';var t0=Date.now();
- compress(rcOrig,1024,.9).then(function(img){return fetch(cfg.api+'/api/recolor',{method:'POST',headers:auth({'Content-Type':'application/json'}),body:JSON.stringify({image:img,from:cols[0].hex,to:cols[i].hex})});})
-  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-  .then(function(d){rcCache[key]=d;shot.src=d.image;resultUrl=d.image;info.textContent=cols[i].name+'：zbook 換色 '+d.ms+' ms，來回共 '+(Date.now()-t0)+' ms'+(d.share<0.01?'（幾乎沒找到原本的衣服顏色）':'');})
-  .catch(function(e){info.textContent='換色失敗：'+(e&&e.message||e)+'（zbook 還沒裝 /api/recolor 的話會這樣）';})
-  .then(function(){rcBox.querySelectorAll('button').forEach(function(b){b.disabled=false;});});}
+ info.textContent='換色中…';var t0=Date.now(),orig=rcOrig;
+ rcFetch(i).then(function(d){if(rcOrig!==orig)return;shot.src=d.image;resultUrl=d.image;var wait=Date.now()-t0;
+   info.textContent=cols[i].name+'：zbook 換色 '+d.ms+' ms'+(wait<150?'（已預先換好，立即顯示）':'，等了 '+wait+' ms')+(d.share<0.01?'（幾乎沒找到原本的衣服顏色）':'');})
+  .catch(function(e){info.textContent='換色失敗：'+(e&&e.message||e);});}
 function finish(){if(running){clearInterval(running.poll);clearInterval(running.tick);clearTimeout(running.tm);running=null;}update();}
 go.addEventListener('click',function(){
  if(!dog||!coat){setErr(t('err.pickFirst'));return;}if(online===false){setErr(t('err.offline'));return;}
@@ -564,7 +567,7 @@ go.addEventListener('click',function(){
   return r.json();
  }).then(function(d){
   if(running!==run)return;var src=d&&d.image;if(!src||!(/^data:image|^https?:/.test(src)))throw new Error(t('err.noImage'));
-  step(3,t('step.done'));return loadImg(src).then(function(){resultUrl=src;shot.src=src;stage.dataset.state='done';finish();sizeOut();celebrate();rcOrig=src;rcCache={};rcShow();
+  step(3,t('step.done'));return loadImg(src).then(function(){resultUrl=src;shot.src=src;stage.dataset.state='done';finish();sizeOut();celebrate();rcOrig=src;rcCache={};rcShow();rcPrefetch();
    try{document.dispatchEvent(new CustomEvent('apetto:fitdone',{detail:{image:src,dog:dog,coat:coatKey,coatName:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].name)||''}}));}catch(e){}
    if(d.caption&&String(d.caption).trim())showNote(d.caption);else pollCaption(d.captionId);});
  }).catch(function(e){
