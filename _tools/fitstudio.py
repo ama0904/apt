@@ -86,7 +86,7 @@ def coat_label(c, lang):
 # Markup strings (zh key -> translations); merged into theme.UI so translate_soup handles the page.
 UI = {
     "試衣間": {"en": "Fitting Studio", "ja": "試着室", "de": "Anprobe"},
-    "AI 建議": {"en": "AI pick", "ja": "AI おすすめ", "de": "KI-Tipp"},
+    "建議款": {"en": "Suggested", "ja": "おすすめ", "de": "Empfohlen"},
     "AI 試衣間": {"en": "AI Fitting Studio", "ja": "AI 試着室", "de": "KI-Anprobe"},
     "讓毛孩先試穿，再決定": {"en": "Let your dog try it on first", "ja": "まず試着、それから決める", "de": "Erst anprobieren, dann entscheiden"},
     "上傳一張毛孩的照片，挑一件 apetto，AI 會畫出牠穿上的樣子。": {
@@ -214,10 +214,10 @@ STR = {
     "ai.unsure": {"zh": "品種不太確定，可能是米克斯或少見品種", "en": "breed unsure: maybe mixed or uncommon", "ja": "犬種は不確か（ミックスか珍しい犬種かも）", "de": "Rasse unsicher: vielleicht Mischling oder selten"},
     "guess.small": {"zh": "照片看起來是小型犬，這件是中大型犬款，可能會太大。", "en": "Your dog looks small; this one is cut for medium and large dogs and may be too big.", "ja": "写真では小型犬のようです。こちらは中・大型犬向けなので大きすぎるかもしれません。", "de": "Dein Hund wirkt klein; dieses Modell ist für mittlere und große Hunde und könnte zu groß sein."},
     "guess.large": {"zh": "照片看起來是中大型犬，這件是小型犬款，可能會太小。", "en": "Your dog looks medium or large; this one is cut for small dogs and may be too small.", "ja": "写真では中・大型犬のようです。こちらは小型犬向けなので小さすぎるかもしれません。", "de": "Dein Hund wirkt mittelgroß oder groß; dieses Modell ist für kleine Hunde und könnte zu klein sein."},
-    "guess.note": {"zh": "這是 AI 從照片估計的，幼犬或混種請以背長為準，也可以照樣試穿。", "en": "This is an AI guess from the photo; for puppies and mixed breeds go by the back length. You can still try it on.", "ja": "写真からの AI の推定です。子犬やミックス犬は背丈を目安に。このまま試着もできます。", "de": "KI-Schätzung nach dem Foto; bei Welpen und Mischlingen zählt die Rückenlänge. Anprobieren geht trotzdem."},
+    "guess.note": {"zh": "這是依照片估計的，幼犬或混種請以背長為準，也可以照樣試穿。", "en": "Estimated from the photo; for puppies and mixed breeds go by the back length. You can still try it on.", "ja": "写真からの推定です。子犬やミックス犬は背丈を目安に。このまま試着もできます。", "de": "Nach dem Foto geschätzt; bei Welpen und Mischlingen zählt die Rückenlänge. Anprobieren geht trotzdem."},
     "guess.pick": {"zh": "改選 {name}（{kind}）", "en": "Pick {name} ({kind})", "ja": "{name}（{kind}）にする", "de": "{name} wählen ({kind})"},
     "warn.title": {"zh": "這件可能不合身", "en": "This one may not fit", "ja": "サイズが合わないかもしれません", "de": "Das passt vielleicht nicht"},
-    "warn.guess": {"zh": "AI 從照片判斷你家毛孩是{dog}，而這件是{coat}款。試穿圖一定會畫得剛好合身，不代表實際尺寸，購買前請以背長和尺寸表為準。", "en": "From the photo, your dog looks like a {dog}, but this one is cut for {coat}. The try-on picture always fits perfectly and does not show the real size; check the back length and size chart before buying.", "ja": "写真から愛犬は{dog}と推定されますが、こちらは{coat}向けです。試着画像は必ずぴったりに描かれ、実際のサイズを示しません。購入前に背丈とサイズ表をご確認ください。", "de": "Laut Foto ist dein Hund ein {dog}, dieses Modell ist aber für {coat}. Das Anprobe-Bild passt immer perfekt und zeigt nicht die echte Größe; prüfe vor dem Kauf Rückenlänge und Größentabelle."},
+    "warn.guess": {"zh": "從照片看，你家毛孩像是{dog}，而這件是{coat}款。試穿圖一定會畫得剛好合身，不代表實際尺寸，購買前請以背長和尺寸表為準。", "en": "From the photo, your dog looks like a {dog}, but this one is cut for {coat}. The try-on picture always fits perfectly and does not show the real size; check the back length and size chart before buying.", "ja": "写真では愛犬は{dog}のようですが、こちらは{coat}向けです。試着画像は必ずぴったりに描かれ、実際のサイズを示しません。購入前に背丈とサイズ表をご確認ください。", "de": "Laut Foto wirkt dein Hund wie ein {dog}, dieses Modell ist aber für {coat}. Das Anprobe-Bild passt immer perfekt und zeigt nicht die echte Größe; prüfe vor dem Kauf Rückenlänge und Größentabelle."},
     "warn.back": {"zh": "依你填的背長，這件的尺寸對你家毛孩{bad}。試穿圖一定會畫得剛好合身，不代表實際尺寸。", "en": "By the back length you entered, this one is {bad} for your dog. The try-on picture always fits perfectly and does not show the real size.", "ja": "入力した背丈では、こちらは愛犬に{bad}。試着画像は必ずぴったりに描かれ、実際のサイズを示しません。", "de": "Nach der eingegebenen Rückenlänge ist dieses Modell für deinen Hund {bad}. Das Anprobe-Bild passt immer perfekt und zeigt nicht die echte Größe."},
     "warn.big": {"zh": "太大", "en": "too big", "ja": "大きすぎます", "de": "zu groß"},
     "warn.smallB": {"zh": "太小", "en": "too small", "ja": "小さすぎます", "de": "zu klein"},
@@ -583,7 +583,7 @@ def render(data, lang):
         fit = coat_fit(coat, charts, lang)
         fitfor = f'<span class="fitfor"><b>{th.esc(fit["kind"])}</b><i>{th.esc(fit["range"])}</i></span>' if fit else ""
         coats += (f'<button type="button" class="fit-coat" data-coat="{th.esc(k)}" data-src="{src}">'
-                  f'<span class="chk">{ICON_CHECK}</span><span class="rec">AI 建議</span><span class="img"><img src="{src}" alt="{th.esc(colour)}" loading="lazy"></span>'
+                  f'<span class="chk">{ICON_CHECK}</span><span class="rec">建議款</span><span class="img"><img src="{src}" alt="{th.esc(colour)}" loading="lazy"></span>'
                   f'<span class="nm">{th.esc(colour)}</span>{sub}{fitfor}</button>')
         if p and p.get("visible", True):
             links += f'<a href="{th.link(d, th.sb.product_page(p), lang)}">{th.esc(colour)}<span aria-hidden="true"> · </span>查看商品</a>'
