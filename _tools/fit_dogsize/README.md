@@ -4,18 +4,26 @@
 
 這個資料夾是要放到筆電 `D:\apetto-server\fit\` 的程式（試衣間伺服器 `server.js` 本身不在這個 repo）：
 
-- `dogsize.mjs`：模型載入、判斷、Express handler。`import { dogSizeHandler } from './dogsize.mjs'` 後加一條
-  `app.post('/api/dogsize', express.json({ limit: '1mb' }), dogSizeHandler)`，放在和 `/api/stylist` 一樣的驗證後面。
-- `size_head.json`：體型分類器的權重（用約 2,300 張標好大小的狗照片訓練；重新訓練只要換這個檔）。
+- `dogsize.mjs`：模型載入、判斷、Express handler。server.js 是 CommonJS，用
+  `const { dogSizeHandler, warmup } = await import('./dogsize.mjs')`，再加 `app.post('/api/dogsize', dogSizeHandler)`，
+  放在和 `/api/stylist` 一樣的驗證後面。
+- `size_head.json`：體型分類器的權重。第二版用約 5,300 張標好大小的狗照片訓練，輸入是品種分數加模型的 768 維影像特徵；
+  重新訓練只要換這個檔（`features` 欄位說明用哪種輸入）。
 
-需求：`npm i @huggingface/transformers@3.7.2`（會帶 onnxruntime-node，CPU 即可，不用 GPU）。第一次啟動會從 Hugging Face 下載
-`Xenova/convnext-tiny-224` 的 8-bit ONNX 模型（約 28 MB，Apache-2.0）到 `FIT_MODEL_DIR`（預設 `fit\models`），之後都從硬碟載入。
-一張照片約 0.1～0.3 秒；一次只處理一張，不會搶 Gemini 試穿的資源。
+模型檔不會自動下載：從 GitHub release `dogsize-v2` 下載 `dogsize-v2.zip`（約 22 MB），解壓到 `FIT_MODEL_DIR`（預設 `fit\models`），
+變成 `fit\models\dogsize-v2\onnx\model_quantized.onnx`。它是 `facebook/convnext-tiny-224`（ImageNet，Apache-2.0）的 8-bit ONNX
+（Xenova 轉換），多加了一個 `pooled` 輸出（768 維影像特徵）；這個修改檔是用 `onnx` 套件在 Python 裡做的，所以不能直接從 Hugging Face 抓。
+
+需求：`@huggingface/transformers`（3.7 以上）和它附帶的 `onnxruntime-node`，CPU 即可。推論限制在 2 個執行緒，一張照片約 0.1～0.3 秒，
+一次只處理一張，不會搶 Gemini 試穿的資源。
 
 回傳範例：
 
 ```json
-{"dog":0.93,"top":[{"id":151,"name":"Chihuahua","zh":"吉娃娃","p":0.82},…],"P":[0.98,0.01,0.01],"guess":"S","ms":140}
+{"dog":0.93,"top":[{"id":151,"name":"Chihuahua","zh":"吉娃娃","p":0.82},…],"P":[0.98,0.01,0.01],"guess":"S","ms":90}
 ```
 
 `guess` 是 `"S"`（小汪斗篷）、`"L"`（大汪雨衣）或 `null`（不確定，不提醒）；`P` 為空代表照片裡看不太到狗。
+
+準確度（第二版，留出的 1,031 張沒訓練過的照片，門檻 0.7）：小型／大型狗給對提醒 78%，大小搞反 1.5%，中型犬或大型犬幼犬誤給提醒 7%。
+完全沒看過的品種會差很多（約四成給對、5% 搞反），所以提醒文字一律寫「AI 從照片估計」並附「照樣試穿」。
