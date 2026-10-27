@@ -391,7 +391,7 @@ document.querySelectorAll('.fit-coat').forEach(function(b){b.addEventListener('c
 /* small or large dog? The photo (shrunk to 384 px) goes to the fitting-room server, which runs an image model on the
    laptop and answers with the closest breeds and small / medium / large (trained on ~2,300 labelled dog photos).
    A hint is shown only when fairly sure; ?dogai=1 shows the breeds and numbers under the photo (test mode). */
-var aiDebug=false;try{var dq=/[?&]dogai=([01])/.exec(location.search);if(dq)sessionStorage.setItem('apetto_dogai',dq[1]);aiDebug=sessionStorage.getItem('apetto_dogai')==='1';}catch(e){aiDebug=/[?&]dogai=1/.test(location.search);}
+var aiDebug=/[?&]dogai=1/.test(location.search);try{sessionStorage.removeItem('apetto_dogai');}catch(e){}
 var guess=null,guessFor=null,guessDemo=false,guessCtl=null,aiBox=$('.fit-ai'),warnOk=false;
 /* the chosen coat does not fit (AI guess from the photo, or the typed back length): ask once before generating */
 function misfit(){var c=coatKey&&cfg.coats[coatKey];if(!c||!c.cut)return null;

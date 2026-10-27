@@ -549,7 +549,9 @@ body.menu-open .bars i:nth-child(1){transform:translateY(6px) rotate(45deg)}body
 @media (max-width:980px){.ft-in{grid-template-columns:1fr;gap:28px;padding:36px 0 24px}.ft-bottom{flex-direction:column;align-items:flex-start}}
 """
 
-JS = r"""/* colour-scheme preview bar: only appears after visiting a page with ?palette=N */
+JS = r"""/* a language link click is a deliberate choice: remember it so the region-based pick never overrides it */
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[hreflang]');if(a)try{localStorage.setItem('apetto_lang',a.getAttribute('hreflang'));}catch(x){}});
+/* colour-scheme preview bar: only appears after visiting a page with ?palette=N */
 (function(){var cur;try{cur=sessionStorage.getItem('apetto_palette');}catch(e){}if(cur===null||cur===undefined)return;var H=document.documentElement;
  var P=[['0','原本','#fbfaf7'],['1','杏仁奶茶','#efe0c9'],['2','蜜桃','#ffe4d4'],['3','奶油黃','#fbeebb'],['4','鼠尾草','#e6e8d6'],['5','焦糖','#e6cdaa']];if(window.apPcStyle){var pcb=(sessionStorage.getItem('apetto_pc')||'').slice(0,6);P.push(['c','自訂','#'+pcb]);}
  var bar=document.createElement('div');bar.className='pal-bar';bar.innerHTML='<b>配色預覽</b>';
@@ -682,6 +684,23 @@ HEAD_JS = ('document.documentElement.className+=" js";'
     'if(q)ss.setItem("apetto_pc",q[1].toLowerCase());if(m)ss.setItem("apetto_palette",m[1]);var pv=ss.getItem("apetto_palette"),pc=(ss.getItem("apetto_pc")||"").match(/.{6}/g);'
     'if(pc&&pc.length===4)window.apPcStyle=apV(pc);'
     'if(pv){h.removeAttribute("style");if(pv==="0")h.removeAttribute("data-palette");else{h.setAttribute("data-palette",pv);if(pv==="c"&&window.apPcStyle)h.setAttribute("style",window.apPcStyle);}}}catch(e){}')
+
+
+# Language by region, first visit only: browser language when it is one of ours (zh / ja / de), otherwise the
+# country of the visitor's IP (Cloudflare trace, fallback api.country.is): TW HK MO CN SG -> zh, JP -> ja,
+# DE AT CH LI -> de, anything else -> en. The result (or a click on a language link) is kept in localStorage
+# apetto_lang, so this runs once. Only the Chinese (default) pages redirect; ?lang=x skips it; bots are left alone.
+GEO_LANG_JS = (
+    'try{var ls=localStorage,P=location.pathname,L=location.search,cur=(P.match(/\\.(en|ja|de)\\.html$/)||[])[1]||"zh";'
+    'if(!ls.getItem("apetto_lang")&&cur==="zh"&&!/[?&]lang=/.test(L)&&!navigator.webdriver){'
+    'var CC={TW:"zh",HK:"zh",MO:"zh",CN:"zh",SG:"zh",JP:"ja",DE:"de",AT:"de",CH:"de",LI:"de"},done=false;'
+    'var go=function(l){if(done)return;done=true;ls.setItem("apetto_lang",l);if(l&&l!=="zh"){var b=P.replace(/\\/$/,"/index.html").replace(/\\.html$/,"."+l+".html");location.replace(b+L+location.hash);}};'
+    'var nl=(navigator.language||"").toLowerCase();'
+    'if(/^zh/.test(nl))go("zh");else if(/^ja/.test(nl))go("ja");else if(/^de/.test(nl))go("de");'
+    'else{var ctl="AbortController"in window?new AbortController():null;setTimeout(function(){if(ctl)ctl.abort();},2500);'
+    'fetch("https://www.cloudflare.com/cdn-cgi/trace",{cache:"no-store",signal:ctl&&ctl.signal}).then(function(r){return r.text();}).then(function(t){var c=(t.match(/^loc=(\\w+)/m)||[])[1];go(CC[c]||"en");})'
+    '.catch(function(){fetch("https://api.country.is/",{signal:ctl&&ctl.signal}).then(function(r){return r.json();}).then(function(j){go(CC[j.country]||"en");}).catch(function(){});});}}}catch(e){}')
+HEAD_JS = HEAD_JS + GEO_LANG_JS
 
 
 def _mix(a, b, t):
