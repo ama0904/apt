@@ -482,6 +482,7 @@
         <div class="full"><label class="f" data-coat>名稱（顏色或款式）*</label><label class="f" data-dog>狗狗名稱（例如品種）*</label><input type="text" name="label" required placeholder="例如：莓果桃"></div>
         <div data-coat><label class="f">連結商品</label><select name="product"></select></div>
         <div data-coat><label class="f">尺寸表（算建議尺寸用）</label><select name="chart"></select></div>
+        <div class="full" data-coat><label class="chk"><input type="checkbox" name="allsizes"> 全尺寸：小型到大型犬都適合。卡片會標「各種體型」，永遠列為建議款，不會跳尺寸不合的提醒。</label></div>
         <div class="full"><label class="f" data-coat>衣服圖 *</label><label class="f" data-dog>狗狗照片 *</label><input type="file" name="image" accept="image/jpeg,image/png,image/webp">
           <div class="hint" data-coat>請用「衣服套在黑色狗狗剪影上、白底」的合成圖（跟現有幾件一樣），AI 才畫得對；一般商品照會畫錯。</div>
           <div class="hint" data-dog>全身、側面、光線好的照片效果最好；會縮到 800px 送給 AI。</div>
@@ -1598,7 +1599,7 @@ function openItemForm(kind, c) {
   f.product.innerHTML = `<option value="">${t('（不連結商品）')}</option>` + ((S.data && S.data.products) || []).map(p => `<option value="${p.id}">#${p.id} ${escHtml(tName(p.name))}${p.visible === false ? ' · ' + t('已隱藏') : ''}</option>`).join('');
   f.chart.innerHTML = `<option value="">${t('（不提供尺寸建議）')}</option>` + Object.entries(CHARTS).map(([k, ch]) => `<option value="${k}">${escHtml(tName(ch.title))}</option>`).join('');
   if (c) {
-    f.label.value = c.label || ''; f.product.value = c.product || ''; f.chart.value = c.chart || ''; f.cvisible.checked = c.visible !== false;
+    f.label.value = c.label || ''; f.product.value = c.product || ''; f.chart.value = c.chart || ''; f.allsizes.checked = !!c.allsizes; f.cvisible.checked = c.visible !== false;
     TR_LANGS.forEach(([k]) => f[`clabel_${k}`].value = ((c.i18n || {})[k] || {}).label || '');
   } else f.cvisible.checked = true;
   $('#cdlg').showModal();
@@ -1616,7 +1617,7 @@ $('#cform').onsubmit = async ev => {
     const c = editingItem ? F[kind].find(x => x.key === editingItem.key) : { key: K.prefix[0] + Date.now().toString(36) };
     const i18n = {}; TR_LANGS.forEach(([k]) => { const v = (fd.get(`clabel_${k}`) || '').trim(); if (v) i18n[k] = { label: v }; });
     Object.assign(c, { label, visible: !!fd.get('cvisible'), i18n });
-    if (kind === 'coats') Object.assign(c, { product: fd.get('product') ? Number(fd.get('product')) : null, chart: fd.get('chart') || null });
+    if (kind === 'coats') Object.assign(c, { product: fd.get('product') ? Number(fd.get('product')) : null, chart: fd.get('chart') || null, allsizes: !!fd.get('allsizes') });
     const files = [];
     if (file) {
       const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';

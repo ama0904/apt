@@ -72,7 +72,8 @@
     "de": {
      "label": "Neongelb"
     }
-   }
+   },
+   "allsizes": true
   },
   {
    "key": "blue",

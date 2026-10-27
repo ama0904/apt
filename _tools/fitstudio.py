@@ -38,8 +38,8 @@ CHART_OFFSET = {"big_raincoat": 10, "big_jacket": 10, "small_cape": 6, "small_wa
 # Dog breed / size guess: the photo goes to the fitting-room server (POST /api/dogsize, see _tools/fit_dogsize),
 # which runs a small image model on the laptop. Only a hint above the start button, never a block.
 # coat card tag: (small dogs, medium & large dogs, back-length range)
-FITFOR = {"zh": ("小型犬", "中大型犬", "背長約 {a}～{b} cm"), "en": ("Small dogs", "Medium & large dogs", "Back {a}–{b} cm"),
-          "ja": ("小型犬", "中・大型犬", "背丈 約{a}〜{b} cm"), "de": ("Kleine Hunde", "Mittlere & große Hunde", "Rücken {a}–{b} cm")}
+FITFOR = {"zh": ("小型犬", "中大型犬", "背長約 {a}～{b} cm", "各種體型", "小型到大型犬都適合"), "en": ("Small dogs", "Medium & large dogs", "Back {a}–{b} cm", "All sizes", "Small to large dogs"),
+          "ja": ("小型犬", "中・大型犬", "背丈 約{a}〜{b} cm", "全サイズ", "小型犬から大型犬まで"), "de": ("Kleine Hunde", "Mittlere & große Hunde", "Rücken {a}–{b} cm", "Alle Größen", "Kleine bis große Hunde")}
 
 
 def coat_fit(coat, charts, lang):
@@ -50,8 +50,10 @@ def coat_fit(coat, charts, lang):
         return None
     off = CHART_OFFSET.get(key, 8)
     lens = [float(r[1]) for r in c["rows"]]
-    small, big, rng = FITFOR.get(lang, FITFOR["zh"])
+    small, big, rng, allk, allr = FITFOR.get(lang, FITFOR["zh"])
     lo, hi = round(min(lens) + off), round(max(lens) + off)
+    if coat.get("allsizes"):   # admin flag: made for every size, so never warned about and always among the suggestions
+        return {"kind": allk, "range": allr, "min": 0, "max": 999, "cut": "A"}
     return {"kind": small if c.get("small") else big, "range": rng.format(a=lo, b=hi), "min": lo, "max": hi,
             "cut": "S" if c.get("small") else "L"}
 
@@ -394,7 +396,7 @@ var guess=null,guessFor=null,guessDemo=false,guessCtl=null,aiBox=$('.fit-ai'),wa
 /* the chosen coat does not fit (AI guess from the photo, or the typed back length): ask once before generating */
 function misfit(){var c=coatKey&&cfg.coats[coatKey];if(!c||!c.cut)return null;
  var fw=typeof fitWarn==='function'?fitWarn(c):null;if(fw&&fw.bad)return {why:'back',bad:mval('back')<c.min?t('warn.big'):t('warn.smallB'),alts:altCoats(mval('back'),c,mval('back')<c.min?-1:1)};
- if(guess&&dog&&dog===guessFor&&c.cut!==guess){var alts=Object.keys(cfg.coats).filter(function(k){return cfg.coats[k].cut===guess;});
+ if(guess&&dog&&dog===guessFor&&c.cut!=='A'&&c.cut!==guess){var alts=Object.keys(cfg.coats).filter(function(k){var x=cfg.coats[k].cut;return x===guess||x==='A';});
   return {why:'guess',dog:alts.length?cfg.coats[alts[0]].kind:'',coat:c.kind,alts:alts};}
  return null;}
 function showWarn(m){var old=$('.fit-modal');if(old)old.remove();var d=document.createElement('div');d.className='fit-modal';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');
@@ -426,10 +428,10 @@ var guessBox=$('.fit-guess');
 function guessMark(v){if(guessBox)guessBox.setAttribute('data-guess',v);}
 function guessOut(){var c=coatKey&&cfg.coats[coatKey];if(!guessBox)return;
  var rec=guess&&dog&&dog===guessFor?guess:null,grid=$('.fit-coats');
- document.querySelectorAll('.fit-coat').forEach(function(b){var o=cfg.coats[b.dataset.coat];b.classList.toggle('rec-coat',!!(rec&&o&&o.cut===rec));});
+ document.querySelectorAll('.fit-coat').forEach(function(b){var o=cfg.coats[b.dataset.coat];b.classList.toggle('rec-coat',!!(rec&&o&&(o.cut===rec||o.cut==='A')));});
  if(grid)grid.classList.toggle('has-rec',!!rec);
- if(!guess||!c||!c.cut||c.cut===guess||!dog||dog!==guessFor){guessBox.classList.remove('show');guessBox.innerHTML='';return;}
- var alts=Object.keys(cfg.coats).filter(function(k){return cfg.coats[k].cut===guess;});
+ if(!guess||!c||!c.cut||c.cut==='A'||c.cut===guess||!dog||dog!==guessFor){guessBox.classList.remove('show');guessBox.innerHTML='';return;}
+ var alts=Object.keys(cfg.coats).filter(function(k){var x=cfg.coats[k].cut;return x===guess||x==='A';});
  guessBox.innerHTML='<b>'+t(guess==='S'?'guess.small':'guess.large')+'</b><p>'+t('guess.note')+'</p>'+(alts.length?'<div class="row">'+alts.map(function(k){var o=cfg.coats[k];
   return '<button type="button" data-k="'+k+'">'+t('guess.pick',{name:o.label,kind:o.kind})+'</button>';}).join('')+'</div>':'');
  guessBox.classList.add('show');}
