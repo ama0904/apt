@@ -135,6 +135,8 @@ CSS = r"""
 .fit-member .who{display:inline-flex;align-items:center;gap:8px;font-weight:600;color:var(--ink)}.fit-member .who img{width:30px;height:30px;border-radius:50%;object-fit:cover}
 .fit-member select{min-height:38px;border-radius:999px;border:1.5px solid var(--line2);background:var(--card);color:var(--ink);font:inherit;font-weight:600;padding:0 12px}
 .fit-member a,.fit-member .lnk{color:var(--ink2);font-size:13.5px;text-decoration:underline;background:none;border:0;padding:0;font-family:inherit;cursor:pointer}
+.fit-stage.mem-out .fit-dl::after,.fit-stage.mem-out .fit-share::after{content:"🔒";margin-left:6px;font-size:.85em}
+.fit-stage.mem-out .shot{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .fit-saved{margin:10px 0 0;font-size:13.5px;color:var(--ink2);display:flex;align-items:center;gap:8px;flex-wrap:wrap}.fit-saved button{background:none;border:0;padding:0;font:inherit;color:var(--brand-ink);text-decoration:underline;cursor:pointer}
 .fit-history{margin:40px 0 16px;padding:22px 24px 24px;border:1px solid var(--line);border-radius:20px;background:var(--card)}.fit-history-head{display:grid;gap:4px;margin-bottom:16px}
 .fit-history-head h2{margin:0;font-size:22px}.fit-history-head p{margin:0;font-size:14px;color:var(--mute)}
@@ -187,6 +189,9 @@ const T = {
   noDogs: { zh: '還沒有毛孩資料，按「新增毛孩」開始。', en: 'No dogs yet; tap "Add a dog" to start.', ja: 'まだ登録がありません。「わんちゃんを追加」からどうぞ。', de: 'Noch keine Hunde; tippe auf „Hund hinzufügen“.' },
   saved: { zh: '已保存到「我的試穿紀錄」', en: 'Saved to "My try-ons"', ja: '「試着の記録」に保存しました', de: 'In „Meine Anproben“ gespeichert' },
   saveFail: { zh: '保存失敗，請稍後再試', en: 'Could not save, please try again later', ja: '保存できませんでした', de: 'Speichern fehlgeschlagen' },
+  loginToDl: { zh: '登入會員才能下載或分享照片。', en: 'Sign in to download or share the picture.', ja: '画像のダウンロード・共有は会員ログインが必要です。', de: 'Zum Herunterladen oder Teilen bitte anmelden.' },
+  loginDlNow: { zh: '用 Google 登入', en: 'Sign in with Google', ja: 'Google でログイン', de: 'Mit Google anmelden' },
+  dlReady: { zh: '已登入，可以下載照片了。', en: 'Signed in: you can download the picture now.', ja: 'ログインしました。画像をダウンロードできます。', de: 'Angemeldet: Das Bild kann jetzt heruntergeladen werden.' },
   loginToSave: { zh: '想保存這張？', en: 'Want to keep this one?', ja: 'この画像を保存しますか？', de: 'Dieses Bild behalten?' },
   loginNow: { zh: '用 Google 登入並保存', en: 'Sign in with Google and save', ja: 'Google でログインして保存', de: 'Mit Google anmelden und speichern' },
   delFit: { zh: '刪除這張試穿紀錄？', en: 'Delete this try-on?', ja: 'この記録を削除しますか？', de: 'Diese Anprobe löschen?' },
@@ -201,7 +206,7 @@ const G = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M
 const loginBtn = () => `<button type="button" class="gbtn">${G}<span>${t('login')}</span></button>`;
 
 const memPage = document.querySelector('.mem'), bar = document.querySelector('.fit-member'), hist = document.querySelector('.fit-history');
-let fb = null, user = null, conf = null, dogs = [], curDog = null, pending = null, asked = false;
+let fb = null, user = null, conf = null, dogs = [], curDog = null, pending = null, asked = false, lastFit = null, dlWait = false;
 
 if (cfgEl && (memPage || bar)) start(JSON.parse(cfgEl.textContent)).catch(e => {
   console.warn('sign-in unavailable', e);
@@ -219,7 +224,14 @@ async function start(c) {
   fb = { A, F, auth, db: F.getFirestore(app) };
   A.onAuthStateChanged(auth, onUser);
   if (bar) {
-    document.addEventListener('apetto:fitdone', e => { const d = e.detail || {}; if (user) saveFit(d); else offerSave(d); });
+    document.addEventListener('apetto:fitdone', e => { const d = e.detail || {}; lastFit = d; if (user) saveFit(d); else offerSave(d); });
+    /* the fitting room asks before download / share: members only */
+    window.apNeedLogin = () => {
+      if (user) return false;
+      const el = savedLine(`<span>${t('loginToDl')}</span><button type="button">${t('loginDlNow')}</button>`);
+      if (el) el.querySelector('button').onclick = () => { pending = lastFit; dlWait = true; login(); };
+      return true;
+    };
     let tm = null;
     document.querySelectorAll('.fit-size input[data-m]').forEach(i => i.addEventListener('input', ev => { if (ev.isTrusted) { clearTimeout(tm); tm = setTimeout(saveSizes, 1200); } }));
   }
@@ -240,6 +252,8 @@ async function onUser(u) {
   checkAdmin(u);
   if (u && !dogs.length && !asked) { asked = true; dogForm(null, true); }      // new account: ask for the first dog
   if (u && pending) { const p = pending; pending = null; saveFit(p); }
+  if (u && dlWait) { dlWait = false; if (!pending) setTimeout(() => savedLine(`<span>✓ ${t('dlReady')}</span>`), 1500); }
+  const st = document.querySelector('.fit-stage'); if (st && bar) st.classList.toggle('mem-out', !u);
 }
 
 /* admins (the accounts the Firestore rules let read the member list) get a 後台 link in the menu on every page */
