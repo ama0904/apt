@@ -108,7 +108,7 @@ async function changedRegion(original, w, h, tryon) {
   if (!cs.n) return null;
   const largest = Math.max(...cs.areas), minArea = Math.max(0.15 * largest, 0.004 * N);
   for (let p = 0; p < N; p++) if (cs.label[p] && cs.areas[cs.label[p]] >= minArea) big[p] = 1;
-  return boxBlur(dilate(big, w, h, 6), w, h, 3);
+  return boxBlur(dilate(big, w, h, 2), w, h, 2);   // the blurred difference already reaches past the garment edge
 }
 
 // ---------- the recolour itself
@@ -126,7 +126,7 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
   const how = region ? 'diff' : 'colour';
   // colour gate: pixels whose colour direction is close to the garment's and clearly saturated; looser inside the region
   const sc = Math.hypot(src[1], src[2]), sang = Math.atan2(src[2], src[1]);
-  const hueTol = region ? 60 : tol, hueSoft = region ? 15 : 10, chromaMin = region ? 0.10 : 0.18, chromaSoft = region ? 0.10 : 0.12;
+  const hueTol = region ? 40 : tol, hueSoft = region ? 15 : 10, chromaMin = region ? 0.10 : 0.18, chromaSoft = region ? 0.10 : 0.12;
   let mask = new Float32Array(N);
   for (let p = 0; p < N; p++) {
     if (region && region[p] < 0.01) continue;
@@ -134,7 +134,7 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
     let d = Math.abs(Math.atan2(b, a) - sang); if (d > Math.PI) d = 2 * Math.PI - d;
     const ang = d * 180 / Math.PI;
     let g = clamp01((hueTol - ang) / hueSoft) * clamp01((ch - chromaMin * sc) / (chromaSoft * sc));
-    if (region) g *= clamp01((50 - Math.abs(lab[p * 3] - src[0])) / 15);
+    if (region) g *= clamp01((65 - Math.abs(lab[p * 3] - src[0])) / 15);   // deep folds of a fluorescent cape are ~55 L darker than the swatch
     mask[p] = region ? g * Math.min(1, region[p] * 1.5) : g;
   }
   mask = boxBlur(boxBlur(dilate(mask, w, h, 1), w, h, 1), w, h, 1);
@@ -142,13 +142,15 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
   const Ls = [], Cs = []; let cnt = 0;
   for (let p = 0; p < N; p++) if (mask[p] > 0.5) { cnt++; if ((p & 3) === 0) { Ls.push(lab[p * 3]); Cs.push(Math.hypot(lab[p * 3 + 1], lab[p * 3 + 2])); } }
   const Lm = Ls.length ? median(Ls) : src[0], cm = Math.max(1, Cs.length ? median(Cs) : sc);
+  // inside the region, fade out pixels far less saturated than the fabric: white fur tinted by JPEG bleed would otherwise get a halo
+  if (region) for (let p = 0; p < N; p++) if (mask[p] > 0) mask[p] *= clamp01((Math.hypot(lab[p * 3 + 1], lab[p * 3 + 2]) / cm - 0.35) / 0.2);
   const k = dst[0] > Lm + 25 ? 0.85 : 1.0;
   const out = Buffer.alloc(N * 3), px = new Float64Array(3);
   for (let p = 0; p < N; p++) {
     const m = mask[p], r = data[p * 3], g = data[p * 3 + 1], b = data[p * 3 + 2];
     if (m < 0.004) { out[p * 3] = r; out[p * 3 + 1] = g; out[p * 3 + 2] = b; continue; }
     const L = lab[p * 3], a = lab[p * 3 + 1], bb = lab[p * 3 + 2];
-    const sat = Math.min(1.4, Math.max(0.3, Math.hypot(a, bb) / cm));
+    const sat = 0.85 * Math.min(1.4, Math.max(0.15, Math.hypot(a, bb) / cm));   // Gemini paints fabric at ~0.85 of the swatch's chroma
     fromLab(dst[0] + (L - Lm) * k, dst[1] * sat, dst[2] * sat, px, 0);
     out[p * 3] = r * (1 - m) + px[0] * m; out[p * 3 + 1] = g * (1 - m) + px[1] * m; out[p * 3 + 2] = b * (1 - m) + px[2] * m;
   }
