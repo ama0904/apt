@@ -209,7 +209,8 @@ STR = {
     "ai.nodog": {"zh": "照片裡看不太到狗", "en": "no clear dog in the photo", "ja": "写真に犬がはっきり写っていません", "de": "kein Hund klar erkennbar"},
     "ai.err": {"zh": "AI 判斷暫時無法使用", "en": "AI guess unavailable right now", "ja": "AI 判定は現在利用できません", "de": "KI-Schätzung gerade nicht verfügbar"},
     "ai.time": {"zh": "判斷用時 {s} 秒", "en": "took {s} s", "ja": "{s} 秒", "de": "{s} s"},
-    "ai.note": {"zh": "品種清單沒有臘腸、柴犬、台灣犬等，會顯示最像的品種；體型是另外訓練的判斷。", "en": "Some breeds (dachshund, shiba, Taiwan dog) are not in the breed list; the closest one is shown. Size comes from a separately trained step.", "ja": "ダックス・柴犬・台湾犬などは犬種リストにないため、最も近い犬種が表示されます。体格は別に学習した判定です。", "de": "Manche Rassen (Dackel, Shiba, Taiwan-Hund) fehlen in der Liste; die ähnlichste wird gezeigt. Die Größe kommt aus einem eigens trainierten Schritt."},
+    "ai.note": {"zh": "品種和體型都是 AI 從照片估計的，約 55 種常見犬種；米克斯或少見品種會顯示最像的。", "en": "Breed and size are AI estimates from the photo (about 55 common breeds); mixed or rare breeds show the closest match.", "ja": "犬種・体格は写真からの AI 推定です（約 55 犬種）。ミックスや珍しい犬種は最も近いものが表示されます。", "de": "Rasse und Größe sind KI-Schätzungen aus dem Foto (etwa 55 Rassen); Mischlinge und seltene Rassen zeigen die ähnlichste."},
+    "ai.unsure": {"zh": "品種不太確定，可能是米克斯或少見品種", "en": "breed unsure: maybe mixed or uncommon", "ja": "犬種は不確か（ミックスか珍しい犬種かも）", "de": "Rasse unsicher: vielleicht Mischling oder selten"},
     "guess.small": {"zh": "照片看起來是小型犬，這件是中大型犬款，可能會太大。", "en": "Your dog looks small; this one is cut for medium and large dogs and may be too big.", "ja": "写真では小型犬のようです。こちらは中・大型犬向けなので大きすぎるかもしれません。", "de": "Dein Hund wirkt klein; dieses Modell ist für mittlere und große Hunde und könnte zu groß sein."},
     "guess.large": {"zh": "照片看起來是中大型犬，這件是小型犬款，可能會太小。", "en": "Your dog looks medium or large; this one is cut for small dogs and may be too small.", "ja": "写真では中・大型犬のようです。こちらは小型犬向けなので小さすぎるかもしれません。", "de": "Dein Hund wirkt mittelgroß oder groß; dieses Modell ist für kleine Hunde und könnte zu klein sein."},
     "guess.note": {"zh": "這是 AI 從照片估計的，幼犬或混種請以背長為準，也可以照樣試穿。", "en": "This is an AI guess from the photo; for puppies and mixed breeds go by the back length. You can still try it on.", "ja": "写真からの AI の推定です。子犬やミックス犬は背丈を目安に。このまま試着もできます。", "de": "KI-Schätzung nach dem Foto; bei Welpen und Mischlingen zählt die Rückenlänge. Anprobieren geht trotzdem."},
@@ -379,7 +380,7 @@ function escHtml(x){return String(x).replace(/[&<>"]/g,function(c){return {'&':'
 function breedName(x){return (cfg.serverLang==='zh'&&x.zh)||x.name||'';}
 function aiShow(state,r,ms){if(!aiBox||!aiDebug)return;aiBox.hidden=false;var h='<h4>'+t('ai.title')+'</h4>';
  if(state==='wait')h+='<p>'+t('ai.wait')+'</p>';else if(state==='error')h+='<p>'+t('ai.err')+'</p>';
- else{h+='<p><b>'+t('ai.breed')+'</b>：'+(r.top||[]).map(function(x){return escHtml(breedName(x))+' '+Math.round(x.p*100)+'%';}).join('、')+'</p>';
+ else{h+='<p><b>'+t('ai.breed')+'</b>：'+(r.top||[]).map(function(x){return escHtml(breedName(x))+' '+Math.round(x.p*100)+'%';}).join('、')+(r.breedSure===false?'（'+t('ai.unsure')+'）':'')+'</p>';
   if(r.P)h+='<p><b>'+t('ai.size')+'</b>：'+t('ai.sizes',{s:Math.round(r.P[0]*100),m:Math.round(r.P[1]*100),l:Math.round(r.P[2]*100)})+'</p>';
   h+='<p><b>'+t('ai.verdict')+'</b>：'+t(!r.P?'ai.nodog':r.guess?'ai.'+r.guess:'ai.none')+'</p><small>'+t('ai.time',{s:(ms/1000).toFixed(1)})+'<br>'+t('ai.note')+'</small>';}
  aiBox.innerHTML=h;}
