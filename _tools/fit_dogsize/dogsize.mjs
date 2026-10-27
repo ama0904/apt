@@ -102,7 +102,9 @@ function analyze(logits, pooled, labels) {
   const [tid, tp] = inTop[0], share = tp / dog;
   if (share >= SURE && (GIANT.has(tid) || TINY.has(tid))) {
     r.guess = GIANT.has(tid) ? 'L' : 'S';
-    r.top = [imagenet[0], ...r.top.filter(x => x.zh !== imagenet[0].zh)].slice(0, 3);
+    r.P = r.guess === 'L' ? [0.03, 0.12, 0.85] : [0.85, 0.12, 0.03];     // keep P in step with the overridden guess
+    // one scale for the list: the ImageNet share first, the breed head's guesses sharing what is left
+    r.top = [imagenet[0], ...r.top.filter(x => x.zh !== imagenet[0].zh).map(x => ({ ...x, p: +(x.p * (1 - share)).toFixed(3) }))].slice(0, 3);
     r.breedSure = true; r.byImagenet = true;
   }
   return r;

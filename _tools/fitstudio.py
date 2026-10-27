@@ -263,7 +263,7 @@ CSS = r"""
 .fit-demo button img{width:34px;height:34px;border-radius:50%;object-fit:cover}.fit-demo button:hover{border-color:var(--ink);color:var(--ink)}.fit-demo button.cur{border-color:var(--ink);background:var(--ink);color:#fff}
 .fit-coats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .fit-coat{position:relative;border:2px solid var(--line);border-radius:16px;background:var(--card);padding:10px 10px 12px;text-align:left;cursor:pointer;font:inherit;color:var(--ink);transition:border-color .15s,transform .15s,box-shadow .15s}
-.fit-coat:hover{border-color:var(--ink2);transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.06)}.fit-coat.cur{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand);transform:translateY(-2px)}
+.fit-coat:hover{border-color:var(--ink2);transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.06)}.fit-coat.cur{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand);transform:translateY(-2px)}
 .fit-coat .img{aspect-ratio:1;border-radius:10px;overflow:hidden;background:#fff;display:grid;place-items:center}.fit-coat img{width:100%;height:100%;object-fit:contain}
 .fit-coat .nm{display:block;font-weight:700;font-size:14.5px;margin-top:10px;line-height:1.3}.fit-coat .sub{display:block;font-size:12.5px;color:var(--mute);line-height:1.35;margin-top:2px}
 .fit-coat .fitfor{display:block;margin-top:8px;font-size:12px;line-height:1.35;color:var(--ink2)}.fit-coat .fitfor b{display:inline-block;padding:2px 9px;border-radius:999px;background:var(--sand);font-weight:700}.fit-coat .fitfor i{display:block;font-style:normal;margin-top:4px;color:var(--mute)}
