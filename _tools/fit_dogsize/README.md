@@ -28,3 +28,11 @@
 
 準確度（第二版，留出的 1,031 張沒訓練過的照片，門檻 0.7）：小型／大型狗給對提醒 78%，大小搞反 1.5%，中型犬或大型犬幼犬誤給提醒 7%。
 完全沒看過的品種會差很多（約四成給對、5% 搞反），所以提醒文字一律寫「AI 從照片估計」並附「照樣試穿」。
+
+## 換色（測試中）：`recolor.mjs`
+
+`POST /api/recolor {image, from, to}`：把試穿圖裡的衣服從 `from` 顏色換成 `to`（hex），不用 AI、不吃 Gemini 額度，CPU 一張約 0.2～0.3 秒。
+用顏色找出衣服（Lab 色相接近原色、且夠鮮豔），在 Lab 空間換成目標色並保留原本的明暗（皺摺、陰影、反光），黑色滾邊、反光條、狗和背景不動。
+回傳 `{image: JPEG data URL, ms, share}`，`share` 是被換色的面積比例，接近 0 代表沒找到原本的衣服顏色。
+server.js：`const { recolorHandler } = await import('./recolor.mjs'); app.post('/api/recolor', recolorHandler);`（同樣放在 API 金鑰驗證後面）。
+網站上用 `fitstudio.html?recolor=1` 測：試穿完會出現同款其他顏色的按鈕。

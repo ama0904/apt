@@ -93,6 +93,15 @@ def img_url(d, site_path):
         return th.asset(d, site_path)
 
 
+# colourways of each fitting-room coat for the recolour test (?recolor=1); the first is the colour Gemini draws.
+# (name, hex, product id). Hex values were picked from try-on pictures and product photos.
+COLORWAYS = {
+    "blue": [("普魯士藍", "#2346b5", 8), ("檸檬螢光黃", "#cfe23f", 6), ("太空灰", "#4a4f55", 7)],
+    "yellow": [("檸檬螢光黃", "#cfe23f", 16), ("普魯士藍", "#2346b5", 9), ("太空灰", "#4a4f55", 10)],
+    "pink": [("莓果桃", "#e0306e", 15), ("萊姆綠", "#8cc63f", 14)],
+}
+
+
 def coat_label(c, lang):
     return (((c.get("i18n") or {}).get(lang) or {}).get("label") or c.get("label") or c["key"]).strip()
 
@@ -340,6 +349,11 @@ CSS = r"""
 @keyframes fit-note-bg{0%,45%{background:#fff0ec;outline:2px solid rgba(255,36,20,.5)}100%{background:var(--sand);outline:2px solid transparent}}
 @media (prefers-reduced-motion:reduce){.fit-note.wait .led,.fit-note.wait .led::after,.fit-note.pop,.fit-note.pop .new{animation:none}.fit-note.pop{background:#fff0ec;outline:2px solid rgba(255,36,20,.5)}}
 .fit-actions{display:none;gap:10px;margin-top:14px;flex-wrap:wrap}.fit-actions .btn{flex:1 1 160px}.fit-stage[data-state=done] .fit-actions{display:flex}
+.fit-colors{display:none;margin-top:14px;padding:12px 14px;border:1.5px dashed var(--line2);border-radius:14px}.fit-stage[data-state=done] .fit-colors.on{display:block}
+.fit-colors h4{margin:0 0 8px;font-size:13px;color:var(--brand-ink);letter-spacing:.04em}.fit-colors .row{display:flex;flex-wrap:wrap;gap:8px}
+.fit-colors button{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px 0 8px;border-radius:999px;border:1.5px solid var(--line2);background:var(--card);color:var(--ink);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.fit-colors button i{width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.2)}.fit-colors button.cur{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
+.fit-colors button:disabled{opacity:.6;cursor:wait}.fit-colors p{margin:8px 0 0;font-size:12.5px;color:var(--mute)}
 .fit-actions .btn svg{width:18px;height:18px;flex:0 0 auto}
 .fit-fine{margin:12px 0 0;font-size:13px;color:var(--mute)}
 .fit-err{display:none;margin-top:14px;background:#fff4f2;border:1px solid #ffd1c9;color:var(--brand-ink);border-radius:14px;padding:12px 16px;font-size:14.5px}.fit-err.show{display:block}
@@ -506,6 +520,23 @@ function celebrate(){stage.classList.remove('flash');void stage.offsetWidth;stag
  var box=$('.fit-stage .box');setTimeout(function(){box.scrollIntoView({behavior:'smooth',block:'center'});},80);
  try{if(navigator.vibrate)navigator.vibrate([40,60,40]);}catch(e){}
  blinkTitle('✓ ');}
+/* recolour test (?recolor=1): one Gemini picture, the other colourways recoloured on the laptop */
+var rcOn=/[?&]recolor=1/.test(location.search),rcBox=$('.fit-colors'),rcOrig='',rcCache={};
+function rcShow(){if(!rcBox)return;var c=coatKey&&cfg.coats[coatKey],cols=c&&c.colors||[];
+ if(!rcOn||cols.length<2||!rcOrig){rcBox.classList.remove('on');rcBox.innerHTML='';return;}
+ rcBox.innerHTML='<h4>換色測試（zbook）</h4><div class="row">'+cols.map(function(x,i){return '<button type="button" data-i="'+i+'"'+(i===0?' class="cur"':'')+'><i style="background:'+x.hex+'"></i>'+x.name+(i===0?'（原圖）':'')+'</button>';}).join('')+'</div><p></p>';
+ rcBox.classList.add('on');
+ rcBox.querySelectorAll('button').forEach(function(b){b.onclick=function(){rcPick(+b.dataset.i);};});}
+function rcPick(i){var c=cfg.coats[coatKey],cols=c.colors,info=rcBox.querySelector('p');
+ rcBox.querySelectorAll('button').forEach(function(b){b.classList.toggle('cur',+b.dataset.i===i);});
+ if(i===0){shot.src=rcOrig;resultUrl=rcOrig;info.textContent='';return;}
+ var key=coatKey+':'+i;if(rcCache[key]){shot.src=rcCache[key].image;resultUrl=rcCache[key].image;info.textContent=cols[i].name+'：zbook 換色 '+rcCache[key].ms+' ms（已快取）';return;}
+ rcBox.querySelectorAll('button').forEach(function(b){b.disabled=true;});info.textContent='換色中…';var t0=Date.now();
+ compress(rcOrig,1024,.9).then(function(img){return fetch(cfg.api+'/api/recolor',{method:'POST',headers:auth({'Content-Type':'application/json'}),body:JSON.stringify({image:img,from:cols[0].hex,to:cols[i].hex})});})
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  .then(function(d){rcCache[key]=d;shot.src=d.image;resultUrl=d.image;info.textContent=cols[i].name+'：zbook 換色 '+d.ms+' ms，來回共 '+(Date.now()-t0)+' ms'+(d.share<0.01?'（幾乎沒找到原本的衣服顏色）':'');})
+  .catch(function(e){info.textContent='換色失敗：'+(e&&e.message||e)+'（zbook 還沒裝 /api/recolor 的話會這樣）';})
+  .then(function(){rcBox.querySelectorAll('button').forEach(function(b){b.disabled=false;});});}
 function finish(){if(running){clearInterval(running.poll);clearInterval(running.tick);clearTimeout(running.tm);running=null;}update();}
 go.addEventListener('click',function(){
  if(!dog||!coat){setErr(t('err.pickFirst'));return;}if(online===false){setErr(t('err.offline'));return;}
@@ -533,7 +564,7 @@ go.addEventListener('click',function(){
   return r.json();
  }).then(function(d){
   if(running!==run)return;var src=d&&d.image;if(!src||!(/^data:image|^https?:/.test(src)))throw new Error(t('err.noImage'));
-  step(3,t('step.done'));return loadImg(src).then(function(){resultUrl=src;shot.src=src;stage.dataset.state='done';finish();sizeOut();celebrate();
+  step(3,t('step.done'));return loadImg(src).then(function(){resultUrl=src;shot.src=src;stage.dataset.state='done';finish();sizeOut();celebrate();rcOrig=src;rcCache={};rcShow();
    try{document.dispatchEvent(new CustomEvent('apetto:fitdone',{detail:{image:src,dog:dog,coat:coatKey,coatName:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].name)||''}}));}catch(e){}
    if(d.caption&&String(d.caption).trim())showNote(d.caption);else pollCaption(d.captionId);});
  }).catch(function(e){
@@ -549,7 +580,7 @@ dl.addEventListener('click',function(){if(!resultUrl)return;var a=document.creat
 function toFile(){return fetch(resultUrl).then(function(r){return r.blob();}).then(function(b){return new File([b],t('file.name'),{type:b.type||'image/jpeg'});});}
 if(navigator.share){share.addEventListener('click',function(){toFile().then(function(f){var d={files:[f],text:t('share.text')};
  if(navigator.canShare&&!navigator.canShare(d))d={text:t('share.text'),url:location.href};return navigator.share(d);}).catch(function(){});});}else{share.style.display='none';}
-again.addEventListener('click',function(){stage.dataset.state='empty';resultUrl='';showNote('');setErr('');coat=null;coatKey=null;
+again.addEventListener('click',function(){stage.dataset.state='empty';resultUrl='';rcOrig='';rcShow();showNote('');setErr('');coat=null;coatKey=null;
  document.querySelectorAll('.fit-coat').forEach(function(x){x.classList.remove('cur');});update();guessOut();$('.fit-coats').scrollIntoView({behavior:'smooth',block:'center'});});
 })();"""
 
@@ -577,7 +608,9 @@ def config_json(data, lang):
         coats[coat["key"]] = {"url": th.link(th.rel_dir(PAGE), th.sb.product_page(p), lang) if p and p.get("visible", True) else "",
                               "name": p["name"] if p else coat_label(coat, "zh"), "product": coat.get("product"),
                               "chart": {"rows": c["rows"], "offset": CHART_OFFSET.get(chart_key, 8)} if c else None,
-                              "label": coat_label(coat, lang)}
+                              "label": coat_label(coat, lang),
+                              "colors": [{"name": n, "hex": h, "url": (th.link(th.rel_dir(PAGE), th.sb.product_page(by_id[pid]), lang) if pid in by_id else "")}
+                                         for n, h, pid in COLORWAYS.get(coat["key"], [])]}
         fit = coat_fit(coat, charts, lang)
         if fit:
             coats[coat["key"]].update(kind=fit["kind"], min=fit["min"], max=fit["max"], cut=fit["cut"])
@@ -644,6 +677,7 @@ def render(data, lang):
     <label><span>腹圍</span><div><input type="number" inputmode="decimal" min="10" max="150" step="0.5" data-m="belly"><em>cm</em></div></label></div>
    <div class="fit-size-out"></div></div>
   <div class="fit-note" aria-live="polite"><b><i class="led" aria-hidden="true"></i><span>AI 造型師的話</span><span class="new">造型師寫好了</span></b><p></p></div>
+  <div class="fit-colors" aria-live="polite"></div>
   <div class="fit-actions"><button type="button" class="btn fit-dl">{ICON_DL}下載照片</button><button type="button" class="btn ghost fit-share">分享</button><button type="button" class="btn ghost fit-again">再試一件</button></div>
   <p class="fit-fine">試穿圖由 AI 生成，顏色與版型以實際商品為準。</p>
  </section>
