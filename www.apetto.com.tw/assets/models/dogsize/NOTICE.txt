@@ -1,3 +1,0 @@
-Dog size guess for the fitting room (runs in the visitor's browser).
-Model: facebook/convnext-tiny-224 (ImageNet-1k), Apache License 2.0.
-ONNX conversion and 8-bit quantisation: Xenova/convnext-tiny-224 on Hugging Face.

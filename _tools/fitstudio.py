@@ -35,12 +35,8 @@ COATS = [("pink", "pink_coat.jpg", "莓果桃", 15, "small_warm_cape"), ("yellow
          ("blue", "blue_coat.jpg", "普魯士藍", 8, "big_raincoat")]
 # the size charts say "pick a garment about this much shorter than the dog's back length"
 CHART_OFFSET = {"big_raincoat": 10, "big_jacket": 10, "small_cape": 6, "small_warm_cape": 6}
-# In-browser guess of small vs large dog from the photo (ImageNet ConvNeXt-tiny, Apache-2.0, ONNX by Xenova).
-# Runs on the visitor's device; nothing is uploaded. Only a hint above the start button, never a block.
-GUESS_LIB = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2"
-GUESS_MODELS = "assets/models/"
-# Chinese names of the model's dog classes (ImageNet 151..275), shown in the ?dogai=1 test panel
-GUESS_ZH = ['吉娃娃', '日本狆', '馬爾濟斯', '北京犬', '西施犬', '查理士王小獵犬', '蝴蝶犬', '玩具㹴', '羅德西亞背脊犬', '阿富汗獵犬', '巴吉度獵犬', '米格魯', '尋血獵犬', '藍斑獵浣熊犬', '黑褐獵浣熊犬', '沃克獵浣熊犬', '英國獵狐犬', '紅骨獵浣熊犬', '俄羅斯獵狼犬', '愛爾蘭獵狼犬', '義大利靈緹', '惠比特犬', '依比沙獵犬', '挪威獵麋犬', '奧達獵犬', '薩路基獵犬', '蘇格蘭獵鹿犬', '威瑪獵犬', '斯塔福郡鬥牛㹴', '美國斯塔福郡㹴', '貝林登㹴', '邊境㹴', '凱利藍㹴', '愛爾蘭㹴', '諾福克㹴', '諾威奇㹴', '約克夏㹴', '剛毛獵狐㹴', '湖畔㹴', '西里漢㹴', '萬能㹴', '凱恩㹴', '澳洲㹴', '丹第丁蒙㹴', '波士頓㹴', '迷你雪納瑞', '巨型雪納瑞', '標準雪納瑞', '蘇格蘭㹴', '西藏㹴', '絲毛㹴', '愛爾蘭軟毛㹴', '西高地白㹴', '拉薩犬', '平毛尋回犬', '捲毛尋回犬', '黃金獵犬', '拉布拉多', '乞沙比克獵犬', '德國短毛指示犬', '維茲拉犬', '英國雪達犬', '愛爾蘭雪達犬', '戈登雪達犬', '布列塔尼獵犬', '克倫伯獵犬', '英國史賓格犬', '威爾斯史賓格犬', '可卡犬', '蘇塞克斯獵犬', '愛爾蘭水獵犬', '庫瓦茲犬', '舒柏奇犬', '比利時牧羊犬', '比利時瑪利諾犬', '伯瑞犬', '澳洲卡爾比犬', '可蒙犬', '古代牧羊犬', '喜樂蒂牧羊犬', '柯利牧羊犬', '邊境牧羊犬', '法蘭德斯畜牧犬', '羅威那', '德國牧羊犬', '杜賓犬', '迷你品', '大瑞士山地犬', '伯恩山犬', '阿彭策爾山犬', '恩特雷布赫山犬', '拳師犬', '鬥牛獒', '藏獒', '法國鬥牛犬', '大丹犬', '聖伯納犬', '愛斯基摩犬', '阿拉斯加雪橇犬', '西伯利亞哈士奇', '大麥町', '猴㹴', '巴仙吉犬', '巴哥犬', '蘭伯格犬', '紐芬蘭犬', '大白熊犬', '薩摩耶', '博美', '鬆獅犬', '荷蘭毛獅犬', '布魯塞爾格林芬犬', '柯基（潘布魯克）', '柯基（卡提根）', '玩具貴賓', '迷你貴賓', '標準貴賓', '墨西哥無毛犬', '灰狼', '白狼', '紅狼', '郊狼', '澳洲野犬', '豺', '非洲野犬']
+# Dog breed / size guess: the photo goes to the fitting-room server (POST /api/dogsize, see _tools/fit_dogsize),
+# which runs a small image model on the laptop. Only a hint above the start button, never a block.
 # coat card tag: (small dogs, medium & large dogs, back-length range)
 FITFOR = {"zh": ("小型犬", "中大型犬", "背長約 {a}～{b} cm"), "en": ("Small dogs", "Medium & large dogs", "Back {a}–{b} cm"),
           "ja": ("小型犬", "中・大型犬", "背丈 約{a}〜{b} cm"), "de": ("Kleine Hunde", "Mittlere & große Hunde", "Rücken {a}–{b} cm")}
@@ -202,7 +198,7 @@ STR = {
     "go.product": {"zh": "前往商品頁，選 {size}", "en": "Go to the product, size {size}", "ja": "商品ページへ（{size}）", "de": "Zum Produkt, Größe {size}"},
     "go.plain": {"zh": "前往商品頁", "en": "Go to the product", "ja": "商品ページへ", "de": "Zum Produkt"},
     "ai.title": {"zh": "AI 判斷（測試模式）", "en": "AI guess (test mode)", "ja": "AI 判定（テストモード）", "de": "KI-Schätzung (Testmodus)"},
-    "ai.wait": {"zh": "AI 判斷中…（第一次要下載模型，約 28 MB）", "en": "Thinking… (first time downloads the 28 MB model)", "ja": "判定中…（初回はモデル 28 MB を読み込み）", "de": "Schätze… (beim ersten Mal 28 MB Modell laden)"},
+    "ai.wait": {"zh": "AI 判斷中…", "en": "Thinking…", "ja": "判定中…", "de": "Schätze…"},
     "ai.breed": {"zh": "品種", "en": "Breed", "ja": "犬種", "de": "Rasse"},
     "ai.size": {"zh": "體型", "en": "Size", "ja": "体格", "de": "Größe"},
     "ai.sizes": {"zh": "小型 {s}%・中型 {m}%・大型 {l}%", "en": "small {s}% · medium {m}% · large {l}%", "ja": "小型 {s}%・中型 {m}%・大型 {l}%", "de": "klein {s}% · mittel {m}% · groß {l}%"},
@@ -211,7 +207,7 @@ STR = {
     "ai.L": {"zh": "中大型犬（建議大汪雨衣）", "en": "medium or large dog (big raincoat)", "ja": "中・大型犬（大型犬向けレインコート）", "de": "mittlerer/großer Hund (großer Regenmantel)"},
     "ai.none": {"zh": "不確定，不提醒客人", "en": "not sure, no hint shown", "ja": "判定できず（ヒントなし）", "de": "unsicher, kein Hinweis"},
     "ai.nodog": {"zh": "照片裡看不太到狗", "en": "no clear dog in the photo", "ja": "写真に犬がはっきり写っていません", "de": "kein Hund klar erkennbar"},
-    "ai.err": {"zh": "AI 載入失敗", "en": "AI failed to load", "ja": "AI を読み込めませんでした", "de": "KI konnte nicht laden"},
+    "ai.err": {"zh": "AI 判斷暫時無法使用", "en": "AI guess unavailable right now", "ja": "AI 判定は現在利用できません", "de": "KI-Schätzung gerade nicht verfügbar"},
     "ai.time": {"zh": "判斷用時 {s} 秒", "en": "took {s} s", "ja": "{s} 秒", "de": "{s} s"},
     "ai.note": {"zh": "品種清單沒有臘腸、柴犬、台灣犬等，會顯示最像的品種；體型是另外訓練的判斷。", "en": "Some breeds (dachshund, shiba, Taiwan dog) are not in the breed list; the closest one is shown. Size comes from a separately trained step.", "ja": "ダックス・柴犬・台湾犬などは犬種リストにないため、最も近い犬種が表示されます。体格は別に学習した判定です。", "de": "Manche Rassen (Dackel, Shiba, Taiwan-Hund) fehlen in der Liste; die ähnlichste wird gezeigt. Die Größe kommt aus einem eigens trainierten Schritt."},
     "guess.small": {"zh": "照片看起來是小型犬，這件是中大型犬款，可能會太大。", "en": "Your dog looks small; this one is cut for medium and large dogs and may be too big.", "ja": "写真では小型犬のようです。こちらは中・大型犬向けなので大きすぎるかもしれません。", "de": "Dein Hund wirkt klein; dieses Modell ist für mittlere und große Hunde und könnte zu groß sein."},
@@ -374,36 +370,27 @@ document.querySelectorAll('.fit-demo button').forEach(function(b){b.addEventList
 var coatKey=null;
 document.querySelectorAll('.fit-coat').forEach(function(b){b.addEventListener('click',function(){coat=b.dataset.src;coatKey=b.dataset.coat;
  document.querySelectorAll('.fit-coat').forEach(function(x){x.classList.toggle('cur',x===b);});update();sizeOut();guessOut();});});
-/* small or large dog? The ImageNet model (in the browser) gives dog-breed probabilities; a small head trained on
-   ~2,300 labelled dog photos (assets/models/dogsize/size_head.json) turns them into small / medium / large.
-   A hint is shown only when fairly sure; ?dogai=1 shows the breed and numbers under the photo (test mode). */
+/* small or large dog? The photo (shrunk to 384 px) goes to the fitting-room server, which runs an image model on the
+   laptop and answers with the closest breeds and small / medium / large (trained on ~2,300 labelled dog photos).
+   A hint is shown only when fairly sure; ?dogai=1 shows the breeds and numbers under the photo (test mode). */
 var aiDebug=false;try{var dq=/[?&]dogai=([01])/.exec(location.search);if(dq)sessionStorage.setItem('apetto_dogai',dq[1]);aiDebug=sessionStorage.getItem('apetto_dogai')==='1';}catch(e){aiDebug=/[?&]dogai=1/.test(location.search);}
-var guess=null,guessFor=null,guessDemo=false,guessLib=null,aiBox=$('.fit-ai');
-function analyze(out,ai){var head=ai.head,p=new Float64Array(1000),i;out.forEach(function(o){var k=ai.ids[o.label];if(k!=null)p[k]=o.score;});
- var f=head.first,n=head.mu.length,dog=0;for(i=0;i<n;i++)dog+=p[f+i];
- var top=[];for(i=0;i<n;i++)top.push([f+i,p[f+i]]);top.sort(function(a,b){return b[1]-a[1];});
- var r={dog:dog,top:top.slice(0,3),P:null,guess:null};if(dog<head.minDog)return r;
- var z=head.b.slice();for(i=0;i<n;i++){var x=(Math.log(p[f+i]/dog+head.eps)-head.mu[i])/head.sd[i];if(x)for(var c=0;c<3;c++)z[c]+=x*head.W[i][c];}
- var m=Math.max.apply(null,z),e=z.map(function(v){return Math.exp(v-m);}),sum=e[0]+e[1]+e[2];r.P=e.map(function(v){return v/sum;});
- r.guess=r.P[0]>=0.7?'S':r.P[2]>=0.7?'L':null;return r;}
-function breedName(ai,i){var nm=cfg.guess.names;return nm&&nm[i-ai.head.first]||String(ai.id2label[i]||'').split(',')[0];}
-function aiShow(state,r,ai,ms){if(!aiBox||!aiDebug)return;aiBox.hidden=false;var h='<h4>'+t('ai.title')+'</h4>';
+var guess=null,guessFor=null,guessDemo=false,guessCtl=null,aiBox=$('.fit-ai');
+function escHtml(x){return String(x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function breedName(x){return (cfg.serverLang==='zh'&&x.zh)||x.name||'';}
+function aiShow(state,r,ms){if(!aiBox||!aiDebug)return;aiBox.hidden=false;var h='<h4>'+t('ai.title')+'</h4>';
  if(state==='wait')h+='<p>'+t('ai.wait')+'</p>';else if(state==='error')h+='<p>'+t('ai.err')+'</p>';
- else{h+='<p><b>'+t('ai.breed')+'</b>：'+r.top.map(function(x){return escHtml(breedName(ai,x[0]))+' '+Math.round(x[1]/(r.dog||1)*100)+'%';}).join('、')+'</p>';
+ else{h+='<p><b>'+t('ai.breed')+'</b>：'+(r.top||[]).map(function(x){return escHtml(breedName(x))+' '+Math.round(x.p*100)+'%';}).join('、')+'</p>';
   if(r.P)h+='<p><b>'+t('ai.size')+'</b>：'+t('ai.sizes',{s:Math.round(r.P[0]*100),m:Math.round(r.P[1]*100),l:Math.round(r.P[2]*100)})+'</p>';
   h+='<p><b>'+t('ai.verdict')+'</b>：'+t(!r.P?'ai.nodog':r.guess?'ai.'+r.guess:'ai.none')+'</p><small>'+t('ai.time',{s:(ms/1000).toFixed(1)})+'<br>'+t('ai.note')+'</small>';}
  aiBox.innerHTML=h;}
-function escHtml(x){return String(x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function guessSize(src,demo){guess=null;guessFor=src;guessDemo=!!demo;guessMark('');guessOut();
- if(!src||(demo&&!aiDebug)||!cfg.guess||!window.WebAssembly){if(aiBox)aiBox.hidden=true;return;}
- var t0=Date.now();aiShow('wait');
- if(!guessLib){var base=cfg.guess.models.replace(/\/?$/,'/');
-  guessLib=Promise.all([import(cfg.guess.lib).then(function(m){m.env.allowRemoteModels=false;m.env.allowLocalModels=true;m.env.localModelPath=base;
-    return m.pipeline('image-classification','dogsize',{dtype:'q8'});}),fetch(base+'dogsize/size_head.json').then(function(r){if(!r.ok)throw new Error('head '+r.status);return r.json();})])
-   .then(function(a){var id2=a[0].model.config.id2label,ids={};for(var k in id2)ids[id2[k]]=+k;return {clf:a[0],head:a[1],ids:ids,id2label:id2};});}
- guessLib.then(function(ai){return compress(src,384,.85).then(function(img){return ai.clf(img,{top_k:1000});}).then(function(out){return [ai,out];});})
-  .then(function(a){if(guessFor!==src)return;var r=analyze(a[1],a[0]);guess=r.guess;guessMark(guess||(r.P?'none':'nodog'));aiShow('done',r,a[0],Date.now()-t0);guessOut();})
-  .catch(function(e){guessLib=null;guessMark('error');aiShow('error');if(window.console)console.warn('dog size guess unavailable',e);});}
+ if(guessCtl){guessCtl.abort();guessCtl=null;}
+ if(!src||(demo&&!aiDebug)){if(aiBox)aiBox.hidden=true;return;}
+ var t0=Date.now(),ctl=new AbortController();guessCtl=ctl;aiShow('wait');
+ compress(src,384,.85).then(function(img){return fetch(cfg.api+'/api/dogsize',{method:'POST',signal:ctl.signal,headers:auth({'Content-Type':'application/json'}),body:JSON.stringify({image:img})});})
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  .then(function(r){if(guessFor!==src)return;guess=r.guess==='S'||r.guess==='L'?r.guess:null;guessMark(guess||(r.P?'none':'nodog'));aiShow('done',r,Date.now()-t0);guessOut();})
+  .catch(function(e){if(guessFor!==src||(e&&e.name==='AbortError'))return;guessMark('error');aiShow('error');});}
 var guessBox=$('.fit-guess');
 /* data-guess shows the last result (S / L / none / error), handy when checking the page */
 function guessMark(v){if(guessBox)guessBox.setAttribute('data-guess',v);}
@@ -544,8 +531,7 @@ def config_json(data, lang):
         if fit:
             coats[coat["key"]].update(kind=fit["kind"], min=fit["min"], max=fit["max"], cut=fit["cut"])
     return json.dumps({"api": API_BASE, "key": API_KEY, "serverLang": SERVER_LANG.get(lang, "zh"),
-                       "showNote": SHOW_NOTE.get(lang, False), "strings": strings, "ui": ui, "coats": coats,
-                       "guess": {"lib": GUESS_LIB, "models": th.asset(th.rel_dir(PAGE), GUESS_MODELS), "names": GUESS_ZH if lang == "zh" else None}}, ensure_ascii=False)
+                       "showNote": SHOW_NOTE.get(lang, False), "strings": strings, "ui": ui, "coats": coats}, ensure_ascii=False)
 
 
 def render(data, lang):
