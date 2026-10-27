@@ -1,13 +1,15 @@
-// Dog breed + size guess for the fitting room, run on the server (CPU, about 0.1-0.3 s per photo). Version 2.
+// Dog breed + size guess for the fitting room, run on the server (CPU, about 0.1-0.3 s per photo). Version 3.
 //
 //   const { dogSizeHandler, warmup } = await import('./dogsize.mjs');
 //   app.post('/api/dogsize', dogSizeHandler);   // behind the same auth / CORS as /api/stylist
 //
-// Model files (not downloaded automatically): unzip dogsize-v2.zip from the repo's GitHub release into FIT_MODEL_DIR
+// Model files (not downloaded automatically): unzip dogsize-v2.zip from _tools/fit_dogsize in the repo into FIT_MODEL_DIR
 // (default: ./models next to this file) so that <FIT_MODEL_DIR>/dogsize-v2/onnx/model_quantized.onnx exists.
 // It is facebook/convnext-tiny-224 (ImageNet-1k, Apache-2.0), 8-bit ONNX by Xenova, with one extra output: the 768
-// pooled image features. size_head.json (next to this file) is a small classifier trained on ~5,300 labelled dog
-// photos that turns breed scores + image features into small / medium / large.
+// pooled image features. Two small classifiers next to this file, both trained on labelled dog photos:
+//   size_head.json  - breed scores + image features -> small / medium / large (S = small capes, L = big raincoat)
+//   breed_head.json - image features -> ~55 breeds common in Taiwan, including dachshund, shiba and Taiwan dog,
+//                     which the ImageNet model does not know (optional: without it the ImageNet breed names are used)
 // Needs: @huggingface/transformers (3.7+) and onnxruntime-node (comes with it).
 import { AutoProcessor, RawImage, env } from '@huggingface/transformers';
 import ort from 'onnxruntime-node';
@@ -24,8 +26,10 @@ env.localModelPath = MODEL_DIR.replace(/[\\/]?$/, '/');
 
 const head = JSON.parse(fs.readFileSync(path.join(HERE, 'size_head.json'), 'utf8'));
 const FIRST = head.first || 151, ND = head.nDog || 125;       // ImageNet dog classes 151..275
-const USE_POOLED = (head.features || 'C') !== 'A';
-if (head.mu.length !== ND + (USE_POOLED ? 768 : 0)) throw new Error('size_head.json does not match this module');
+if (head.mu.length !== ND + 768) throw new Error('size_head.json does not match this module');
+let breedHead = null;
+try { breedHead = JSON.parse(fs.readFileSync(path.join(HERE, 'breed_head.json'), 'utf8')); } catch (e) { /* optional */ }
+if (breedHead && breedHead.mu.length !== 768) throw new Error('breed_head.json does not match this module');
 const ZH = ("吉娃娃 日本狆 馬爾濟斯 北京犬 西施犬 查理士王小獵犬 蝴蝶犬 玩具㹴 羅德西亞背脊犬 阿富汗獵犬 巴吉度獵犬 米格魯 尋血獵犬 藍斑獵浣熊犬 黑褐獵浣熊犬 "
   + "沃克獵浣熊犬 英國獵狐犬 紅骨獵浣熊犬 俄羅斯獵狼犬 愛爾蘭獵狼犬 義大利靈緹 惠比特犬 依比沙獵犬 挪威獵麋犬 奧達獵犬 薩路基獵犬 蘇格蘭獵鹿犬 威瑪獵犬 "
   + "斯塔福郡鬥牛㹴 美國斯塔福郡㹴 貝林登㹴 邊境㹴 凱利藍㹴 愛爾蘭㹴 諾福克㹴 諾威奇㹴 約克夏㹴 剛毛獵狐㹴 湖畔㹴 西里漢㹴 萬能㹴 凱恩㹴 澳洲㹴 "
@@ -55,22 +59,37 @@ function softmax(a) {
   const e = Array.from(a, v => Math.exp(v - m)); const s = e.reduce((x, y) => x + y, 0);
   return e.map(v => v / s);
 }
+// standardised linear layer: z = b + sum((x - mu) / sd * W)
+function linear(h, x) {
+  const z = h.b.slice(), n = h.mu.length;
+  for (let i = 0; i < n; i++) {
+    const v = (x[i] - h.mu[i]) / h.sd[i];
+    if (v) { const w = h.W[i]; for (let c = 0; c < z.length; c++) z[c] += v * w[c]; }
+  }
+  return z;
+}
 
 function analyze(logits, pooled, labels) {
   const p = softmax(logits);
   let dog = 0; for (let i = 0; i < ND; i++) dog += p[FIRST + i];
-  const top = [];
-  for (let i = 0; i < ND; i++) top.push([FIRST + i, p[FIRST + i]]);
-  top.sort((a, b) => b[1] - a[1]);
-  const r = { dog: +dog.toFixed(3), top: top.slice(0, 3).map(([i, s]) => ({ id: i, name: String(labels[i]).split(',')[0], zh: ZH[i - FIRST], p: +(s / (dog || 1)).toFixed(3) })), P: null, guess: null };
+  const inTop = [];
+  for (let i = 0; i < ND; i++) inTop.push([FIRST + i, p[FIRST + i]]);
+  inTop.sort((a, b) => b[1] - a[1]);
+  const imagenet = inTop.slice(0, 3).map(([i, s]) => ({ id: i, name: String(labels[i]).split(',')[0], zh: ZH[i - FIRST], p: +(s / (dog || 1)).toFixed(3) }));
+  const r = { dog: +dog.toFixed(3), top: imagenet, imagenet, P: null, guess: null };
   if (dog < head.minDog) return r;
-  const z = head.b.slice();
-  const n = head.mu.length;
-  for (let i = 0; i < n; i++) {
-    const raw = i < ND ? Math.log(p[FIRST + i] / dog + head.eps) : pooled[i - ND];
-    const x = (raw - head.mu[i]) / head.sd[i];
-    if (x) { const w = head.W[i]; z[0] += x * w[0]; z[1] += x * w[1]; z[2] += x * w[2]; }
+  // breed (own classifier on the image features; knows dachshund / shiba / Taiwan dog)
+  if (breedHead) {
+    const bp = softmax(linear(breedHead, pooled));
+    const order = bp.map((v, i) => i).sort((a, b) => bp[b] - bp[a]).slice(0, 3);
+    r.top = order.map(i => ({ zh: breedHead.classes[i], name: (breedHead.classes_en || breedHead.classes)[i], p: +bp[i].toFixed(3) }));
+    r.breedSure = bp[order[0]] >= 0.5;    // below this the photo may be a mixed breed or a breed we have no photos of
   }
+  // size
+  const x = new Float64Array(ND + 768);
+  for (let i = 0; i < ND; i++) x[i] = Math.log(p[FIRST + i] / dog + head.eps);
+  for (let i = 0; i < 768; i++) x[ND + i] = pooled[i];
+  const z = linear(head, x);
   const m = Math.max(...z), e = z.map(v => Math.exp(v - m)), s = e[0] + e[1] + e[2];
   r.P = e.map(v => +(v / s).toFixed(3));
   r.guess = r.P[0] >= 0.7 ? 'S' : r.P[2] >= 0.7 ? 'L' : null;   // S = small capes, L = big raincoat, null = no hint
@@ -92,7 +111,7 @@ export function dogSize(dataUrl) {
     const inputs = await processor(img);
     const pv = inputs.pixel_values;
     const out = await session.run({ pixel_values: new ort.Tensor('float32', pv.data, pv.dims) });
-    return { ...analyze(out.logits.data, out.pooled ? out.pooled.data : null, labels), ms: Date.now() - t0 };
+    return { ...analyze(out.logits.data, out.pooled.data, labels), ms: Date.now() - t0 };
   };
   const p = chain.then(run, run);
   chain = p.catch(() => {});

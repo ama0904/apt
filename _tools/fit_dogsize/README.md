@@ -7,6 +7,7 @@
 - `dogsize.mjs`：模型載入、判斷、Express handler。server.js 是 CommonJS，用
   `const { dogSizeHandler, warmup } = await import('./dogsize.mjs')`，再加 `app.post('/api/dogsize', dogSizeHandler)`，
   放在和 `/api/stylist` 一樣的驗證後面。
+- `breed_head.json`：品種分類器（第三版新增）：用模型的 768 維影像特徵認 55 種台灣常見犬種，包含原模型沒有的臘腸狗、柴犬、台灣犬／米克斯；回傳的 `top` 就是它的前三名，`breedSure` 為 false 表示把握不高（可能是米克斯或少見品種）。沒有這個檔時退回 ImageNet 的品種名。
 - `size_head.json`：體型分類器的權重。第二版用約 5,300 張標好大小的狗照片訓練，輸入是品種分數加模型的 768 維影像特徵；
   重新訓練只要換這個檔（`features` 欄位說明用哪種輸入）。
 
@@ -20,7 +21,7 @@
 回傳範例：
 
 ```json
-{"dog":0.93,"top":[{"id":151,"name":"Chihuahua","zh":"吉娃娃","p":0.82},…],"P":[0.98,0.01,0.01],"guess":"S","ms":90}
+{"dog":0.93,"top":[{"zh":"吉娃娃","name":"Chihuahua","p":0.92},…],"breedSure":true,"imagenet":[…],"P":[0.98,0.01,0.01],"guess":"S","ms":90}
 ```
 
 `guess` 是 `"S"`（小汪斗篷）、`"L"`（大汪雨衣）或 `null`（不確定，不提醒）；`P` 為空代表照片裡看不太到狗。
