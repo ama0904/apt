@@ -237,8 +237,17 @@ async function onUser(u) {
     } catch (e) { console.warn('profile', e); }
   }
   render();
+  checkAdmin(u);
   if (u && !dogs.length && !asked) { asked = true; dogForm(null, true); }      // new account: ask for the first dog
   if (u && pending) { const p = pending; pending = null; saveFit(p); }
+}
+
+/* admins (the accounts the Firestore rules let read the member list) get a 後台 link in the menu on every page */
+async function checkAdmin(u) {
+  let admin = false;
+  if (u) { try { await fb.F.getDocs(fb.F.query(fb.F.collection(fb.db, 'users'), fb.F.limit(1))); admin = true; } catch (e) { admin = false; } }
+  try { if (admin) localStorage.setItem('apetto_admin', '1'); else localStorage.removeItem('apetto_admin'); } catch (e) {}
+  if (window.apAdminLink) window.apAdminLink();
 }
 
 function render() {

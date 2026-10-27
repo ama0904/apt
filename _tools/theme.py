@@ -590,7 +590,13 @@ body.menu-open .bars i:nth-child(1){transform:translateY(6px) rotate(45deg)}body
 @media (max-width:980px){.ft-in{grid-template-columns:1fr;gap:28px;padding:36px 0 24px}.ft-bottom{flex-direction:column;align-items:flex-start}}
 """
 
-JS = r"""/* a language link click is a deliberate choice: remember it so the region-based pick never overrides it */
+JS = r"""/* admins: a 後台 link in the mobile menu (member.js sets apetto_admin after checking the signed-in Google account) */
+window.apAdminLink=function(){var nav=document.querySelector('.mm-nav');if(!nav)return;var on=false;try{on=localStorage.getItem('apetto_admin')==='1';}catch(e){}
+ var a=nav.querySelector('.mm-admin');if(!on){if(a)a.remove();return;}if(a)return;var logo=document.querySelector('.logo');
+ a=document.createElement('a');a.className='mm-admin';a.href=new URL('admin.html',logo?logo.href:location.href).href;
+ a.textContent={zh:'後台',en:'Admin',ja:'管理画面',de:'Verwaltung'}[(document.documentElement.lang||'zh').slice(0,2)]||'後台';nav.appendChild(a);};
+window.apAdminLink();
+/* a language link click is a deliberate choice: remember it so the region-based pick never overrides it */
 document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[hreflang]');if(a)try{localStorage.setItem('apetto_lang',a.getAttribute('hreflang'));}catch(x){}});
 /* Shop-in-Shop page: the Google map is embedded only after a click */
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.map-load');if(!b)return;var f=document.createElement('iframe');f.src=b.dataset.src;f.loading='lazy';f.referrerPolicy='no-referrer-when-downgrade';f.setAttribute('allowfullscreen','');f.title='Google Maps';b.parentNode.appendChild(f);b.remove();});
