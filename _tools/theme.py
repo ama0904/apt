@@ -688,7 +688,7 @@ def lang_links(site_rel, lang, cls=""):
 
 def header(data, site_rel, lang, current=""):
     d = rel_dir(site_rel)
-    member_link = f'<a href="{link(d, mem.PAGE, lang)}">會員專區</a>' if mem.config() else ""
+    member_main = f'<a href="{link(d, mem.PAGE, lang)}"{cur(current == mem.PAGE)}>會員專區</a>' if mem.config() else ""
     store_link = f'<a href="{link(d, STORE, lang)}">漢堡店中店</a>' if lang == "de" else ""   # the Hamburg shop only matters to German visitors
     search = link(d, "search.html", lang)
     return f"""<div class="lang-row" aria-label="語言">{lang_links(site_rel, lang)}</div>
@@ -702,8 +702,8 @@ def header(data, site_rel, lang, current=""):
 </header>
 <div class="mobile-menu" role="dialog" aria-label="選單"><div class="mm-panel">
   <div class="mm-top"><a href="{link(d, 'index.html', lang)}" aria-label="apetto"><img src="{asset(d, LOGO)}" alt="apetto"></a><button class="mm-close" aria-label="關閉">✕</button></div>
-  <nav class="mm-nav">{nav_links(data, d, lang, current)}</nav>
-  <nav class="mm-more"><a href="{link(d, "pages/5.html", lang)}">購物流程</a><a href="{link(d, "information/news.html", lang)}">最新消息</a>{store_link}{member_link}</nav>
+  <nav class="mm-nav">{nav_links(data, d, lang, current)}{member_main}</nav>
+  <nav class="mm-more"><a href="{link(d, "pages/5.html", lang)}">購物流程</a><a href="{link(d, "information/news.html", lang)}">最新消息</a>{store_link}</nav>
   <div class="mm-social"><a href="{INSTAGRAM}" target="_blank" rel="noopener">Instagram</a><a href="{PINKOI}" target="_blank" rel="noopener">Pinkoi</a></div>
 </div></div>"""
 
