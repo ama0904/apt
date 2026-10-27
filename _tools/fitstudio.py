@@ -263,15 +263,15 @@ CSS = r"""
 .fit-demo button img{width:34px;height:34px;border-radius:50%;object-fit:cover}.fit-demo button:hover{border-color:var(--ink);color:var(--ink)}.fit-demo button.cur{border-color:var(--ink);background:var(--ink);color:#fff}
 .fit-coats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .fit-coat{position:relative;border:2px solid var(--line);border-radius:16px;background:var(--card);padding:10px 10px 12px;text-align:left;cursor:pointer;font:inherit;color:var(--ink);transition:border-color .15s,transform .15s,box-shadow .15s}
-.fit-coat:hover{border-color:var(--ink2);transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.06)}.fit-coat.cur{border-color:var(--ink);box-shadow:0 0 0 3px rgba(23,24,26,.12)}
+.fit-coat:hover{border-color:var(--ink2);transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.06)}.fit-coat.cur{border-color:var(--ink);box-shadow:0 0 0 3px var(--ink);transform:translateY(-2px)}
 .fit-coat .img{aspect-ratio:1;border-radius:10px;overflow:hidden;background:#fff;display:grid;place-items:center}.fit-coat img{width:100%;height:100%;object-fit:contain}
 .fit-coat .nm{display:block;font-weight:700;font-size:14.5px;margin-top:10px;line-height:1.3}.fit-coat .sub{display:block;font-size:12.5px;color:var(--mute);line-height:1.35;margin-top:2px}
 .fit-coat .fitfor{display:block;margin-top:8px;font-size:12px;line-height:1.35;color:var(--ink2)}.fit-coat .fitfor b{display:inline-block;padding:2px 9px;border-radius:999px;background:var(--sand);font-weight:700}.fit-coat .fitfor i{display:block;font-style:normal;margin-top:4px;color:var(--mute)}
 .fit-warn{margin:0 0 12px;padding:12px 14px;border-radius:12px;background:var(--brand-soft);border:1px solid #ffc9bf}.fit-warn b{display:block;font-size:15.5px;color:var(--brand-ink);margin-bottom:4px}
 .fit-also{margin:10px 0 0;padding-top:10px;border-top:1px dashed var(--line2)}.fit-size-out .fit-alt{margin-top:8px;min-height:44px;font-size:15px}
 .fit-coat .rec{display:none;position:absolute;top:8px;left:8px;background:var(--brand);color:#fff;font-size:11.5px;font-weight:800;letter-spacing:.03em;padding:3px 8px;border-radius:999px;box-shadow:0 2px 8px rgba(255,36,20,.3)}
-.fit-coats.has-rec .fit-coat.rec-coat{border-color:var(--brand)}.fit-coats.has-rec .fit-coat.rec-coat .rec{display:inline-block}.fit-coats.has-rec .fit-coat:not(.rec-coat):not(.cur){opacity:.62}
-.fit-coat .chk{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;display:none;place-items:center}.fit-coat.cur .chk{display:grid}
+.fit-coats.has-rec .fit-coat.rec-coat{border-color:var(--brand)}.fit-coats.has-rec .fit-coat.rec-coat .rec{display:inline-block}.fit-coats.has-rec .fit-coat:not(.rec-coat):not(.cur){opacity:.62}.fit-coats.has-rec .fit-coat.rec-coat.cur{border-color:var(--ink)}
+.fit-coat .chk{position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;background:var(--ink);color:#fff;display:none;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.25);z-index:1}.fit-coat.cur .chk{display:grid}
 .fit-coat-links{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0 0;font-size:13.5px}.fit-coat-links a{color:var(--ink2);border-bottom:1px solid var(--line2)}.fit-coat-links a:hover{color:var(--ink);border-color:var(--ink)}
 .fit-ai{margin-top:14px;padding:12px 14px;border-radius:12px;border:1.5px dashed var(--line2);background:var(--card);font-size:14px;color:var(--ink2);line-height:1.55}
 .fit-ai b{color:var(--ink)}.fit-ai h4{margin:0 0 6px;font-size:13px;letter-spacing:.04em;color:var(--brand-ink)}.fit-ai p{margin:2px 0}.fit-ai small{display:block;margin-top:6px;color:var(--mute);font-size:12px}
@@ -544,7 +544,7 @@ ICON_PIC = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
             '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/></svg>')
 ICON_DL = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
            '<path d="M12 4v11M7 10l5 5 5-5M4 19h16"/></svg>')
-ICON_CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>'
+ICON_CHECK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"/></svg>'
 
 
 def config_json(data, lang):
