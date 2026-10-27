@@ -185,6 +185,25 @@
   .hl-row .meta { display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
   @media (max-width:640px) { .hl-row { grid-template-columns:1fr auto; } .hl-row time { grid-column:1 / -1; } .hl-row .a { grid-column:1 / -1; } }
   /* fitting-room history */
+  .mb-gate { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:0 0 14px; }
+  .mb-gate:empty { display:none; }
+  .mb-gbtn { display:inline-flex; align-items:center; gap:10px; padding:9px 16px 9px 12px; border-radius:999px; border:1.5px solid var(--line); background:#fff; font:inherit; font-weight:700; cursor:pointer; }
+  .mb-gbtn svg { width:18px; height:18px; }
+  .mb-table td { vertical-align:middle; }
+  .mb-user { display:flex; align-items:center; gap:10px; min-width:0; }
+  .mb-user img, .mb-user .ph { width:34px; height:34px; border-radius:50%; object-fit:cover; flex:0 0 auto; background:#eee; }
+  .mb-user b { display:block; } .mb-user span { color:var(--muted); font-size:12.5px; word-break:break-all; }
+  .mb-dogs { font-size:13.5px; line-height:1.5; }
+  .mb-sec { margin:4px 0 16px; } .mb-sec h3 { font-size:15px; margin:0 0 8px; }
+  .mb-doglist { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:8px; }
+  .mb-dog { border:1px solid var(--line); border-radius:10px; padding:10px 12px; font-size:13.5px; position:relative; }
+  .mb-dog b { display:block; font-size:15px; margin-bottom:4px; }
+  .mb-fits { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; }
+  .mb-fit { border:1px solid var(--line); border-radius:10px; overflow:hidden; font-size:12px; position:relative; background:#fff; }
+  .mb-fit img { width:100%; aspect-ratio:1; object-fit:cover; display:block; }
+  .mb-fit div { padding:6px 8px; color:var(--muted); }
+  .mb-x { position:absolute; top:6px; right:6px; width:26px; height:26px; border-radius:50%; border:0; background:rgba(0,0,0,.55); color:#fff; cursor:pointer; font-size:13px; line-height:26px; padding:0; }
+  .mb-dog .mb-x { background:#eee; color:#333; }
   .fit-stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(120px,1fr)); gap:10px; margin-bottom:14px; }
   .fit-stats .stat { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; gap:4px; min-width:0; }
   .fit-stats .stat b { font-size:22px; }
@@ -325,6 +344,7 @@
       <button type="button" class="tab" data-tab="history">試衣間紀錄</button>
       <button type="button" class="tab" data-tab="qa">小幫手問答</button>
       <button type="button" class="tab" data-tab="helper">小幫手紀錄</button>
+      <button type="button" class="tab" data-tab="members">會員</button>
       <span class="sp"></span>
       <span class="tools"><button id="btn-reload">重新載入</button><button id="btn-redeploy" title="不改資料，只重新執行部署流程">重新部署</button></span>
     </nav>
@@ -444,8 +464,31 @@
     <div class="hl-list" id="hl-list"></div>
     <p class="muted" id="hl-msg" style="font-size:14px"></p>
     </div>
+
+    <div class="pane" data-pane="members">
+     <div class="toolbar">
+       <input type="search" id="mb-q" placeholder="搜尋名字、Email 或毛孩" style="width:240px">
+       <button id="btn-mb-reload">重新載入</button>
+       <span class="count" id="mb-count"></span>
+       <span class="sp"></span>
+       <span id="mb-who" class="muted" style="font-size:13px"></span>
+     </div>
+     <p class="muted" style="font-size:13px;margin:0 0 12px">在網站上用 Google 登入過的會員。這一頁要用管理員的 Google 帳號登入才看得到；會員自己的資料只有他本人和管理員能讀。</p>
+     <div id="mb-gate" class="mb-gate"></div>
+     <div class="fit-stats" id="mb-stats"></div>
+     <table class="mb-table" id="mb-table" style="display:none">
+       <thead><tr><th>會員</th><th>毛孩</th><th class="hide-sm">試穿</th><th class="hide-sm">最後登入</th><th style="width:90px">操作</th></tr></thead>
+       <tbody id="mb-list"></tbody>
+     </table>
+     <p class="muted" id="mb-msg" style="font-size:14px"></p>
+    </div>
   </section>
 </main>
+
+<dialog id="mbdlg">
+  <div class="dlg-head"><h2 id="mbdlg-title">會員</h2><button type="button" id="mbdlg-close" class="small">✕</button></div>
+  <div class="dlg-body" id="mbdlg-body"></div>
+</dialog>
 
 <dialog id="ndlg">
   <form id="nform" method="dialog">
@@ -602,6 +645,38 @@
 const $ = s => document.querySelector(s);
 const UI_LANG = localStorage.getItem('apetto_admin_lang') || ((navigator.language || '').toLowerCase().startsWith('de') ? 'de' : 'zh');
 const DE = {
+  "會員": "Mitglieder",
+  "搜尋名字、Email 或毛孩": "Name, E-Mail oder Hund suchen",
+  "在網站上用 Google 登入過的會員。這一頁要用管理員的 Google 帳號登入才看得到；會員自己的資料只有他本人和管理員能讀。": "Mitglieder, die sich auf der Website mit Google angemeldet haben. Sichtbar nur nach Anmeldung mit einem Admin-Google-Konto; die Daten eines Mitglieds lesen nur es selbst und Admins.",
+  "毛孩": "Hunde",
+  "試穿": "Anproben",
+  "最後登入": "Zuletzt angemeldet",
+  "操作": "Aktion",
+  "網站還沒有設定 Google 登入（_data/firebase.json）。": "Die Website hat noch keine Google-Anmeldung eingerichtet (_data/firebase.json).",
+  "登出 Google": "Von Google abmelden",
+  "用 Google 登入（管理員）": "Mit Google anmelden (Admin)",
+  "請用管理員的 Gmail 登入。": "Bitte mit dem Admin-Gmail anmelden.",
+  "登入失敗：": "Anmeldung fehlgeschlagen: ",
+  "還沒有會員。": "Noch keine Mitglieder.",
+  "這個 Google 帳號（{e}）沒有管理員權限。請換管理員帳號登入，或把它加進 Firestore 規則的管理員名單。": "Dieses Google-Konto ({e}) hat keine Admin-Rechte. Mit einem Admin-Konto anmelden oder es in den Firestore-Regeln als Admin eintragen.",
+  "讀取失敗：": "Laden fehlgeschlagen: ",
+  "換一個 Google 帳號": "Anderes Google-Konto",
+  "7 天內登入": "In 7 Tagen angemeldet",
+  "試穿紀錄": "Anproben",
+  "共 {n} 位": "{n} Mitglieder",
+  "背長": "Rücken",
+  "領圍": "Hals",
+  "腹圍": "Bauch",
+  "查看": "Ansehen",
+  "還沒有毛孩資料。": "Noch keine Hunde.",
+  "還沒有試穿紀錄。": "Noch keine Anproben.",
+  "刪除這位會員的所有資料": "Alle Daten dieses Mitglieds löschen",
+  "刪除這隻毛孩的資料？": "Diesen Hund löschen?",
+  "刪除這張試穿紀錄？": "Diese Anprobe löschen?",
+  "刪除失敗：": "Löschen fehlgeschlagen: ",
+  "確定刪除 {n} 的所有資料（毛孩、試穿紀錄）？無法復原。他下次登入會重新開始。": "Alle Daten von {n} (Hunde, Anproben) löschen? Nicht rückgängig zu machen. Beim nächsten Anmelden beginnt das Konto neu.",
+  "已刪除": "Gelöscht",
+  "刪除": "Löschen",
   "共 {n} 段，顯示中 {m} 段": "{n} Abschnitte, {m} sichtbar",
   "預設顏色": "Standardfarbe",
   "自訂": "Eigene",
@@ -2429,9 +2504,128 @@ function featureAction(act, f, i) {
 }
 $('#btn-feat-add').onclick = () => featureForm(null);
 
+
+/* ---------------------------------------------------------------- members (Google sign-in on the site; Firebase) */
+// Reads Firestore as an admin Google account (the Firestore rules list the admin emails). Firebase settings come from
+// the site's _data/firebase.json, so nothing secret is stored here.
+const FB_VER = '10.12.2';
+let MB = null, MB_ROWS = [];
+const G_ICON = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
+const mbDate = ts => { try { const d = ts && ts.toDate ? ts.toDate() : null; return d ? d.toLocaleString(UI_LANG === 'de' ? 'de-DE' : 'zh-TW', { dateStyle: 'medium', timeStyle: 'short' }) : '—'; } catch (e) { return '—'; } };
+const mbCm = v => v ? v + ' cm' : '—';
+
+async function mbInit() {
+  if (MB) return MB;
+  const r = await fetch(siteUrl() + '_data/firebase.json', { cache: 'no-store' });
+  if (!r.ok) throw new Error(t('網站還沒有設定 Google 登入（_data/firebase.json）。'));
+  const conf = await r.json();
+  const base = `https://www.gstatic.com/firebasejs/${FB_VER}/`;
+  const [{ initializeApp }, A, F] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
+  const app = initializeApp(conf, 'apetto-admin');
+  const auth = A.getAuth(app);
+  MB = { A, F, auth, db: F.getFirestore(app), user: null };
+  await new Promise(res => { const off = A.onAuthStateChanged(auth, u => { MB.user = u; off(); res(); }); });
+  return MB;
+}
+
+function mbGate(html) { $('#mb-gate').innerHTML = html || ''; }
+function mbWho() {
+  const u = MB && MB.user;
+  $('#mb-who').innerHTML = u ? `${escHtml(u.email || '')} · <a href="#" id="mb-out">${t('登出 Google')}</a>` : '';
+  const o = $('#mb-out'); if (o) o.onclick = async e => { e.preventDefault(); await MB.A.signOut(MB.auth); MB.user = null; loadMembers(); };
+}
+
+async function loadMembers() {
+  $('#mb-msg').textContent = t('載入中…'); $('#mb-table').style.display = 'none'; $('#mb-stats').innerHTML = ''; mbGate('');
+  try { await mbInit(); } catch (e) { $('#mb-msg').textContent = e.message || String(e); return; }
+  mbWho();
+  if (!MB.user) {
+    $('#mb-msg').textContent = '';
+    mbGate(`<button type="button" class="mb-gbtn" id="mb-login">${G_ICON}<span>${t('用 Google 登入（管理員）')}</span></button><span class="muted" style="font-size:13px">${t('請用管理員的 Gmail 登入。')}</span>`);
+    $('#mb-login').onclick = async () => {
+      try { await MB.A.signInWithPopup(MB.auth, new MB.A.GoogleAuthProvider()); MB.user = MB.auth.currentUser; loadMembers(); }
+      catch (e) { if (!/popup-closed|cancelled-popup/.test((e && e.code) || '')) toast(t('登入失敗：') + ((e && e.code) || e)); }
+    };
+    return;
+  }
+  const F = MB.F;
+  try {
+    const snap = await F.getDocs(F.query(F.collection(MB.db, 'users'), F.orderBy('updated', 'desc'), F.limit(500)));
+    MB_ROWS = await Promise.all(snap.docs.map(async d => {
+      const [dogs, fits] = await Promise.all([
+        F.getDocs(F.collection(MB.db, 'users', d.id, 'dogs')).then(s => s.docs.map(x => ({ id: x.id, ...x.data() }))).catch(() => []),
+        F.getCountFromServer(F.collection(MB.db, 'users', d.id, 'fits')).then(c => c.data().count).catch(() => 0),
+      ]);
+      return { id: d.id, ...d.data(), dogs, fits };
+    }));
+    $('#mb-msg').textContent = MB_ROWS.length ? '' : t('還沒有會員。');
+    renderMembers();
+  } catch (e) {
+    const denied = /permission|insufficient/i.test((e && e.message) || '');
+    $('#mb-msg').textContent = denied ? t('這個 Google 帳號（{e}）沒有管理員權限。請換管理員帳號登入，或把它加進 Firestore 規則的管理員名單。', { e: MB.user.email || '' }) : (t('讀取失敗：') + ((e && e.message) || e));
+    if (denied) mbGate(`<button type="button" class="mb-gbtn" id="mb-switch">${G_ICON}<span>${t('換一個 Google 帳號')}</span></button>`), $('#mb-switch').onclick = async () => { await MB.A.signOut(MB.auth); MB.user = null; loadMembers(); };
+  }
+}
+
+function renderMembers() {
+  const q = ($('#mb-q').value || '').trim().toLowerCase();
+  const rows = MB_ROWS.filter(r => !q || [r.name, r.email, ...r.dogs.map(d => d.name)].join(' ').toLowerCase().includes(q));
+  const nDogs = MB_ROWS.reduce((a, r) => a + r.dogs.length, 0), nFits = MB_ROWS.reduce((a, r) => a + r.fits, 0);
+  const week = Date.now() - 7 * 864e5, active = MB_ROWS.filter(r => r.updated && r.updated.toDate && r.updated.toDate().getTime() > week).length;
+  $('#mb-stats').innerHTML = [[t('會員'), MB_ROWS.length], [t('7 天內登入'), active], [t('毛孩'), nDogs], [t('試穿紀錄'), nFits]]
+    .map(([k, v]) => `<div class="stat"><span class="muted" style="font-size:12px">${k}</span><b style="font-size:20px">${v}</b></div>`).join('');
+  $('#mb-count').textContent = t('共 {n} 位', { n: rows.length });
+  $('#mb-table').style.display = MB_ROWS.length ? '' : 'none';
+  $('#mb-list').innerHTML = rows.map(r => `<tr data-id="${escHtml(r.id)}">
+    <td><div class="mb-user">${r.photo ? `<img src="${escHtml(r.photo)}" alt="" referrerpolicy="no-referrer">` : '<span class="ph"></span>'}<div><b>${escHtml(r.name || '—')}</b><span>${escHtml(r.email || '')}</span></div></div></td>
+    <td class="mb-dogs">${r.dogs.length ? r.dogs.map(d => `${escHtml(d.name)} <span class="muted">${t('背長')} ${mbCm(d.back)}</span>`).join('<br>') : '<span class="muted">—</span>'}</td>
+    <td class="hide-sm">${r.fits}</td><td class="hide-sm" style="font-size:13px">${mbDate(r.updated)}</td>
+    <td><button type="button" class="small" data-a="open">${t('查看')}</button></td></tr>`).join('');
+  $('#mb-list').querySelectorAll('[data-a=open]').forEach(b => b.onclick = () => openMember(b.closest('tr').dataset.id));
+}
+
+async function openMember(id) {
+  const r = MB_ROWS.find(x => x.id === id); if (!r) return;
+  const F = MB.F, dlg = $('#mbdlg');
+  $('#mbdlg-title').textContent = r.name || r.email || t('會員');
+  const body = $('#mbdlg-body');
+  body.innerHTML = `<p class="muted" style="margin:0 0 14px;font-size:13.5px">${escHtml(r.email || '')} · ${t('最後登入')} ${mbDate(r.updated)}</p>
+    <div class="mb-sec"><h3>${t('毛孩')}（${r.dogs.length}）</h3><div class="mb-doglist">${r.dogs.length ? r.dogs.map(d => `<div class="mb-dog" data-id="${escHtml(d.id)}"><b>${escHtml(d.name)}</b>${t('背長')} ${mbCm(d.back)}<br>${t('領圍')} ${mbCm(d.neck)}<br>${t('腹圍')} ${mbCm(d.belly)}<button type="button" class="mb-x" title="${t('刪除')}">✕</button></div>`).join('') : `<span class="muted">${t('還沒有毛孩資料。')}</span>`}</div></div>
+    <div class="mb-sec"><h3>${t('試穿紀錄')}</h3><div class="mb-fits"><span class="muted">${t('載入中…')}</span></div></div>
+    <div class="toolbar" style="margin-top:8px"><span class="sp"></span><button type="button" class="danger" id="mb-wipe">${t('刪除這位會員的所有資料')}</button></div>`;
+  dlg.showModal();
+  body.querySelectorAll('.mb-dog .mb-x').forEach(b => b.onclick = async () => {
+    const dogId = b.closest('.mb-dog').dataset.id;
+    if (!confirm(t('刪除這隻毛孩的資料？'))) return;
+    try { await F.deleteDoc(F.doc(MB.db, 'users', id, 'dogs', dogId)); r.dogs = r.dogs.filter(d => d.id !== dogId); b.closest('.mb-dog').remove(); renderMembers(); } catch (e) { toast(t('刪除失敗：') + (e.message || e)); }
+  });
+  try {
+    const fs = await F.getDocs(F.query(F.collection(MB.db, 'users', id, 'fits'), F.orderBy('created', 'desc'), F.limit(60)));
+    const box = body.querySelector('.mb-fits');
+    box.innerHTML = fs.empty ? `<span class="muted">${t('還沒有試穿紀錄。')}</span>` : fs.docs.map(x => { const v = x.data();
+      return `<div class="mb-fit" data-id="${escHtml(x.id)}"><a href="${escHtml(v.img)}" target="_blank" rel="noopener"><img src="${escHtml(v.img)}" alt="" loading="lazy"></a><div>${escHtml(v.coatName || '')}${v.dogName ? ' · ' + escHtml(v.dogName) : ''}<br>${mbDate(v.created)}</div><button type="button" class="mb-x" title="${t('刪除')}">✕</button></div>`; }).join('');
+    box.querySelectorAll('.mb-x').forEach(b => b.onclick = async () => {
+      const fid = b.closest('.mb-fit').dataset.id;
+      if (!confirm(t('刪除這張試穿紀錄？'))) return;
+      try { await F.deleteDoc(F.doc(MB.db, 'users', id, 'fits', fid)); b.closest('.mb-fit').remove(); r.fits = Math.max(0, r.fits - 1); renderMembers(); } catch (e) { toast(t('刪除失敗：') + (e.message || e)); }
+    });
+  } catch (e) { body.querySelector('.mb-fits').textContent = t('讀取失敗：') + (e.message || e); }
+  $('#mb-wipe').onclick = async () => {
+    if (!confirm(t('確定刪除 {n} 的所有資料（毛孩、試穿紀錄）？無法復原。他下次登入會重新開始。', { n: r.name || r.email || '' }))) return;
+    try {
+      for (const sub of ['dogs', 'fits']) { const ss = await F.getDocs(F.collection(MB.db, 'users', id, sub)); for (const d of ss.docs) await F.deleteDoc(d.ref); }
+      await F.deleteDoc(F.doc(MB.db, 'users', id));
+      MB_ROWS = MB_ROWS.filter(x => x.id !== id); dlg.close(); renderMembers(); toast(t('已刪除'));
+    } catch (e) { toast(t('刪除失敗：') + (e.message || e)); }
+  };
+}
+$('#mbdlg-close').onclick = () => $('#mbdlg').close();
+$('#btn-mb-reload').onclick = () => loadMembers();
+$('#mb-q').oninput = () => renderMembers();
+
 /* ---------------------------------------------------------------- tabs */
-const TABS = ['products', 'content', 'news', 'fit', 'history', 'qa', 'helper'];
-let historyLoaded = false, helperLoaded = false;
+const TABS = ['products', 'content', 'news', 'fit', 'history', 'qa', 'helper', 'members'];
+let historyLoaded = false, helperLoaded = false, membersLoaded = false;
 function showPane(k) {
   if (!TABS.includes(k)) k = 'products';
   document.querySelectorAll('.tabs .tab').forEach(b => b.classList.toggle('on', b.dataset.tab === k));
@@ -2441,11 +2635,12 @@ function showPane(k) {
   // the history pane talks to the bridge, so fetch it only when it is actually shown
   if (k === 'history' && !historyLoaded && $('#app').style.display !== 'none') { historyLoaded = true; loadFit(); }
   if (k === 'helper' && !helperLoaded && $('#app').style.display !== 'none') { helperLoaded = true; loadHelper(); }
+  if (k === 'members' && !membersLoaded && $('#app').style.display !== 'none') { membersLoaded = true; loadMembers(); }
 }
 const startTab = () => (location.hash || '').slice(1) || localStorage.getItem('apetto_admin_tab') || 'products';
 document.querySelectorAll('.tabs .tab').forEach(b => b.onclick = () => showPane(b.dataset.tab));
 window.addEventListener('hashchange', () => showPane(startTab()));
-function afterLogin() { historyLoaded = false; helperLoaded = false; showPane(startTab()); }
+function afterLogin() { historyLoaded = false; helperLoaded = false; membersLoaded = false; showPane(startTab()); }
 
 /* ---------------------------------------------------------------- wiring */
 function showLogin(err) {

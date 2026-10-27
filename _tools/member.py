@@ -18,17 +18,25 @@ FIREBASE_VER = "10.12.2"
 FIRESTORE_RULES = """rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // admin Google accounts: can read every member and delete data (admin page 會員). Add more emails to the list.
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email_verified == true
+             && request.auth.token.email in ['shover1027@gmail.com'];
+    }
+    function isOwner(uid) { return request.auth != null && request.auth.uid == uid; }
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if isOwner(uid) || isAdmin();
+      allow create, update: if isOwner(uid);
+      allow delete: if isOwner(uid) || isAdmin();
       match /dogs/{dogId} {
-        allow read, delete: if request.auth != null && request.auth.uid == uid;
-        allow create, update: if request.auth != null && request.auth.uid == uid
+        allow read, delete: if isOwner(uid) || isAdmin();
+        allow create, update: if isOwner(uid)
                               && request.resource.data.name is string && request.resource.data.name.size() <= 40
                               && request.resource.data.back is number && request.resource.data.back > 0 && request.resource.data.back < 150;
       }
       match /fits/{fitId} {
-        allow read, delete: if request.auth != null && request.auth.uid == uid;
-        allow create: if request.auth != null && request.auth.uid == uid
+        allow read, delete: if isOwner(uid) || isAdmin();
+        allow create: if isOwner(uid)
                       && request.resource.data.img is string && request.resource.data.img.size() < 600000
                       && request.resource.data.dog is string && request.resource.data.dog.size() < 120000;
       }
@@ -118,6 +126,11 @@ CSS = r"""
 .mem-dog .acts{display:flex;gap:12px;font-size:13.5px}.mem-dog .acts button{background:none;border:0;padding:0;font:inherit;color:var(--ink2);text-decoration:underline;cursor:pointer}
 .mem-go{margin:18px 0 0}
 .fit-member{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:14px 0 0;font-size:14px;color:var(--ink2)}
+.fit-member:has(.top){display:grid;gap:10px;max-width:460px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card)}
+.fit-member .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.fit-member .who b{font-weight:700}
+.fit-member .pick{display:grid;gap:6px;font-size:13px;color:var(--mute);font-weight:600}
+.fit-member .pick select{width:100%;min-height:44px;font-size:16px;padding:0 14px}
 .fit-member .why{color:var(--mute);font-size:13.5px;max-width:42ch}
 .fit-member .who{display:inline-flex;align-items:center;gap:8px;font-weight:600;color:var(--ink)}.fit-member .who img{width:30px;height:30px;border-radius:50%;object-fit:cover}
 .fit-member select{min-height:38px;border-radius:999px;border:1.5px solid var(--line2);background:var(--card);color:var(--ink);font:inherit;font-weight:600;padding:0 12px}
@@ -220,7 +233,7 @@ async function onUser(u) {
       dogs = snap.docs.map(s => ({ id: s.id, ...s.data() }));
       const last = prof.exists() && prof.data().dog;
       curDog = dogs.find(x => x.id === last) || dogs[0] || null;
-      fb.F.setDoc(fb.F.doc(fb.db, 'users', u.uid), { name: u.displayName || '', email: u.email || '', updated: fb.F.serverTimestamp() }, { merge: true }).catch(() => {});
+      fb.F.setDoc(fb.F.doc(fb.db, 'users', u.uid), { name: u.displayName || '', email: u.email || '', photo: u.photoURL || '', updated: fb.F.serverTimestamp() }, { merge: true }).catch(() => {});
     } catch (e) { console.warn('profile', e); }
   }
   render();
@@ -308,15 +321,14 @@ function rememberDog() {
 function renderBar() {
   bar.hidden = false;
   if (!user) { bar.innerHTML = loginBtn() + `<span class="why">${t('why')}</span>`; bar.querySelector('.gbtn').onclick = login; return; }
-  const who = `<span class="who">${user.photoURL ? `<img src="${esc(user.photoURL)}" alt="" referrerpolicy="no-referrer">` : ''}${esc((user.displayName || '').split(' ')[0])}</span>`;
+  const who = `<span class="who">${user.photoURL ? `<img src="${esc(user.photoURL)}" alt="" referrerpolicy="no-referrer">` : ''}<b>${esc((user.displayName || '').split(' ')[0])}</b></span>`;
   const pick = dogs.length
-    ? `<label>${t('dogFor')} <select>${dogs.map(x => `<option value="${esc(x.id)}"${curDog && curDog.id === x.id ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}<option value="+">＋ ${t('addDog')}</option></select></label>`
+    ? `<label class="pick"><span>${t('dogFor')}</span><select>${dogs.map(x => `<option value="${esc(x.id)}"${curDog && curDog.id === x.id ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}<option value="+">＋ ${t('addDog')}</option></select></label>`
     : `<button type="button" class="lnk" data-a="add">＋ ${t('addDog')}</button>`;
-  bar.innerHTML = `${who}${pick}<a href="${esc(conf.member)}">${t('manage')}</a><button type="button" class="lnk" data-a="out">${t('out')}</button>`;
+  bar.innerHTML = `<div class="top">${who}<a href="${esc(conf.member)}">${t('manage')}</a></div>${pick}`;
   const sel = bar.querySelector('select');
   if (sel) sel.onchange = () => { if (sel.value === '+') { sel.value = curDog ? curDog.id : ''; dogForm(null, false); return; } curDog = dogs.find(x => x.id === sel.value) || null; rememberDog(); applyDog(true); };
   const add = bar.querySelector('[data-a=add]'); if (add) add.onclick = () => dogForm(null, false);
-  bar.querySelector('[data-a=out]').onclick = () => fb.A.signOut(fb.auth);
 }
 
 /* put the chosen dog's measurements into the size boxes (the page's size advice reacts to the input event) */
