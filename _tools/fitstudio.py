@@ -219,6 +219,7 @@ STR = {
     "ai.verdict": {"zh": "結論", "en": "Verdict", "ja": "結論", "de": "Ergebnis"},
     "ai.S": {"zh": "小型犬（建議小汪斗篷）", "en": "small dog (small capes)", "ja": "小型犬（小型犬向けケープ）", "de": "kleiner Hund (kleine Capes)"},
     "ai.L": {"zh": "中大型犬（建議大汪雨衣）", "en": "medium or large dog (big raincoat)", "ja": "中・大型犬（大型犬向けレインコート）", "de": "mittlerer/großer Hund (großer Regenmantel)"},
+    "ai.M": {"zh": "中型犬（兩種都可能，請以背長為準）", "en": "medium dog (either may fit; go by the back length)", "ja": "中型犬（どちらも可、背丈で判断）", "de": "mittelgroßer Hund (beides möglich; nach Rückenlänge gehen)"},
     "ai.none": {"zh": "不確定，不提醒客人", "en": "not sure, no hint shown", "ja": "判定できず（ヒントなし）", "de": "unsicher, kein Hinweis"},
     "ai.nodog": {"zh": "照片裡看不太到狗", "en": "no clear dog in the photo", "ja": "写真に犬がはっきり写っていません", "de": "kein Hund klar erkennbar"},
     "ai.err": {"zh": "AI 判斷暫時無法使用", "en": "AI guess unavailable right now", "ja": "AI 判定は現在利用できません", "de": "KI-Schätzung gerade nicht verfügbar"},
@@ -227,6 +228,7 @@ STR = {
     "ai.unsure": {"zh": "品種不太確定，可能是米克斯或少見品種", "en": "breed unsure: maybe mixed or uncommon", "ja": "犬種は不確か（ミックスか珍しい犬種かも）", "de": "Rasse unsicher: vielleicht Mischling oder selten"},
     "guess.small": {"zh": "照片看起來是小型犬，這件是中大型犬款，可能會太大。", "en": "Your dog looks small; this one is cut for medium and large dogs and may be too big.", "ja": "写真では小型犬のようです。こちらは中・大型犬向けなので大きすぎるかもしれません。", "de": "Dein Hund wirkt klein; dieses Modell ist für mittlere und große Hunde und könnte zu groß sein."},
     "guess.large": {"zh": "照片看起來是中大型犬，這件是小型犬款，可能會太小。", "en": "Your dog looks medium or large; this one is cut for small dogs and may be too small.", "ja": "写真では中・大型犬のようです。こちらは小型犬向けなので小さすぎるかもしれません。", "de": "Dein Hund wirkt mittelgroß oder groß; dieses Modell ist für kleine Hunde und könnte zu klein sein."},
+    "guess.mid": {"zh": "照片看起來是中型犬，斗篷和雨衣都可能合身，請以背長為準；全尺寸的款式最保險。", "en": "Your dog looks medium-sized: both the capes and the raincoat may fit, so go by the back length; the all-sizes style is the safe pick.", "ja": "写真では中型犬のようです。ケープもレインコートも合う可能性があるので背丈を目安に。全サイズ対応の型がいちばん安心です。", "de": "Dein Hund wirkt mittelgroß: Capes und Regenmantel können beide passen, also nach der Rückenlänge gehen; das Modell für alle Größen ist die sichere Wahl."},
     "guess.note": {"zh": "這是依照片估計的，幼犬或混種請以背長為準，也可以照樣試穿。", "en": "Estimated from the photo; for puppies and mixed breeds go by the back length. You can still try it on.", "ja": "写真からの推定です。子犬やミックス犬は背丈を目安に。このまま試着もできます。", "de": "Nach dem Foto geschätzt; bei Welpen und Mischlingen zählt die Rückenlänge. Anprobieren geht trotzdem."},
     "guess.pick": {"zh": "改選 {name}（{kind}）", "en": "Pick {name} ({kind})", "ja": "{name}（{kind}）にする", "de": "{name} wählen ({kind})"},
     "warn.title": {"zh": "這件可能不合身", "en": "This one may not fit", "ja": "サイズが合わないかもしれません", "de": "Das passt vielleicht nicht"},
@@ -407,7 +409,7 @@ var guess=null,guessFor=null,guessDemo=false,guessCtl=null,aiBox=$('.fit-ai'),wa
 /* the chosen coat does not fit (AI guess from the photo, or the typed back length): ask once before generating */
 function misfit(){var c=coatKey&&cfg.coats[coatKey];if(!c||!c.cut)return null;
  var fw=typeof fitWarn==='function'?fitWarn(c):null;if(fw&&fw.bad)return {why:'back',bad:mval('back')<c.min?t('warn.big'):t('warn.smallB'),alts:altCoats(mval('back'),c,mval('back')<c.min?-1:1)};
- if(guess&&dog&&dog===guessFor&&c.cut!=='A'&&c.cut!==guess){var alts=Object.keys(cfg.coats).filter(function(k){var x=cfg.coats[k].cut;return x===guess||x==='A';});
+ if(guess&&guess!=='M'&&dog&&dog===guessFor&&c.cut!=='A'&&c.cut!==guess){var alts=Object.keys(cfg.coats).filter(function(k){var x=cfg.coats[k].cut;return x===guess||x==='A';});
   return {why:'guess',dog:alts.length?cfg.coats[alts[0]].kind:'',coat:c.kind,alts:alts};}
  return null;}
 function showWarn(m){var old=$('.fit-modal');if(old)old.remove();var d=document.createElement('div');d.className='fit-modal';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');
@@ -432,15 +434,16 @@ function guessSize(src,demo){guess=null;guessFor=src;guessDemo=!!demo;guessMark(
  var t0=Date.now(),ctl=new AbortController();guessCtl=ctl;aiShow('wait');
  compress(src,384,.85).then(function(img){return fetch(cfg.api+'/api/dogsize',{method:'POST',signal:ctl.signal,headers:auth({'Content-Type':'application/json'}),body:JSON.stringify({image:img})});})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-  .then(function(r){if(guessFor!==src)return;guess=r.guess==='S'||r.guess==='L'?r.guess:null;guessMark(guess||(r.P?'none':'nodog'));aiShow('done',r,Date.now()-t0);guessOut();})
+  .then(function(r){if(guessFor!==src)return;guess=r.guess==='S'||r.guess==='L'?r.guess:(r.P&&r.P[1]>=0.5?'M':null);guessMark(guess||(r.P?'none':'nodog'));aiShow('done',r,Date.now()-t0);guessOut();})
   .catch(function(e){if(guessFor!==src||(e&&e.name==='AbortError'))return;guessMark('error');aiShow('error');});}
 var guessBox=$('.fit-guess');
 /* data-guess shows the last result (S / L / none / error), handy when checking the page */
 function guessMark(v){if(guessBox)guessBox.setAttribute('data-guess',v);}
 function guessOut(){var c=coatKey&&cfg.coats[coatKey];if(!guessBox)return;
  var rec=guess&&dog&&dog===guessFor?guess:null,grid=$('.fit-coats');
- document.querySelectorAll('.fit-coat').forEach(function(b){var o=cfg.coats[b.dataset.coat];b.classList.toggle('rec-coat',!!(rec&&o&&(o.cut===rec||o.cut==='A')));});
+ document.querySelectorAll('.fit-coat').forEach(function(b){var o=cfg.coats[b.dataset.coat];b.classList.toggle('rec-coat',!!(rec&&o&&(o.cut==='A'||(rec!=='M'&&o.cut===rec))));});
  if(grid)grid.classList.toggle('has-rec',!!rec);
+ if(guess==='M'&&dog&&dog===guessFor){guessBox.innerHTML='<b>'+t('guess.mid')+'</b><p>'+t('guess.note')+'</p>';guessBox.classList.add('show');return;}
  if(!guess||!c||!c.cut||c.cut==='A'||c.cut===guess||!dog||dog!==guessFor){guessBox.classList.remove('show');guessBox.innerHTML='';return;}
  var alts=Object.keys(cfg.coats).filter(function(k){var x=cfg.coats[k].cut;return x===guess||x==='A';});
  guessBox.innerHTML='<b>'+t(guess==='S'?'guess.small':'guess.large')+'</b><p>'+t('guess.note')+'</p>'+(alts.length?'<div class="row">'+alts.map(function(k){var o=cfg.coats[k];
