@@ -502,7 +502,9 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden)heal
 function loadImg(src){return new Promise(function(res,rej){var i=new Image();i.onload=function(){res(i);};i.onerror=rej;i.src=src;});}
 function compress(src,max,q){return loadImg(src).then(function(i){var r=Math.min(max/i.width,max/i.height,1),c=document.createElement('canvas');
  c.width=Math.max(1,Math.round(i.width*r));c.height=Math.max(1,Math.round(i.height*r));var g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(i,0,0,c.width,c.height);return c.toDataURL('image/jpeg',q);});}
-function setDog(src,demo){setErr('');warnOk=false;sizeByUser=false;return loadImg(src).then(function(){dog=src;pv.src=src;drop.classList.add('has');
+function setDog(src,demo){setErr('');warnOk=false;sizeByUser=false;var prev=dog;return loadImg(src).then(function(){dog=src;
+ /* a different photo replacing one = probably another dog: its back length / neck / belly are cleared too */
+ if(prev&&prev!==src)document.querySelectorAll('.fit-size input').forEach(function(i){i.value='';});pv.src=src;drop.classList.add('has');
  /* a new dog: the previous dog's size does not carry over (if the photo gives no clear size, the customer picks one) */
  selSize=null;guessSize(src,demo);applySel();
  document.querySelectorAll('.fit-demo button').forEach(function(b){b.classList.toggle('cur',b.dataset.dog===demo);});update();}).catch(function(){setErr(t('err.badFile'));});}
@@ -812,9 +814,9 @@ def render(data, lang):
   <div class="fit-cancel"><button type="button">取消</button></div>
   <div class="fit-colors" aria-live="polite"></div>
   <div class="fit-size"><h3>喜歡嗎？量一下毛孩，看該選哪一號</h3><p class="hint">背長：從脖子根部（約前腳的位置）量到尾巴根。領圍與腹圍為圈量，可以不填。</p>
-   <div class="fields"><label><span>背長</span><div><input type="number" inputmode="decimal" min="10" max="120" step="0.5" data-m="back"><em>cm</em></div></label>
-    <label><span>領圍</span><div><input type="number" inputmode="decimal" min="10" max="120" step="0.5" data-m="neck"><em>cm</em></div></label>
-    <label><span>腹圍</span><div><input type="number" inputmode="decimal" min="10" max="150" step="0.5" data-m="belly"><em>cm</em></div></label></div>
+   <div class="fields"><label><span>背長</span><div><input type="number" inputmode="decimal" min="10" max="120" step="0.5" autocomplete="off" data-m="back"><em>cm</em></div></label>
+    <label><span>領圍</span><div><input type="number" inputmode="decimal" min="10" max="120" step="0.5" autocomplete="off" data-m="neck"><em>cm</em></div></label>
+    <label><span>腹圍</span><div><input type="number" inputmode="decimal" min="10" max="150" step="0.5" autocomplete="off" data-m="belly"><em>cm</em></div></label></div>
    <div class="fit-size-out"></div></div>
   <div class="fit-note" aria-live="polite"><b><i class="led" aria-hidden="true"></i><span>AI 造型師的話</span><span class="new">造型師寫好了</span></b><p></p></div>
   <div class="fit-actions"><button type="button" class="btn fit-dl">{ICON_DL}下載照片</button><button type="button" class="btn ghost fit-share">分享</button><button type="button" class="btn ghost fit-again">再試一件</button></div>
