@@ -511,7 +511,9 @@ function setDog(src,demo){setErr('');warnOk=false;sizeByUser=false;var prev=dog;
  if(prev&&prev!==src)document.querySelectorAll('.fit-size input').forEach(function(i){i.value='';});pv.src=src;drop.classList.add('has');
  /* a new dog: the previous dog's size does not carry over (if the photo gives no clear size, the customer picks one) */
  selSize=null;guessSize(src,demo);applySel();
- document.querySelectorAll('.fit-demo button').forEach(function(b){b.classList.toggle('cur',b.dataset.dog===demo);});update();}).catch(function(){setErr(t('err.badFile'));});}
+ document.querySelectorAll('.fit-demo button').forEach(function(b){b.classList.toggle('cur',b.dataset.dog===demo);});
+ /* the customer's own photo: the demo dogs are no longer needed */
+ if(!demo){var dm=$('.fit-demo');if(dm)dm.hidden=true;}update();}).catch(function(){setErr(t('err.badFile'));});}
 function pick(f){if(!f)return;if(!/^image\//.test(f.type)&&!/\.(heic|heif|jpe?g|png|webp|gif|bmp)$/i.test(f.name)){setErr(t('err.badFile'));return;}
  var rd=new FileReader();rd.onload=function(){setDog(rd.result,null);};rd.onerror=function(){setErr(t('err.badFile'));};rd.readAsDataURL(f);}
 file.addEventListener('change',function(){pick(file.files[0]);file.value='';});
