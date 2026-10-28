@@ -145,9 +145,33 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
   // inside the region, fade out pixels far less saturated than the fabric: white fur tinted by JPEG bleed would otherwise get a halo
   if (region) for (let p = 0; p < N; p++) if (mask[p] > 0) mask[p] *= clamp01((Math.hypot(lab[p * 3 + 1], lab[p * 3 + 2]) / cm - 0.35) / 0.2);
   const k = dst[0] > Lm + 25 ? 0.85 : 1.0;
+  // colour spill: Gemini lets the garment colour glow onto the fur and the seam just outside the garment. Those light,
+  // faintly tinted pixels are left out of the mask, so after recolouring they would draw a ring of the old colour.
+  // In a thin band around the garment, light pixels tinted like the old colour get the same faint tint of the new one.
+  const core = new Float32Array(N); for (let p = 0; p < N; p++) core[p] = mask[p] > 0.3 ? 1 : 0;
+  const band = boxBlur(dilate(core, w, h, Math.max(3, Math.round(Math.max(w, h) / 160))), w, h, 2);
+  const dc = Math.hypot(dst[1], dst[2]), dAng = Math.atan2(dst[2], dst[1]), spillK = Math.min(1, dc / Math.max(1, sc));
+  const spill = new Float32Array(N);
+  for (let p = 0; p < N; p++) {
+    if (band[p] < 0.02 || mask[p] > 0.98) continue;
+    const L = lab[p * 3], a = lab[p * 3 + 1], b = lab[p * 3 + 2], ch = Math.hypot(a, b);
+    let d = Math.abs(Math.atan2(b, a) - sang); if (d > Math.PI) d = 2 * Math.PI - d;
+    spill[p] = band[p] * clamp01((25 - d * 180 / Math.PI) / 10) * clamp01((ch - 2) / 3) * clamp01((L - 50) / 10) * clamp01((0.75 * cm - ch) / (0.15 * cm) + 1) * (1 - mask[p]);
+  }
   const out = Buffer.alloc(N * 3), px = new Float64Array(3);
   for (let p = 0; p < N; p++) {
     const m = mask[p], r = data[p * 3], g = data[p * 3 + 1], b = data[p * 3 + 2];
+    if (spill[p] > 0.004) {   // the faint glow: same lightness, same faint chroma, new hue
+      const sp = spill[p], ch = Math.hypot(lab[p * 3 + 1], lab[p * 3 + 2]) * spillK;
+      fromLab(lab[p * 3], Math.cos(dAng) * ch, Math.sin(dAng) * ch, px, 0);
+      out[p * 3] = r * (1 - sp) + px[0] * sp; out[p * 3 + 1] = g * (1 - sp) + px[1] * sp; out[p * 3 + 2] = b * (1 - sp) + px[2] * sp;
+      if (m < 0.004) continue;
+      const r2 = out[p * 3], g2 = out[p * 3 + 1], b2 = out[p * 3 + 2], L = lab[p * 3], a = lab[p * 3 + 1], bb = lab[p * 3 + 2];
+      const sat = 0.85 * Math.min(1.4, Math.max(0.15, Math.hypot(a, bb) / cm));
+      fromLab(dst[0] + (L - Lm) * k, dst[1] * sat, dst[2] * sat, px, 0);
+      out[p * 3] = r2 * (1 - m) + px[0] * m; out[p * 3 + 1] = g2 * (1 - m) + px[1] * m; out[p * 3 + 2] = b2 * (1 - m) + px[2] * m;
+      continue;
+    }
     if (m < 0.004) { out[p * 3] = r; out[p * 3 + 1] = g; out[p * 3 + 2] = b; continue; }
     const L = lab[p * 3], a = lab[p * 3 + 1], bb = lab[p * 3 + 2];
     const sat = 0.85 * Math.min(1.4, Math.max(0.15, Math.hypot(a, bb) / cm));   // Gemini paints fabric at ~0.85 of the swatch's chroma
