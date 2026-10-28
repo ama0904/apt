@@ -502,7 +502,9 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden)heal
 function loadImg(src){return new Promise(function(res,rej){var i=new Image();i.onload=function(){res(i);};i.onerror=rej;i.src=src;});}
 function compress(src,max,q){return loadImg(src).then(function(i){var r=Math.min(max/i.width,max/i.height,1),c=document.createElement('canvas');
  c.width=Math.max(1,Math.round(i.width*r));c.height=Math.max(1,Math.round(i.height*r));var g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(i,0,0,c.width,c.height);return c.toDataURL('image/jpeg',q);});}
-function setDog(src,demo){setErr('');warnOk=false;sizeByUser=false;return loadImg(src).then(function(){dog=src;pv.src=src;drop.classList.add('has');guessSize(src,demo);
+function setDog(src,demo){setErr('');warnOk=false;sizeByUser=false;return loadImg(src).then(function(){dog=src;pv.src=src;drop.classList.add('has');
+ /* a new dog: the previous dog's size does not carry over (if the photo gives no clear size, the customer picks one) */
+ selSize=null;guessSize(src,demo);applySel();
  document.querySelectorAll('.fit-demo button').forEach(function(b){b.classList.toggle('cur',b.dataset.dog===demo);});update();}).catch(function(){setErr(t('err.badFile'));});}
 function pick(f){if(!f)return;if(!/^image\//.test(f.type)&&!/\.(heic|heif|jpe?g|png|webp|gif|bmp)$/i.test(f.name)){setErr(t('err.badFile'));return;}
  var rd=new FileReader();rd.onload=function(){setDog(rd.result,null);};rd.onerror=function(){setErr(t('err.badFile'));};rd.readAsDataURL(f);}
