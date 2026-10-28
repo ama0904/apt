@@ -395,10 +395,17 @@ body.menu-open .bars i:nth-child(1){transform:translateY(6px) rotate(45deg)}body
 @media (max-width:1180px){.nav a{font-size:15px;padding:8px 10px}}
 /* wide screens: logo, menu and languages on one row */
 @media (min-width:1060px){
- .hd-in{grid-template-columns:auto 1fr auto;grid-template-areas:"logo nav lang";padding:10px 0}
- .hd-in>.nav{padding:0;flex-wrap:nowrap}.logo img{height:48px}
- .hd-in>.lang{padding:3px}.hd-in>.lang a{min-width:0;height:34px;padding:0 11px;font-size:14px}
+ :root:lang(zh) .hd-in{grid-template-columns:auto 1fr auto;grid-template-areas:"logo nav lang";padding:10px 0}
+ :root:lang(zh) .hd-in>.nav{padding:0;flex-wrap:nowrap}:root:lang(zh) .logo img{height:48px}
+ :root:lang(zh) .hd-in>.lang{padding:3px}:root:lang(zh) .hd-in>.lang a{min-width:0;height:34px;padding:0 11px;font-size:14px}
 }
+/* longer labels: one row only on wider screens */
+@media (min-width:1200px){
+ :root:is(:lang(en),:lang(ja)) .hd-in{grid-template-columns:auto 1fr auto;grid-template-areas:"logo nav lang";padding:10px 0}
+ :root:is(:lang(en),:lang(ja)) .hd-in>.nav{padding:0;flex-wrap:nowrap}:root:is(:lang(en),:lang(ja)) .logo img{height:48px}
+ :root:is(:lang(en),:lang(ja)) .hd-in>.lang{padding:3px}:root:is(:lang(en),:lang(ja)) .hd-in>.lang a{min-width:0;height:34px;padding:0 11px;font-size:14px}
+}
+/* German labels are too long for one row: menu always on its own row */
 @media (max-width:980px){
  .nav,.srch,.hd-in>.lang{display:none}.burger{display:grid;place-items:center;order:-1;margin-left:-11px}
  .hd-in{display:flex;align-items:center;min-height:64px;gap:12px;padding-top:0}.hd-in>.logo{margin:0 auto;padding-right:36px}.logo img{height:50px}
@@ -673,6 +680,8 @@ STORE = "pages/hamburg.html"
 
 def nav_links(data, page_dir, lang, current=""):
     items = list(NAV)
+    if mem.config():   # 會員專區 sits between 機能與設計細節 and 試衣間 (desktop bar and mobile menu)
+        items.insert(items.index((fit.PAGE, "試衣間")), (mem.PAGE, "會員專區"))
     if lang == "de":
         items.append((STORE, "漢堡店"))
     out = []
@@ -694,7 +703,6 @@ def lang_links(site_rel, lang, cls=""):
 
 def header(data, site_rel, lang, current=""):
     d = rel_dir(site_rel)
-    member_main = f'<a href="{link(d, mem.PAGE, lang)}"{cur(current == mem.PAGE)}>會員專區</a>' if mem.config() else ""
     store_link = f'<a href="{link(d, STORE, lang)}">漢堡店中店</a>' if lang == "de" else ""   # the Hamburg shop only matters to German visitors
     search = link(d, "search.html", lang)
     return f"""<div class="lang-row" aria-label="語言">{lang_links(site_rel, lang)}</div>
@@ -708,7 +716,7 @@ def header(data, site_rel, lang, current=""):
 </header>
 <div class="mobile-menu" role="dialog" aria-label="選單"><div class="mm-panel">
   <div class="mm-top"><a href="{link(d, 'index.html', lang)}" aria-label="apetto"><img src="{asset(d, LOGO)}" alt="apetto"></a><button class="mm-close" aria-label="關閉">✕</button></div>
-  <nav class="mm-nav">{nav_links(data, d, lang, current)}{member_main}</nav>
+  <nav class="mm-nav">{nav_links(data, d, lang, current)}</nav>
   <nav class="mm-more"><a href="{link(d, "pages/5.html", lang)}">購物流程</a><a href="{link(d, "information/news.html", lang)}">最新消息</a>{store_link}</nav>
   <div class="mm-social"><a href="{INSTAGRAM}" target="_blank" rel="noopener">Instagram</a><a href="{PINKOI}" target="_blank" rel="noopener">Pinkoi</a></div>
 </div></div>"""
