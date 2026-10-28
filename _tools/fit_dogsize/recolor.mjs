@@ -172,13 +172,28 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
       const sur2 = []; for (let i = 0; i < sur.length; i += 3) { let df = Infinity; for (const c of F) df = Math.min(df, labDist(sur[i], sur[i + 1], sur[i + 2], c[0], c[1], c[2])); if (df > 14) sur2.push(sur[i], sur[i + 1], sur[i + 2]); }
       const B = kmeans(sur2, 4);
       if (B.length) surround = B;
-      if (B.length) for (let p = 0; p < N; p++) {
+      // opts.edge: 0 (default) = off. Tested on 11 real pairs on the laptop, the check left a ragged dark outline on a
+      // cape's hem, a yellow seam where a bright specular edge looked like white fur, and blotches where hem shadows looked
+      // like fur. 1 = apply it. The clusters are still learnt: the spill pass needs them.
+      if (B.length && (opts.edge || 0) === 1) for (let p = 0; p < N; p++) {
         if (mask[p] < 0.004 || mask[p] > 0.97) continue;
         const L = lab[p * 3], a = lab[p * 3 + 1], b = lab[p * 3 + 2];
         let df = Infinity, db = Infinity;
         for (const c of F) df = Math.min(df, labDist(L, a, b, c[0], c[1], c[2]));
         for (const c of B) db = Math.min(db, labDist(L, a, b, c[0], c[1], c[2]));
         mask[p] *= clamp01((db - df) / 12 + 0.5);
+      }
+      // opts.edge 5: the same check, but only against coloured surroundings (grass, foliage: chroma > 12) and only for
+      // pixels clearly closer to them than to the fabric. Neutral clusters (white fur, specular edges, shadows) never
+      // remove fabric, which is where mode 1 went wrong; grass next to a yellow-green cape still stays grass.
+      const Bc = B.filter(c => Math.hypot(c[1], c[2]) > 12);
+      if (Bc.length && (opts.edge || 0) === 5) for (let p = 0; p < N; p++) {
+        if (mask[p] < 0.004 || mask[p] > 0.97) continue;
+        const L = lab[p * 3], a = lab[p * 3 + 1], b = lab[p * 3 + 2];
+        let df = Infinity, db = Infinity;
+        for (const c of F) df = Math.min(df, labDist(L, a, b, c[0], c[1], c[2]));
+        for (const c of Bc) db = Math.min(db, labDist(L, a, b, c[0], c[1], c[2]));
+        mask[p] *= clamp01((db - df) / 10 + 1);
       }
     }
   }
@@ -206,6 +221,9 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
     for (const r of refs) { const d = Math.hypot(a - r[1], b - r[2]) + 0.25 * Math.abs(L - r[0]); if (d < bd) { bd = d; c = r; } }
     const ex = Math.min(0.6 * cm, (a - c[1]) * ux + (b - c[2]) * uy);   // how far the pixel leans toward the old colour
     if (ex < 1.5) continue;
+    // opts.spill: 2 (default) = only where the nearest surroundings are neutral and light (fur, skin, walls), never grass:
+    // grass next to a yellow-green cape also leans toward the old colour and got a light halo. 1 = any surroundings.
+    if ((opts.spill || 2) === 2 && (Math.hypot(c[1], c[2]) > 12 || c[0] < 55)) continue;
     spill[p] = band[p] * clamp01((L - 45) / 10) * clamp01((ex - 1.5) / 3) * (1 - mask[p]);
     spillAB[p * 2] = a - ex * ux + ex * spillK * vx; spillAB[p * 2 + 1] = b - ex * uy + ex * spillK * vy;
   }
