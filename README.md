@@ -16,7 +16,7 @@
 
 | 後台 | https://ama0904.github.io/apt/admin.html |
 
-目前版本：v1.0.2（顯示在網站頁尾與後台標題旁；改版時更新 `_tools/theme.py` 的 `VERSION`、`admin.html` 標題與 git tag）。
+目前版本：v1.0.3（顯示在網站頁尾與後台標題旁；改版時更新 `_tools/theme.py` 的 `VERSION`、`admin.html` 標題與 git tag）。
 
 
 

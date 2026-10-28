@@ -35,6 +35,8 @@ DOGS = [("golden", "dog_golden.jpg", "黃金獵犬"), ("labrador", "dog_labrador
 # One entry per garment: 雨衣 / 保暖加毛 x 大狗 / 小狗. The other colours are the products sharing the garment's name; the laptop recolours them.
 COATS = [("rain_big", "rain_big.jpg", "太空灰", 7, "big_raincoat"), ("rain_small", "rain_small.jpg", "普魯士藍", 9, "small_cape"),
          ("warm_big", "warm_big.jpg", "萊姆綠", 13, "big_jacket"), ("warm_small", "warm_small.jpg", "莓果桃", 15, "small_warm_cape")]
+# picture on a style card instead of the garment's reference picture (the owner's choice; Gemini still gets the reference)
+TYPE_PICTURE = {"warm": ASSET_DIR + "type_warm.jpg"}
 # which garment a size chart belongs to: (type, size)
 CHART_KIND = {"big_raincoat": ("rain", "big"), "small_cape": ("rain", "small"), "big_jacket": ("warm", "big"), "small_warm_cape": ("warm", "small")}
 # garment colours for recolouring (picked from try-on pictures, reference images and product photos); unknown names get no recolour
@@ -366,7 +368,7 @@ CSS = r"""
 .fit-types{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .fit-type{position:relative;border:2px solid var(--line);border-radius:16px;background:var(--card);padding:10px 10px 12px;text-align:left;cursor:pointer;font:inherit;color:var(--ink);transition:border-color .15s,transform .15s,box-shadow .15s}
 @media (hover:hover){.fit-type:hover{border-color:var(--ink2);transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.06)}}.fit-type.cur{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand);transform:translateY(-2px)}
-.fit-type .img{aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:#fff;display:grid;place-items:center}.fit-type img{width:100%;height:100%;object-fit:contain}
+.fit-type .img{aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:#fff;display:grid;place-items:center}.fit-type img{width:100%;height:100%;object-fit:contain}.fit-type[data-fixed] img{object-fit:cover}
 .fit-type .nm{display:block;font-weight:800;font-size:16px;margin-top:10px;line-height:1.3}.fit-type .sub{display:block;font-size:12.5px;color:var(--mute);line-height:1.4;margin-top:2px}
 .fit-type .chk{position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;display:none;place-items:center;box-shadow:0 2px 8px rgba(255,36,20,.35);z-index:1}.fit-type.cur .chk{display:grid}
 .fit-sizes{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin-top:16px}.fit-sizes .lbl{grid-column:1/-1;font-size:14px;font-weight:700;color:var(--ink2);margin-bottom:-2px}
@@ -514,7 +516,7 @@ var coatKey=null,selType=null,selSize=null,sizeByUser=false;
 function coatOf(tp,sz){for(var k in cfg.coats){var o=cfg.coats[k];if(o.type===tp&&o.size===sz)return k;}return null;}
 function applySel(){var k=selType&&selSize?coatOf(selType,selSize):null;coatKey=k;coat=k?cfg.coats[k].img:null;warnOk=false;
  document.querySelectorAll('.fit-type').forEach(function(b){b.classList.toggle('cur',b.dataset.type===selType);
-  var k2=coatOf(b.dataset.type,selSize||'big')||coatOf(b.dataset.type,'small'),im=b.querySelector('img');if(k2&&im&&im.getAttribute('src')!==cfg.coats[k2].img)im.src=cfg.coats[k2].img;});
+  var k2=coatOf(b.dataset.type,selSize||'big')||coatOf(b.dataset.type,'small'),im=b.querySelector('img');if(!b.dataset.fixed&&k2&&im&&im.getAttribute('src')!==cfg.coats[k2].img)im.src=cfg.coats[k2].img;});
  document.querySelectorAll('.fit-sz').forEach(function(b){b.classList.toggle('cur',b.dataset.size===selSize);
   var k2=coatOf(selType||'rain',b.dataset.size),o=k2&&cfg.coats[k2],i=b.querySelector('i');if(i)i.textContent=o&&o.range?o.range:'';});
  renderSel();update();sizeOut();guessOut();}
@@ -761,8 +763,10 @@ def render(data, lang):
         c = by_kind.get((tk, "big")) or by_kind.get((tk, "small"))
         if not c:
             continue
-        src = img_url(d, c["image"])
-        types += (f'<button type="button" class="fit-type" data-type="{tk}"><span class="chk">{ICON_CHECK}</span>'
+        fixed = TYPE_PICTURE.get(tk)   # a picture chosen for the card itself (else the garment's reference, following the size)
+        src = img_url(d, fixed or c["image"])
+        fixed_attr = ' data-fixed="1"' if fixed else ""
+        types += (f'<button type="button" class="fit-type" data-type="{tk}"{fixed_attr}><span class="chk">{ICON_CHECK}</span>'
                   f'<span class="img"><img src="{src}" alt="" loading="lazy"></span><span class="nm">{name}</span><span class="sub">{sub}</span></button>')
     sizes = "".join(f'<button type="button" class="fit-sz" data-size="{sk}"><span class="rec">建議</span><b>{name}</b><i></i></button>'
                     for sk, name in (("small", "小狗"), ("big", "大狗")))
