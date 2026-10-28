@@ -382,6 +382,7 @@ function applyDog(force) {
     const v = curDog[i.dataset.m];
     if (force || !i.value) { i.value = v ? v : ''; i.dispatchEvent(new Event('input')); }
   });
+  window.apFitDog = { name: curDog.name || '', back: +curDog.back || 0 };   // the fitting room's warning names the dog these sizes belong to
 }
 function currentSizes() {
   const s = {}; document.querySelectorAll('.fit-size input[data-m]').forEach(i => { const v = parseFloat(i.value); if (v > 0) s[i.dataset.m] = v; }); return s;

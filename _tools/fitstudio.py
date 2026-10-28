@@ -325,6 +325,8 @@ STR = {
     "warn.title": {"zh": "這件可能不合身", "en": "This one may not fit", "ja": "サイズが合わないかもしれません", "de": "Das passt vielleicht nicht"},
     "warn.guess": {"zh": "從照片看，你家毛孩像是{dog}，而這件是{coat}款。試穿圖一定會畫得剛好合身，不代表實際尺寸，購買前請以背長和尺寸表為準。", "en": "From the photo, your dog looks like a {dog}, but this one is cut for {coat}. The try-on picture always fits perfectly and does not show the real size; check the back length and size chart before buying.", "ja": "写真では愛犬は{dog}のようですが、こちらは{coat}向けです。試着画像は必ずぴったりに描かれ、実際のサイズを示しません。購入前に背丈とサイズ表をご確認ください。", "de": "Laut Foto wirkt dein Hund wie ein {dog}, dieses Modell ist aber für {coat}. Das Anprobe-Bild passt immer perfekt und zeigt nicht die echte Größe; prüfe vor dem Kauf Rückenlänge und Größentabelle."},
     "warn.back": {"zh": "依你填的背長，這件的尺寸對你家毛孩{bad}。試穿圖一定會畫得剛好合身，不代表實際尺寸。", "en": "By the back length you entered, this one is {bad} for your dog. The try-on picture always fits perfectly and does not show the real size.", "ja": "入力した背丈では、こちらは愛犬に{bad}。試着画像は必ずぴったりに描かれ、実際のサイズを示しません。", "de": "Nach der eingegebenen Rückenlänge ist dieses Modell für deinen Hund {bad}. Das Anprobe-Bild passt immer perfekt und zeigt nicht die echte Größe."},
+    "warn.backMem": {"zh": "依會員資料裡「{name}」的背長 {back} cm，這件的尺寸對牠{bad}。如果照片裡不是{name}，請清掉背長再試穿。", "en": "By the back length saved for “{name}” ({back} cm), this one is {bad}. If the photo is not {name}, clear the back length and try again.", "ja": "会員情報の「{name}」の背丈 {back} cm では、このサイズは{bad}。写真が{name}でなければ、背丈を消してから試着してください。", "de": "Nach der gespeicherten Rückenlänge von „{name}“ ({back} cm) ist dieses Modell {bad}. Ist auf dem Foto nicht {name}, lösche die Rückenlänge und probiere es erneut."},
+    "warn.notDog": {"zh": "照片裡不是{name}，清掉背長", "en": "This is not {name}, clear the sizes", "ja": "{name}ではないので背丈を消す", "de": "Das ist nicht {name}, Maße löschen"},
     "warn.big": {"zh": "太大", "en": "too big", "ja": "大きすぎます", "de": "zu groß"},
     "warn.smallB": {"zh": "太小", "en": "too small", "ja": "小さすぎます", "de": "zu klein"},
     "warn.go": {"zh": "我知道了，還是要試穿", "en": "I understand, try it anyway", "ja": "了解して、このまま試着", "de": "Verstanden, trotzdem anprobieren"},
@@ -546,11 +548,14 @@ function misfit(){var c=coatKey&&cfg.coats[coatKey];if(!c||!c.cut)return null;
   return {why:'guess',dog:alts.length?cfg.coats[alts[0]].kind:'',coat:c.kind,alts:alts};}
  return null;}
 function showWarn(m){var old=$('.fit-modal');if(old)old.remove();var d=document.createElement('div');d.className='fit-modal';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');
- var txt=m.why==='back'?t('warn.back',{bad:m.bad}):t('warn.guess',{dog:m.dog,coat:m.coat});
+ /* the back length may be a member's saved dog, filled in automatically: say whose, and offer to clear it (the photo may be another dog) */
+ var md=window.apFitDog,mem=m.why==='back'&&md&&md.back&&Math.abs(mval('back')-md.back)<0.01?md:null;
+ var txt=m.why==='back'?(mem?t('warn.backMem',{name:mem.name,back:mval('back'),bad:m.bad}):t('warn.back',{bad:m.bad})):t('warn.guess',{dog:m.dog,coat:m.coat});
  d.innerHTML='<div class="box"><h3>'+t('warn.title')+'</h3><p>'+escHtml(txt)+'</p><div class="acts">'+m.alts.map(function(k){var o=cfg.coats[k];return '<button type="button" class="btn" data-k="'+k+'">'+escHtml(t('warn.switch',{name:o.label,kind:o.kind}))+'</button>';}).join('')+
-  '<button type="button" class="btn ghost" data-go="1">'+t('warn.go')+'</button><button type="button" class="cancel">'+t('warn.cancel')+'</button></div></div>';
+  (mem?'<button type="button" class="btn ghost" data-clear="1">'+escHtml(t('warn.notDog',{name:mem.name}))+'</button>':'')+'<button type="button" class="btn ghost" data-go="1">'+t('warn.go')+'</button><button type="button" class="cancel">'+t('warn.cancel')+'</button></div></div>';
  d.addEventListener('click',function(e){var b=e.target.closest('button');if(e.target===d){d.remove();return;}if(!b)return;d.remove();
   if(b.dataset.k){selectCoat(b.dataset.k);setTimeout(function(){go.click();},50);}
+  else if(b.dataset.clear){document.querySelectorAll('.fit-size input').forEach(function(i){i.value='';i.dispatchEvent(new Event('input'));});setTimeout(function(){go.click();},50);}
   else if(b.dataset.go){warnOk=true;go.click();}});
  document.body.appendChild(d);var f=d.querySelector('.btn');if(f)f.focus();}
 function escHtml(x){return String(x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
