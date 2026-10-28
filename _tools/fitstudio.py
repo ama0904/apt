@@ -765,7 +765,7 @@ def render(data, lang):
         types += (f'<button type="button" class="fit-type" data-type="{tk}"><span class="chk">{ICON_CHECK}</span>'
                   f'<span class="img"><img src="{src}" alt="" loading="lazy"></span><span class="nm">{name}</span><span class="sub">{sub}</span></button>')
     sizes = "".join(f'<button type="button" class="fit-sz" data-size="{sk}"><span class="rec">建議</span><b>{name}</b><i></i></button>'
-                    for sk, name in (("big", "大狗"), ("small", "小狗")))
+                    for sk, name in (("small", "小狗"), ("big", "大狗")))
     import member as mem
     mcfg = mem.config()
     crumbs = f'<li><a href="{th.link(d, "index.html", lang)}">首頁</a></li><li>試衣間</li>'
