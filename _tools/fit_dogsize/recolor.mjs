@@ -88,6 +88,20 @@ function keepLargeParts(mask, w, h) {
   for (let p = 0; p < N; p++) out[p] = mask[p] * Math.min(1, core[p] * 1.5);
   return out;
 }
+// tiny k-means on Lab samples (flat array of L,a,b triples); lightness counts half, the colour direction matters more
+const labDist = (L1, a1, b1, L2, a2, b2) => Math.hypot(0.5 * (L1 - L2), a1 - a2, b1 - b2);
+function kmeans(samples, k, iters = 8) {
+  const n = samples.length / 3; if (n < k) return [];
+  const C = []; for (let j = 0; j < k; j++) { const i = Math.floor((j + 0.5) * n / k) * 3; C.push([samples[i], samples[i + 1], samples[i + 2]]); }
+  for (let it = 0; it < iters; it++) {
+    const S = C.map(() => [0, 0, 0, 0]);
+    for (let i = 0; i < samples.length; i += 3) { let best = 0, bd = Infinity;
+      for (let j = 0; j < k; j++) { const d = labDist(samples[i], samples[i + 1], samples[i + 2], C[j][0], C[j][1], C[j][2]); if (d < bd) { bd = d; best = j; } }
+      const s = S[best]; s[0] += samples[i]; s[1] += samples[i + 1]; s[2] += samples[i + 2]; s[3]++; }
+    S.forEach((s, j) => { if (s[3]) C[j] = [s[0] / s[3], s[1] / s[3], s[2] / s[3]]; });
+  }
+  return C;
+}
 const median = arr => { if (!arr.length) return NaN; const s = Float64Array.from(arr).sort(); return s[s.length >> 1]; };
 
 // where the try-on differs from the customer's photo = where the garment was painted. null when unusable.
@@ -139,6 +153,35 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
   }
   mask = boxBlur(boxBlur(dilate(mask, w, h, 1), w, h, 1), w, h, 1);
   if (!region) mask = keepLargeParts(mask, w, h);
+  let surround = null;   // colour clusters of what surrounds the garment (grass, fur), learnt below
+  // edge check: what surrounds the garment (grass, fur) is learnt from a ring just outside it; an edge pixel that looks
+  // more like those surroundings than like the fabric is not recoloured. Yellow-green capes on grass otherwise paint a
+  // frame of the new colour onto the grass and the fur along the garment's outline.
+  {
+    const sc2 = Math.max(1, Math.round(Math.max(w, h) / 640));
+    const core0 = new Float32Array(N); for (let p = 0; p < N; p++) core0[p] = mask[p] > 0.5 ? 1 : 0;
+    const inner = dilate(core0, w, h, 4 * sc2), outer = dilate(core0, w, h, 12 * sc2);
+    const fab = [], sur = [];
+    for (let p = 0; p < N; p += 2) {
+      if (mask[p] > 0.85 && fab.length < 60000) fab.push(lab[p * 3], lab[p * 3 + 1], lab[p * 3 + 2]);
+      else if (outer[p] > 0 && inner[p] === 0 && sur.length < 60000) sur.push(lab[p * 3], lab[p * 3 + 1], lab[p * 3 + 2]);
+    }
+    const F = kmeans(fab, 3);
+    if (F.length) {
+      // surroundings that are really fabric the mask missed must not count as "surroundings"
+      const sur2 = []; for (let i = 0; i < sur.length; i += 3) { let df = Infinity; for (const c of F) df = Math.min(df, labDist(sur[i], sur[i + 1], sur[i + 2], c[0], c[1], c[2])); if (df > 14) sur2.push(sur[i], sur[i + 1], sur[i + 2]); }
+      const B = kmeans(sur2, 4);
+      if (B.length) surround = B;
+      if (B.length) for (let p = 0; p < N; p++) {
+        if (mask[p] < 0.004 || mask[p] > 0.97) continue;
+        const L = lab[p * 3], a = lab[p * 3 + 1], b = lab[p * 3 + 2];
+        let df = Infinity, db = Infinity;
+        for (const c of F) df = Math.min(df, labDist(L, a, b, c[0], c[1], c[2]));
+        for (const c of B) db = Math.min(db, labDist(L, a, b, c[0], c[1], c[2]));
+        mask[p] *= clamp01((db - df) / 12 + 0.5);
+      }
+    }
+  }
   const Ls = [], Cs = []; let cnt = 0;
   for (let p = 0; p < N; p++) if (mask[p] > 0.5) { cnt++; if ((p & 3) === 0) { Ls.push(lab[p * 3]); Cs.push(Math.hypot(lab[p * 3 + 1], lab[p * 3 + 2])); } }
   const Lm = Ls.length ? median(Ls) : src[0], cm = Math.max(1, Cs.length ? median(Cs) : sc);
@@ -150,20 +193,28 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
   // In a thin band around the garment, light pixels tinted like the old colour get the same faint tint of the new one.
   const core = new Float32Array(N); for (let p = 0; p < N; p++) core[p] = mask[p] > 0.3 ? 1 : 0;
   const band = boxBlur(dilate(core, w, h, Math.max(3, Math.round(Math.max(w, h) / 160))), w, h, 2);
-  const dc = Math.hypot(dst[1], dst[2]), dAng = Math.atan2(dst[2], dst[1]), spillK = Math.min(1, dc / Math.max(1, sc));
-  const spill = new Float32Array(N);
+  // Only the tint a pixel has beyond its surroundings' own colour is swapped (cream fur stays cream; its yellow glow goes).
+  const dc = Math.hypot(dst[1], dst[2]), spillK = Math.min(1, dc / Math.max(1, sc));
+  const ux = src[1] / Math.max(1, sc), uy = src[2] / Math.max(1, sc), vx = dst[1] / Math.max(1, dc), vy = dst[2] / Math.max(1, dc);
+  const refs = surround && surround.length ? surround : [[70, 0, 0]];
+  const spill = new Float32Array(N), spillAB = new Float32Array(N * 2);
   for (let p = 0; p < N; p++) {
     if (band[p] < 0.02 || mask[p] > 0.98) continue;
-    const L = lab[p * 3], a = lab[p * 3 + 1], b = lab[p * 3 + 2], ch = Math.hypot(a, b);
-    let d = Math.abs(Math.atan2(b, a) - sang); if (d > Math.PI) d = 2 * Math.PI - d;
-    spill[p] = band[p] * clamp01((25 - d * 180 / Math.PI) / 10) * clamp01((ch - 2) / 3) * clamp01((L - 50) / 10) * clamp01((0.75 * cm - ch) / (0.15 * cm) + 1) * (1 - mask[p]);
+    const L = lab[p * 3], a = lab[p * 3 + 1], b = lab[p * 3 + 2];
+    if (L < 45) continue;
+    let c = refs[0], bd = Infinity;
+    for (const r of refs) { const d = Math.hypot(a - r[1], b - r[2]) + 0.25 * Math.abs(L - r[0]); if (d < bd) { bd = d; c = r; } }
+    const ex = Math.min(0.6 * cm, (a - c[1]) * ux + (b - c[2]) * uy);   // how far the pixel leans toward the old colour
+    if (ex < 1.5) continue;
+    spill[p] = band[p] * clamp01((L - 45) / 10) * clamp01((ex - 1.5) / 3) * (1 - mask[p]);
+    spillAB[p * 2] = a - ex * ux + ex * spillK * vx; spillAB[p * 2 + 1] = b - ex * uy + ex * spillK * vy;
   }
   const out = Buffer.alloc(N * 3), px = new Float64Array(3);
   for (let p = 0; p < N; p++) {
     const m = mask[p], r = data[p * 3], g = data[p * 3 + 1], b = data[p * 3 + 2];
     if (spill[p] > 0.004) {   // the faint glow: same lightness, same faint chroma, new hue
-      const sp = spill[p], ch = Math.hypot(lab[p * 3 + 1], lab[p * 3 + 2]) * spillK;
-      fromLab(lab[p * 3], Math.cos(dAng) * ch, Math.sin(dAng) * ch, px, 0);
+      const sp = spill[p];
+      fromLab(lab[p * 3], spillAB[p * 2], spillAB[p * 2 + 1], px, 0);
       out[p * 3] = r * (1 - sp) + px[0] * sp; out[p * 3 + 1] = g * (1 - sp) + px[1] * sp; out[p * 3 + 2] = b * (1 - sp) + px[2] * sp;
       if (m < 0.004) continue;
       const r2 = out[p * 3], g2 = out[p * 3 + 1], b2 = out[p * 3 + 2], L = lab[p * 3], a = lab[p * 3 + 1], bb = lab[p * 3 + 2];
@@ -179,7 +230,7 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
     out[p * 3] = r * (1 - m) + px[0] * m; out[p * 3 + 1] = g * (1 - m) + px[1] * m; out[p * 3 + 2] = b * (1 - m) + px[2] * m;
   }
   const jpg = await sharp(out, { raw: { width: w, height: h, channels: 3 } }).jpeg({ quality: 88 }).toBuffer();
-  return { jpg, share: cnt / N, how, region };
+  return opts.debug ? { jpg, share: cnt / N, how, region, mask, spill, w, h } : { jpg, share: cnt / N, how, region };
 }
 
 // ---------- worker plumbing: all pixel work lives in one worker thread, so the server's main thread is never blocked
