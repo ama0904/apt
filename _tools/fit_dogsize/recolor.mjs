@@ -33,15 +33,15 @@ function fromLab(L, a, b, out, i) {
   const gam = c => { c = c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(Math.max(c, 0), 1 / 2.4) - 0.055; return Math.max(0, Math.min(255, c * 255)); };
   out[i] = gam(3.2406 * x - 1.5372 * y - 0.4986 * z); out[i + 1] = gam(-0.9689 * x + 1.8758 * y + 0.0415 * z); out[i + 2] = gam(0.0557 * x - 0.2040 * y + 1.0570 * z);
 }
-// zbook 2026-10-28: Lab colour pulled into the sRGB gamut by shrinking its chroma (dark folds asked for "dark neon yellow",
-// which does not exist; the channel clamp made them black)
+// zbook 2026-10-28: pull the chroma in until the colour exists in sRGB. A grey coat's deep folds asked for "dark neon
+// yellow", which does not exist, so fromLab's channel clamp turned them black; the shiny highlights asked for light navy.
 function fitLab(L, a, b, out, i) {
   for (let n = 0; n < 6; n++) {
-    fromLab(L, a, b, out, i);
-    const fy = (L + 16) / 116, fx = fy + a / 500, fz = fy - b / 200, inv = t => (t * t * t > 0.008856 ? t * t * t : (t - 16 / 116) / 7.787);
+    const fy = (L + 16) / 116, fx = fy + a / 500, fz = fy - b / 200;
+    const inv = t => (t * t * t > 0.008856 ? t * t * t : (t - 16 / 116) / 7.787);
     const x = inv(fx) * WHITE[0], y = inv(fy), z = inv(fz) * WHITE[2];
     const r = 3.2406 * x - 1.5372 * y - 0.4986 * z, g = -0.9689 * x + 1.8758 * y + 0.0415 * z, bl = 0.0557 * x - 0.2040 * y + 1.0570 * z;
-    if (r >= -0.002 && g >= -0.002 && bl >= -0.002 && r <= 1.002 && g <= 1.002 && bl <= 1.002) return;
+    if (Math.min(r, g, bl) >= -0.01 && Math.max(r, g, bl) <= 1.01) break;
     a *= 0.7; b *= 0.7;
   }
   fromLab(L, a, b, out, i);
@@ -136,28 +136,30 @@ async function changedRegion(original, w, h, tryon) {
   }
   const share = hot / N;
   if (share < 0.004 || share > 0.35) return null;   // nothing changed, or Gemini redrew the whole picture (a real garment is ~5-20 %)
+  // thin strips are not a garment: a leash, lead or harness that Gemini painted away leaves a narrow band of "changed"
+  // background (pavement, sky). Opening the mask (erode, then grow back) drops anything narrower than ~2 % of the picture.
+  const bin = new Float32Array(N); for (let p = 0; p < N; p++) bin[p] = m[p] > 0.5 ? 1 : 0;
+  const ro = Math.max(3, Math.round(0.009 * Math.max(w, h)));
+  const opened = dilate(erode(bin, w, h, ro), w, h, ro);
   // the garment is one or two big pieces; scattered specks are regenerated texture (grass, bokeh) and are dropped
-  const keepBig = mk => {
-    const cs = components(boxBlur(dilate(mk, w, h, 2), w, h, 1), w, h, 0.5), big = new Float32Array(N);
+  const bigParts = src => {
+    const cs = components(boxBlur(dilate(src, w, h, 2), w, h, 1), w, h, 0.5), big = new Float32Array(N);
     if (!cs.n) return null;
     const largest = Math.max(...cs.areas), minArea = Math.max(0.15 * largest, 0.004 * N);
     for (let p = 0; p < N; p++) if (cs.label[p] && cs.areas[cs.label[p]] >= minArea) big[p] = 1;
     return boxBlur(dilate(big, w, h, 2), w, h, 2);   // the blurred difference already reaches past the garment edge
   };
-  const region = keepBig(m);
+  // zbook 2026-10-28: two regions. Coloured garments keep the un-opened one (the opening ate cape tips, hem bands and
+  // straps on uc2/q95/64q, leaving them in the old colour; their colour gate already rejects a removed leash's background).
+  // Grey garments, whose gate is only "low chroma", use the opened one so the leash strip is gone.
+  const region = bigParts(m);
   if (!region) return null;
-  // zbook 2026-10-28: the opened region is used for GREY garments only. Thin strips are not a garment: a leash, lead
-  // or harness that Gemini painted away leaves a narrow band of "changed" background (pavement, sky), which a grey
-  // coat (no hue to check) would take as fabric. Opening (erode, then grow back, ~2 % of the picture) drops it.
-  // Coloured coats keep the un-opened region: their hue gate already rejects that background, and opening ate thin
-  // garment parts (a cape's tip, a hem strap or band).
-  const bin = new Float32Array(N); for (let p = 0; p < N; p++) bin[p] = m[p] > 0.5 ? 1 : 0;
-  const ro = Math.max(3, Math.round(0.009 * Math.max(w, h)));
-  region.open = keepBig(dilate(erode(bin, w, h, ro), w, h, ro)) || region;
-  // zbook 2026-10-28: deep inside the garment everything is fabric, even where it barely differs from the fur under it
+  region.open = bigParts(opened) || region;
+  region.diff = m;   // per-pixel "how much changed", for grey garments (white fur next to them did not change)
+  // zbook: deep inside the opened region everything is garment, however little it differs from the fur it covers (a grey
+  // coat over grey/white fur); the per-pixel diff gate is only needed near the region's edge, where fur can be
   const ob = new Float32Array(N); for (let p = 0; p < N; p++) ob[p] = region.open[p] > 0.5 ? 1 : 0;
   region.core = boxBlur(erode(ob, w, h, 2 * ro), w, h, 2);
-  region.diff = m;   // per-pixel "how much changed": near the edge, unchanged white or grey fur is not a grey garment
   return region;
 }
 
@@ -180,8 +182,8 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
   const neutral = sc < 10;
   const hueTol = region ? 40 : tol, hueSoft = region ? 15 : 10, chromaMin = region ? 0.10 : 0.18, chromaSoft = region ? 0.10 : 0.12;
   let mask = new Float32Array(N);
+  const R = neutral && region && region.open ? region.open : region;   // grey: the opened region (no leash strips)
   for (let p = 0; p < N; p++) {
-    const R = region && (neutral ? region.open : region);   // zbook 2026-10-28: opened region for grey only
     if (R && R[p] < 0.01) continue;
     const a = lab[p * 3 + 1], b = lab[p * 3 + 2], ch = Math.hypot(a, b);
     let d = Math.abs(Math.atan2(b, a) - sang); if (d > Math.PI) d = 2 * Math.PI - d;
@@ -286,7 +288,7 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
     if (ex < 1.5) continue;
     // opts.spill: 2 (default) = only where the nearest surroundings are neutral and light (fur, skin, walls), never grass:
     // grass next to a yellow-green cape also leans toward the old colour and got a light halo. 1 = any surroundings.
-    if ((opts.spill || 2) === 2 && (Math.hypot(c[1], c[2]) > 12 || L < 55)) continue;   // zbook 2026-10-28: the pixel's own lightness (c[0] left a pink glow on a leg)
+    if ((opts.spill || 2) === 2 && (Math.hypot(c[1], c[2]) > 12 || L < 55)) continue;   // zbook: the PIXEL must be light (c[0] < 55 left the pink glow on the dachshund's leg, 64q)
     spill[p] = band[p] * clamp01((L - 45) / 10) * clamp01((ex - 1.5) / 3) * (1 - mask[p]);
     spillAB[p * 2] = a - ex * ux + ex * spillK * vx; spillAB[p * 2 + 1] = b - ex * uy + ex * spillK * vy;
   }
@@ -307,8 +309,7 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
     if (m < 0.004) { out[p * 3] = r; out[p * 3 + 1] = g; out[p * 3 + 2] = b; continue; }
     const L = lab[p * 3], a = lab[p * 3 + 1], bb = lab[p * 3 + 2];
     const sat = 0.85 * Math.min(1.4, Math.max(0.15, Math.hypot(a, bb) / cm)) * (neutral ? 0 : 1) + (neutral ? 0.9 : 0);   // Gemini paints fabric at ~0.85 of the swatch's chroma
-    // zbook 2026-10-28: grey sources: lightness capped at 96 (a glossy rim came out white) and colour kept in gamut
-    (neutral ? fitLab : fromLab)(neutral ? Math.min(96, dst[0] + (L - Lm) * k) : dst[0] + (L - Lm) * k, dst[1] * sat, dst[2] * sat, px, 0);
+    (neutral ? fitLab : fromLab)(neutral ? Math.min(96, dst[0] + (L - Lm) * k) : dst[0] + (L - Lm) * k, dst[1] * sat, dst[2] * sat, px, 0);   // zbook: a glossy highlight above L 100 came out white
     out[p * 3] = r * (1 - m) + px[0] * m; out[p * 3 + 1] = g * (1 - m) + px[1] * m; out[p * 3 + 2] = b * (1 - m) + px[2] * m;
   }
   const jpg = await sharp(out, { raw: { width: w, height: h, channels: 3 } }).jpeg({ quality: 88 }).toBuffer();
