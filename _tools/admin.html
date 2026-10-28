@@ -653,6 +653,9 @@ const $ = s => document.querySelector(s);
 const UI_LANG = localStorage.getItem('apetto_admin_lang') || ((navigator.language || '').toLowerCase().startsWith('de') ? 'de' : 'zh');
 const DE = {
   "或": "oder",
+  "正在透過試衣間筆電讀取資料…（第一次約 10–30 秒）": "Daten werden über den Laptop der Anprobe geladen… (beim ersten Mal ca. 10–30 s)",
+  "試衣間筆電太久沒有回應，請稍後再試。": "Der Laptop der Anprobe antwortet nicht, bitte später erneut versuchen.",
+  "短時間內太多請求，請過一分鐘再試。": "Zu viele Anfragen, bitte in einer Minute erneut versuchen.",
   "用 Google 帳號登入（管理員）": "Mit Google-Konto anmelden (Admin)",
   "用 Google 登入時，存檔會經過試衣間筆電；筆電關機時只能瀏覽、不能存檔。": "Mit Google-Anmeldung läuft das Speichern über den Laptop der Anprobe; ist er aus, kann nur gelesen werden.",
   "Google 登入已失效，請重新登入。": "Google-Anmeldung abgelaufen, bitte neu anmelden.",
@@ -957,13 +960,22 @@ async function idToken() {
   if (!MB.user) throw new Error(t('Google 登入已失效，請重新登入。'));
   return MB.user.getIdToken();
 }
+let LAPTOP_WAIT = 0;   // calls in flight, shown while signing in
+function laptopProgress() { const e = $('#g-err'); if (e && $('#pwlogin').style.display !== 'none' && LAPTOP_WAIT > 0) e.textContent = t('正在透過試衣間筆電讀取資料…（第一次約 10–30 秒）'); }
 async function viaLaptop(path, opts = {}) {
   let r;
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), (opts.method && opts.method !== 'GET') ? 180000 : 60000);
+  LAPTOP_WAIT++; laptopProgress();
   try {
-    r = await fetch(FIT_API + '/api/admin/gh', { method: 'POST', cache: 'no-store',
+    r = await fetch(FIT_API + '/api/admin/gh', { method: 'POST', cache: 'no-store', signal: ctl.signal,
       headers: { Authorization: 'Bearer ' + await idToken(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ method: opts.method || 'GET', path, body: opts.body ? JSON.parse(opts.body) : undefined, accept: (opts.headers || {}).Accept }) });
-  } catch (e) { if (e instanceof TypeError) throw new Error(t('連不上試衣間筆電，暫時不能讀寫（筆電可能關機）。')); throw e; }
+  } catch (e) {
+    if (e && e.name === 'AbortError') throw new Error(t('試衣間筆電太久沒有回應，請稍後再試。'));
+    if (e instanceof TypeError) throw new Error(t('連不上試衣間筆電，暫時不能讀寫（筆電可能關機）。'));
+    throw e;
+  } finally { clearTimeout(timer); LAPTOP_WAIT--; }
+  if (r.status === 429) throw new Error(t('短時間內太多請求，請過一分鐘再試。'));
   if (r.status === 401 || r.status === 403 || r.status === 503) {
     let m = ''; try { m = (await r.clone().json()).message || ''; } catch (e) {}
     if (/admin/.test(m)) throw new Error(t('這個 Google 帳號不是管理員。'));
@@ -1139,9 +1151,8 @@ function render() {
 }
 
 async function load() {
-  S = await readProducts();
-  await readNews();
-  await readFit();
+  // independent files in parallel: in Google mode every call goes through the laptop
+  await Promise.all([readProducts().then(x => { S = x; }), readNews(), readFit()]);
   $('#repo-label').textContent = `${cfg.repo} @ ${cfg.branch}`;
   $('#site-link').href = siteUrl();
   await readContent();
@@ -2167,10 +2178,12 @@ async function changedSinceLoad(R, headSha, files) {
   return '';
 }
 async function readContent() {
-  SITE = await readJsonFile(siteJsonPath(), {}) || {};
+  // the three files are read at the same time (through the laptop each call costs a round trip of a second or more)
+  const [site, guides, qa] = await Promise.all([readJsonFile(siteJsonPath(), {}), readJsonFile(guidesPath(), { items: [] }), readJsonFile(qaPath(), { faq: [] })]);
+  SITE = site || {};
   SITE.hero = SITE.hero || { title: '', lead: '' }; SITE.features = SITE.features || {}; if (!Array.isArray(SITE.features.items)) SITE.features.items = [];
-  GUIDES = await readJsonFile(guidesPath(), { items: [] }) || { items: [] }; if (!Array.isArray(GUIDES.items)) GUIDES.items = [];
-  QA = await readJsonFile(qaPath(), { faq: [] }) || { faq: [] }; if (!Array.isArray(QA.faq)) QA.faq = [];
+  GUIDES = guides || { items: [] }; if (!Array.isArray(GUIDES.items)) GUIDES.items = [];
+  QA = qa || { faq: [] }; if (!Array.isArray(QA.faq)) QA.faq = [];
   if (typeof renderQA === 'function') renderQA();
   if (S.data && !Array.isArray(S.data.groups)) S.data.groups = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
 }
