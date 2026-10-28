@@ -829,12 +829,12 @@ def render(data, lang):
   <div class="fit-steps" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
   <div class="fit-cancel"><button type="button">取消</button></div>
   <div class="fit-colors" aria-live="polite"></div>
+  <div class="fit-note" aria-live="polite"><b><i class="led" aria-hidden="true"></i><span>AI 造型師的話</span><span class="new">造型師寫好了</span></b><p></p></div>
   <div class="fit-size"><h3>喜歡嗎？量一下毛孩，看該選哪一號</h3><p class="hint">背長：從脖子根部（約前腳的位置）量到尾巴根。領圍與腹圍為圈量，可以不填。</p>
    <div class="fields"><label><span>背長</span><div><input type="number" inputmode="decimal" min="10" max="120" step="0.5" autocomplete="off" data-m="back"><em>cm</em></div></label>
     <label><span>領圍</span><div><input type="number" inputmode="decimal" min="10" max="120" step="0.5" autocomplete="off" data-m="neck"><em>cm</em></div></label>
     <label><span>腹圍</span><div><input type="number" inputmode="decimal" min="10" max="150" step="0.5" autocomplete="off" data-m="belly"><em>cm</em></div></label></div>
    <div class="fit-size-out"></div></div>
-  <div class="fit-note" aria-live="polite"><b><i class="led" aria-hidden="true"></i><span>AI 造型師的話</span><span class="new">造型師寫好了</span></b><p></p></div>
   <div class="fit-actions"><button type="button" class="btn fit-dl">{ICON_DL}下載照片</button><button type="button" class="btn ghost fit-share">分享</button><button type="button" class="btn ghost fit-again">再試一件</button></div>
   <p class="fit-fine">試穿圖由 AI 生成，顏色與版型以實際商品為準。</p>
  </section>
