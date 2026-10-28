@@ -36,7 +36,7 @@ DOGS = [("golden", "dog_golden.jpg", "黃金獵犬"), ("labrador", "dog_labrador
 COATS = [("rain_big", "rain_big.jpg", "太空灰", 7, "big_raincoat"), ("rain_small", "rain_small.jpg", "普魯士藍", 9, "small_cape"),
          ("warm_big", "warm_big.jpg", "萊姆綠", 13, "big_jacket"), ("warm_small", "warm_small.jpg", "莓果桃", 15, "small_warm_cape")]
 # picture on a style card instead of the garment's reference picture (the owner's choice; Gemini still gets the reference)
-TYPE_PICTURE = {"warm": ASSET_DIR + "type_warm.jpg"}
+TYPE_PICTURE = {"rain": ASSET_DIR + "type_rain.jpg", "warm": ASSET_DIR + "type_warm.jpg"}
 # which garment a size chart belongs to: (type, size)
 CHART_KIND = {"big_raincoat": ("rain", "big"), "small_cape": ("rain", "small"), "big_jacket": ("warm", "big"), "small_warm_cape": ("warm", "small")}
 # garment colours for recolouring (picked from try-on pictures, reference images and product photos); unknown names get no recolour
