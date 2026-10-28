@@ -279,8 +279,19 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
     // see changedRegion: redrawn same-colour background (flowers, grass) is not garment. Only for mid/light pixels: a dark
     // navy fold over black fur is also a small colour change, and those folds are what the dark-coat fix above recovers.
     if (region && !neutral && region.dab) g *= 1 - clamp01((lab[p * 3] - DAB_L0) / 10) * (1 - clamp01((region.dab[p] - DAB_LO) / (DAB_HI - DAB_LO)));
-    // see changedRegion: repainted background that looks like the unchanged background next to it, away from the body
-    if (protect) g *= 1 - clamp01((lab[p * 3] - DAB_L0) / 10) * region.bgsim[p] * (1 - protect[p]);
+    // see changedRegion: repainted background that looks like the unchanged background next to it, away from the body.
+    // zbook 2026-10-28 23:20 (ail, 萊姆綠 coat on a fox-red labrador in a meadow): only where the colour changed a lot. The
+    // coat's back and rump were drawn over yellow-green grass (photo -> try-on chroma change dab 5-15) and look like the
+    // grass around them, so the gate left two blocks of lime on the 冰川藍 / 芬達桔 variants. Repainted background is
+    // a big change (s1b/pp9: jeans -> grass, dab 35-58), and grass is darker and duller than the lit fabric: the gated
+    // grass on s1b/pp9 is L 60-70, C 24-40, the missed coat on the four fox-red labrador try-ons (ail/87g/vmy/knc)
+    // L 70-90, C 32-56. A light, saturated pixel is fabric unless its colour changed a lot (dab >= 46).
+    if (protect) {
+      const L = lab[p * 3], C = Math.hypot(lab[p * 3 + 1], lab[p * 3 + 2]);
+      const fabric = Math.max(clamp01((L - 68) / 8), clamp01((C - 38) / 8));
+      const w = Math.max(clamp01((region.dab[p] - 38) / 8), 1 - fabric);
+      g *= 1 - clamp01((L - DAB_L0) / 10) * region.bgsim[p] * (1 - protect[p]) * w;
+    }
     mask[p] = R ? g * Math.min(1, R[p] * 1.5) : g;
   }
   mask = boxBlur(boxBlur(dilate(mask, w, h, 1), w, h, 1), w, h, 1);
