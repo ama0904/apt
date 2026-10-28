@@ -143,6 +143,7 @@ async function changedRegion(original, w, h, tryon) {
     if (m[p] > 0.5) hot++;
   }
   const share = hot / N;
+  if (process.env.REGION_DEBUG) console.log('[region] changed share', share.toFixed(3), w + 'x' + h);
   if (share < 0.004 || share > 0.35) return null;   // nothing changed, or Gemini redrew the whole picture (a real garment is ~5-20 %)
   // thin strips are not a garment: a leash, lead or harness that Gemini painted away leaves a narrow band of "changed"
   // background (pavement, sky). Opening the mask (erode, then grow back) drops anything narrower than ~2 % of the picture.
@@ -170,11 +171,49 @@ async function changedRegion(original, w, h, tryon) {
   // colour and only moves texture. region.dab = chroma-plane (a,b) distance between the blurred photo and the blurred
   // try-on; coloured garments fade their mask out below DAB_LO and keep it fully above DAB_HI.
   const dab = new Float32Array(N), la = new Float64Array(3), lb = new Float64Array(3);
+  const Lb = new Float32Array(N), Ab = new Float32Array(N), Bb = new Float32Array(N);
   for (let p = 0; p < N; p++) {
     toLab(a[p * 3], a[p * 3 + 1], a[p * 3 + 2], la, 0); toLab(b[p * 3], b[p * 3 + 1], b[p * 3 + 2], lb, 0);
     dab[p] = Math.hypot(la[1] - lb[1], la[2] - lb[2]);
+    Lb[p] = lb[0]; Ab[p] = lb[1]; Bb[p] = lb[2];
   }
   region.dab = boxBlur(dab, w, h, 2);
+  // zbook 2026-10-28 (s1b, 萊姆綠 jacket, labrador held on a lead): Gemini painted the handler away and filled the hole with
+  // grass. That grass is a big "changed" area, its colour changed a lot (jeans -> grass, so the dab gate keeps it) and
+  // its yellow-green passes the lime hue gate, so a tall band of grass turned 冰川藍 / 芬達桔. Repainted background looks
+  // like the UNCHANGED background around it; a garment never does. region.bgsim[p] = 1 when the try-on at p looks like
+  // the mean colour of the unchanged pixels nearby (reach 5 % of the long side, 15 % deep inside a wide band): both the
+  // local mean over region pixels (radius 8, L weighted half: grass varies in L) within 14..26 and the pixel itself
+  // within 24..38 (full L weight: the lit rim of a coat is 35 L lighter than the grass behind it). Coloured garments
+  // multiply their mask by 1 - bgsim, except next to the garment's confident body (see recolor).
+  {
+    const S = Math.max(w, h), bg = new Float32Array(N);
+    for (let p = 0; p < N; p++) bg[p] = region[p] < 0.05 ? 1 : 0;
+    const est = r => {
+      const c = boxBlur(bg, w, h, r), L = new Float32Array(N), A = new Float32Array(N), B = new Float32Array(N);
+      for (let p = 0; p < N; p++) if (bg[p]) { L[p] = Lb[p]; A[p] = Ab[p]; B[p] = Bb[p]; }
+      return { c, L: boxBlur(L, w, h, r), A: boxBlur(A, w, h, r), B: boxBlur(B, w, h, r) };
+    };
+    const e1 = est(Math.round(0.05 * S)), e2 = est(Math.round(0.15 * S));
+    const fg = new Float32Array(N), fL = new Float32Array(N), fA = new Float32Array(N), fB = new Float32Array(N);
+    for (let p = 0; p < N; p++) if (!bg[p]) { fg[p] = 1; fL[p] = Lb[p]; fA[p] = Ab[p]; fB[p] = Bb[p]; }
+    const fc = boxBlur(fg, w, h, 8), mL = boxBlur(fL, w, h, 8), mA = boxBlur(fA, w, h, 8), mB = boxBlur(fB, w, h, 8);
+    const sim = new Float32Array(N);
+    for (let p = 0; p < N; p++) {
+      if (bg[p]) continue;
+      const e = e1.c[p] >= 0.08 ? e1 : (e2.c[p] >= 0.03 ? e2 : null);
+      if (!e || fc[p] < 0.05) continue;
+      const c = e.c[p], eL = e.L[p] / c, eA = e.A[p] / c, eB = e.B[p] / c, k = fc[p];
+      const dMean = Math.hypot(0.5 * (mL[p] / k - eL), mA[p] / k - eA, mB[p] / k - eB);
+      const dPix = Math.hypot(Lb[p] - eL, Ab[p] - eA, Bb[p] - eB);
+      sim[p] = Math.min(1 - clamp01((dMean - 14) / 12), 1 - clamp01((dPix - 24) / 14));
+    }
+    // strips of similarity along the garment's edge (the grass-like blend Gemini paints there, x69/v41) are not repainted
+    // background: only patches of at least 1 % of the picture count (the handler-shaped hole on s1b/pp9 is 10-20 %)
+    const cs = components(sim, w, h, 0.5), minArea = 0.01 * N;
+    for (let p = 0; p < N; p++) if (cs.label[p] && cs.areas[cs.label[p]] < minArea) sim[p] = 0;
+    region.bgsim = sim;   // no blur: it bled 4 px of "grass" into the coat's top edge (x69, v41)
+  }
   // zbook: deep inside the opened region everything is garment, however little it differs from the fur it covers (a grey
   // coat over grey/white fur); the per-pixel diff gate is only needed near the region's edge, where fur can be
   const ob = new Float32Array(N); for (let p = 0; p < N; p++) ob[p] = region.open[p] > 0.5 ? 1 : 0;
@@ -202,6 +241,24 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
   const hueTol = region ? 40 : tol, hueSoft = region ? 15 : 10, chromaMin = region ? 0.10 : 0.18, chromaSoft = region ? 0.10 : 0.12;
   let mask = new Float32Array(N);
   const R = neutral && region && region.open ? region.open : region;   // grey: the opened region (no leash strips)
+  // zbook 2026-10-28: Gemini paints the garment's outline as a blend with the background (grass-like, half the chroma,
+  // 20-30 px wide along a lime coat; its lit rim is pale too), and the background-similarity gate (region.bgsim) would
+  // eat that. The garment's confident body = pixels of the swatch's hue (within 10°) with chroma >= 0.8 of the swatch,
+  // inside the region, opened by 4 px so single grass blades of that colour don't count; everything within 1.5 % of the
+  // long side of that body is exempt from the gate.
+  let protect = null;
+  if (region && !neutral && region.bgsim) {
+    const conf = new Float32Array(N);
+    for (let p = 0; p < N; p++) {
+      if (region[p] < 0.5) continue;
+      const a = lab[p * 3 + 1], b = lab[p * 3 + 2], ch = Math.hypot(a, b);
+      let d = Math.abs(Math.atan2(b, a) - sang); if (d > Math.PI) d = 2 * Math.PI - d;
+      // the lit rim / top of a coat is near-white with a third of the swatch's chroma; grass never gets that light
+      if (d < 10 * Math.PI / 180 && (ch >= 0.8 * sc || (lab[p * 3] >= 88 && ch >= 0.35 * sc))) conf[p] = 1;
+    }
+    protect = dilate(dilate(erode(conf, w, h, 4), w, h, 4), w, h, Math.max(6, Math.round(0.015 * Math.max(w, h))));
+    if (process.env.BGSIM_DEBUG) { const u = Buffer.alloc(N * 3); for (let p = 0; p < N; p++) { u[p * 3] = Math.round(region.bgsim[p] * 255); u[p * 3 + 1] = Math.round(protect[p] * 255); u[p * 3 + 2] = conf[p] ? 255 : (region[p] >= 0.5 ? 90 : 0); } await sharp(u, { raw: { width: w, height: h, channels: 3 } }).png().toFile(process.env.BGSIM_DEBUG); }
+  }
   for (let p = 0; p < N; p++) {
     if (R && R[p] < 0.01) continue;
     const a = lab[p * 3 + 1], b = lab[p * 3 + 2], ch = Math.hypot(a, b);
@@ -222,10 +279,19 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
     // see changedRegion: redrawn same-colour background (flowers, grass) is not garment. Only for mid/light pixels: a dark
     // navy fold over black fur is also a small colour change, and those folds are what the dark-coat fix above recovers.
     if (region && !neutral && region.dab) g *= 1 - clamp01((lab[p * 3] - DAB_L0) / 10) * (1 - clamp01((region.dab[p] - DAB_LO) / (DAB_HI - DAB_LO)));
+    // see changedRegion: repainted background that looks like the unchanged background next to it, away from the body
+    if (protect) g *= 1 - clamp01((lab[p * 3] - DAB_L0) / 10) * region.bgsim[p] * (1 - protect[p]);
     mask[p] = R ? g * Math.min(1, R[p] * 1.5) : g;
   }
   mask = boxBlur(boxBlur(dilate(mask, w, h, 1), w, h, 1), w, h, 1);
-  if (!region) mask = keepLargeParts(mask, w, h);
+  if (!region) {
+    mask = keepLargeParts(mask, w, h);
+    // zbook 2026-10-28 (stress test, border terrier on a lawn): when Gemini re-frames the whole picture there is no usable
+    // region, and the colour gate alone painted the entire field 冰川藍. A garment is 5-30 % of the picture; a bigger mask
+    // is background, and no variant is better than a blue lawn (the caller skips that colour).
+    let big = 0; for (let p = 0; p < N; p++) if (mask[p] > 0.5) big++;
+    if (big > 0.35 * N) throw Object.assign(new Error('garment not found (mask ' + (big / N).toFixed(2) + ' of the picture)'), { status: 422 });
+  }
   let surround = null;   // colour clusters of what surrounds the garment (grass, fur), learnt below
   // edge check: what surrounds the garment (grass, fur) is learnt from a ring just outside it; an edge pixel that looks
   // more like those surroundings than like the fabric is not recoloured. Yellow-green capes on grass otherwise paint a
@@ -292,7 +358,10 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
   for (let p = 0; p < N; p++) if (mask[p] > 0.5) { cnt++; if ((p & 3) === 0) { Ls.push(lab[p * 3]); Cs.push(Math.hypot(lab[p * 3 + 1], lab[p * 3 + 2])); } }
   const Lm = Ls.length ? median(Ls) : src[0], cm = Math.max(1, Cs.length ? median(Cs) : sc);
   // inside the region, fade out pixels far less saturated than the fabric: white fur tinted by JPEG bleed would otherwise get a halo
-  if (region && !neutral) for (let p = 0; p < N; p++) if (mask[p] > 0) mask[p] *= clamp01((Math.hypot(lab[p * 3 + 1], lab[p * 3 + 2]) / cm - 0.35) / 0.2);
+  // zbook 2026-10-28: the background-similarity gate removes low-chroma junk from the mask, which raises this median and
+  // made the fade eat the garment's own outline (a blend of half the fabric's chroma, x69/s1b). Next to the confident
+  // body (protect) the fade starts at 0.2 instead of 0.35.
+  if (region && !neutral) for (let p = 0; p < N; p++) if (mask[p] > 0) mask[p] *= clamp01((Math.hypot(lab[p * 3 + 1], lab[p * 3 + 2]) / cm - (protect && protect[p] ? 0.2 : 0.35)) / 0.2);
   // zbook 2026-10-28: holes inside the fabric. The deepest folds of a dark coat (L < ~15, a faint tint of the old hue) are
   // too dull for that fade and were left as navy blobs in a yellow coat (black shih tzu, ux4). A dark pixel of the old hue
   // that lies inside the fabric's outline (closing of the mask, ~2 % of the picture) is fabric; at the outline it is left
