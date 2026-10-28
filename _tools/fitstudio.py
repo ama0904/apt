@@ -559,13 +559,16 @@ function aiShow(state,r,ms){if(!aiBox||!aiDebug)return;aiBox.hidden=false;var h=
   if(r.P)h+='<p><b>'+t('ai.size')+'</b>：'+t('ai.sizes',{s:Math.round(r.P[0]*100),m:Math.round(r.P[1]*100),l:Math.round(r.P[2]*100)})+'</p>';
   h+='<p><b>'+t('ai.verdict')+'</b>：'+t(!r.P?'ai.nodog':guess?'ai.'+guess:'ai.none')+'</p><small>'+t('ai.time',{s:(ms/1000).toFixed(1)})+'<br>'+t('ai.note')+'</small>';}
  aiBox.innerHTML=h;}
+/* the server only answers S / L when one side is >= 70 %. A clear lean (over half, the opposite end under 15 %) is enough to
+   pick 大狗 / 小狗: a golden retriever came back large 59 % / small 9 % and got no suggestion at all */
+function sizeLean(P){if(!P||P.length<3)return null;if(P[2]>=0.5&&P[0]<0.15)return 'L';if(P[0]>=0.5&&P[2]<0.15)return 'S';return P[1]>=0.5?'M':null;}
 function guessSize(src,demo){guess=null;guessFor=src;guessDemo=!!demo;guessMark('');guessOut();
  if(guessCtl){guessCtl.abort();guessCtl=null;}
  if(!src){if(aiBox)aiBox.hidden=true;return;}
  var t0=Date.now(),ctl=new AbortController();guessCtl=ctl;aiShow('wait');
  compress(src,384,.85).then(function(img){return fetch(cfg.api+'/api/dogsize',{method:'POST',signal:ctl.signal,headers:auth({'Content-Type':'application/json'}),body:JSON.stringify({image:img})});})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-  .then(function(r){if(guessFor!==src)return;guess=r.guess==='S'||r.guess==='L'?r.guess:(r.P&&r.P[1]>=0.5?'M':null);guessMark(guess||(r.P?'none':'nodog'));aiShow('done',r,Date.now()-t0);guessOut();})
+  .then(function(r){if(guessFor!==src)return;guess=r.guess==='S'||r.guess==='L'?r.guess:sizeLean(r.P);guessMark(guess||(r.P?'none':'nodog'));aiShow('done',r,Date.now()-t0);guessOut();})
   .catch(function(e){if(guessFor!==src||(e&&e.name==='AbortError'))return;guessMark('error');aiShow('error');});}
 var guessBox=$('.fit-guess');
 /* data-guess shows the last result (S / L / none / error), handy when checking the page */
