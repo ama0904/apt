@@ -124,6 +124,7 @@ function kmeans(samples, k, iters = 8) {
 const median = arr => { if (!arr.length) return NaN; const s = Float64Array.from(arr).sort(); return s[s.length >> 1]; };
 
 // where the try-on differs from the customer's photo = where the garment was painted. null when unusable.
+const DAB_LO = 10, DAB_HI = 22, DAB_L0 = 25;   // colour-change gate: chroma-plane distance photo vs try-on (0 at <=10, full at >=22), applied from L 25 (full at 35) up
 const CHW = 16, DKL = 10;   // grey garment, deep inside the region: chroma gate widens by CHW (full to 28, off at 40), dark cut-off drops by DKL (L >= 2 is fabric)
 const SATW = 1.5;   // weight of the saturation change in the "what changed" measure below (zbook, tested on 83 pairs)
 async function changedRegion(original, w, h, tryon) {
@@ -163,6 +164,17 @@ async function changedRegion(original, w, h, tryon) {
   if (!region) return null;
   region.open = bigParts(opened) || region;
   region.diff = m;   // per-pixel "how much changed", for grey garments (white fur next to them did not change)
+  // zbook 2026-10-28 (mbv, 萊姆綠 jacket in a rapeseed field): Gemini redraws the flowers next to the garment, so they count
+  // as "changed" and the region holds a fringe of them; their yellow is within the hue tolerance of lime green, so the
+  // fringe was recoloured. A garment always changes a pixel's COLOUR a lot (fur -> fabric); redrawn background keeps its
+  // colour and only moves texture. region.dab = chroma-plane (a,b) distance between the blurred photo and the blurred
+  // try-on; coloured garments fade their mask out below DAB_LO and keep it fully above DAB_HI.
+  const dab = new Float32Array(N), la = new Float64Array(3), lb = new Float64Array(3);
+  for (let p = 0; p < N; p++) {
+    toLab(a[p * 3], a[p * 3 + 1], a[p * 3 + 2], la, 0); toLab(b[p * 3], b[p * 3 + 1], b[p * 3 + 2], lb, 0);
+    dab[p] = Math.hypot(la[1] - lb[1], la[2] - lb[2]);
+  }
+  region.dab = boxBlur(dab, w, h, 2);
   // zbook: deep inside the opened region everything is garment, however little it differs from the fur it covers (a grey
   // coat over grey/white fur); the per-pixel diff gate is only needed near the region's edge, where fur can be
   const ob = new Float32Array(N); for (let p = 0; p < N; p++) ob[p] = region.open[p] > 0.5 ? 1 : 0;
@@ -207,6 +219,9 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
                               : clamp01((14 - ch) / 6) * clamp01((42 - Math.abs(lab[p * 3] - src[0])) / 14))
                     : clamp01((hueTol - ang) / hueSoft) * clamp01((ch - chromaMin * sc) / (chromaSoft * sc));
     if (region && !neutral) g *= clamp01((65 - Math.abs(lab[p * 3] - src[0])) / 15);   // deep folds of a fluorescent cape are ~55 L darker than the swatch
+    // see changedRegion: redrawn same-colour background (flowers, grass) is not garment. Only for mid/light pixels: a dark
+    // navy fold over black fur is also a small colour change, and those folds are what the dark-coat fix above recovers.
+    if (region && !neutral && region.dab) g *= 1 - clamp01((lab[p * 3] - DAB_L0) / 10) * (1 - clamp01((region.dab[p] - DAB_LO) / (DAB_HI - DAB_LO)));
     mask[p] = R ? g * Math.min(1, R[p] * 1.5) : g;
   }
   mask = boxBlur(boxBlur(dilate(mask, w, h, 1), w, h, 1), w, h, 1);
