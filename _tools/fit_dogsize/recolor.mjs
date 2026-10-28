@@ -124,6 +124,7 @@ function kmeans(samples, k, iters = 8) {
 const median = arr => { if (!arr.length) return NaN; const s = Float64Array.from(arr).sort(); return s[s.length >> 1]; };
 
 // where the try-on differs from the customer's photo = where the garment was painted. null when unusable.
+const CHW = 16, DKL = 10;   // grey garment, deep inside the region: chroma gate widens by CHW (full to 28, off at 40), dark cut-off drops by DKL (L >= 2 is fabric)
 const SATW = 1.5;   // weight of the saturation change in the "what changed" measure below (zbook, tested on 83 pairs)
 async function changedRegion(original, w, h, tryon) {
   const a = await sharp(original).rotate().resize(w, h, { fit: 'fill' }).blur(3).removeAlpha().raw().toBuffer();
@@ -197,7 +198,12 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
     // grey inside the painted region: any low-chroma pixel from deep shadow to the shiny highlights (they span ~10-95 L);
     // without a region only pixels near the swatch's lightness
     // and only where the picture really changed: unchanged white or grey fur along the coat stays as it was
-    let g = neutral ? (region ? clamp01((24 - ch) / 8) * clamp01((97 - lab[p * 3]) / 6) * clamp01((lab[p * 3] - 6) / 6) * (region.diff ? Math.max(region.core ? region.core[p] : 0, clamp01(region.diff[p] * 2)) : 1)
+    // zbook 2026-10-28 (qwj, labrador in 太空灰): Gemini paints the grey with a blue cast (chroma 16-24), where (24-ch)/8 gives
+    // half a mask, so the whole coat came out mottled and translucent; the dark spots of a camo lining (L < 6) stayed black.
+    // Deep inside the garment (region.core) everything is garment: the chroma gate widens to CHW more and the dark cut-off
+    // drops by DKL there. At the edge the strict gates stay (fur, grass).
+    const cc = neutral && region && region.core ? region.core[p] : 0;
+    let g = neutral ? (region ? clamp01((24 + CHW * cc - ch) / (8 + 4 * cc)) * clamp01((97 - lab[p * 3]) / 6) * clamp01((lab[p * 3] - 6 + DKL * cc) / 6) * (region.diff ? Math.max(cc, clamp01(region.diff[p] * 2)) : 1)
                               : clamp01((14 - ch) / 6) * clamp01((42 - Math.abs(lab[p * 3] - src[0])) / 14))
                     : clamp01((hueTol - ang) / hueSoft) * clamp01((ch - chromaMin * sc) / (chromaSoft * sc));
     if (region && !neutral) g *= clamp01((65 - Math.abs(lab[p * 3] - src[0])) / 15);   // deep folds of a fluorescent cape are ~55 L darker than the swatch
