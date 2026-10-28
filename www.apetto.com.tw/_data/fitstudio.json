@@ -79,7 +79,8 @@
    },
    "skip_colors": [
     "檸檬螢光黃"
-   ]
+   ],
+   "show": "assets/fitstudio/show_rain_small.jpg"
   },
   {
    "key": "warm_big",
