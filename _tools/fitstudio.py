@@ -40,7 +40,7 @@ TYPE_PICTURE = {"rain": ASSET_DIR + "type_rain.jpg", "warm": ASSET_DIR + "type_w
 # which garment a size chart belongs to: (type, size)
 CHART_KIND = {"big_raincoat": ("rain", "big"), "small_cape": ("rain", "small"), "big_jacket": ("warm", "big"), "small_warm_cape": ("warm", "small")}
 # garment colours for recolouring (picked from try-on pictures, reference images and product photos); unknown names get no recolour
-COLOR_HEX = {"普魯士藍": "#2346b5", "太空灰": "#4b5056", "檸檬螢光黃": "#cfe23f", "莓果桃": "#e0306e", "萊姆綠": "#b2d051",
+COLOR_HEX = {"普魯士藍": "#2346b5", "太空灰": "#36383b", "檸檬螢光黃": "#cfe23f", "莓果桃": "#e0306e", "萊姆綠": "#b2d051",
              "冰川藍": "#1ca2ba", "芬達桔": "#f5422a"}
 # the size charts say "pick a garment about this much shorter than the dog's back length"
 CHART_OFFSET = {"big_raincoat": 10, "big_jacket": 10, "small_cape": 6, "small_warm_cape": 6}
