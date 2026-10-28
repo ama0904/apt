@@ -73,7 +73,7 @@ def fit_bar():
 
 
 def history_block():
-    return ('<section class="fit-history" hidden><div class="fit-history-head"><h2>我的試穿紀錄</h2><p>只有你自己看得到，可以隨時刪除。</p></div>'
+    return ('<section class="fit-history" hidden><div class="fit-history-head"><h2>我的試穿紀錄</h2><p>可以隨時刪除。</p></div>'
             '<div class="fit-history-grid"></div></section>')
 
 
@@ -109,7 +109,7 @@ UI = {
     "＋ 新增毛孩": {"en": "+ Add a dog", "ja": "＋ わんちゃんを追加", "de": "+ Hund hinzufügen"},
     "去試衣間": {"en": "Go to the fitting room", "ja": "試着室へ", "de": "Zur Anprobe"},
     "我的試穿紀錄": {"en": "My try-ons", "ja": "試着の記録", "de": "Meine Anproben"},
-    "只有你自己看得到，可以隨時刪除。": {"en": "Only you can see these, and you can delete them anytime.", "ja": "あなただけが見られます。いつでも削除できます。", "de": "Nur du siehst sie, und du kannst sie jederzeit löschen."},
+    "可以隨時刪除。": {"en": "You can delete them anytime.", "ja": "いつでも削除できます。", "de": "Du kannst sie jederzeit löschen."},
 }
 
 CSS = r"""
