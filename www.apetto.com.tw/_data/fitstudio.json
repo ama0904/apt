@@ -58,19 +58,19 @@
   {
    "key": "rain_small",
    "image": "assets/fitstudio/rain_small.jpg",
-   "product": 9,
+   "product": 16,
    "chart": "small_cape",
    "visible": true,
-   "label": "普魯士藍",
+   "label": "檸檬螢光黃",
    "i18n": {
     "en": {
-     "label": "Prussian blue"
+     "label": "Neon lemon"
     },
     "ja": {
-     "label": "プルシアンブルー"
+     "label": "ネオンレモン"
     },
     "de": {
-     "label": "Preußischblau"
+     "label": "Neongelb"
     }
    }
   },

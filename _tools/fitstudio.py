@@ -33,7 +33,7 @@ SHOW_NOTE = {"zh": True, "de": True, "en": True, "ja": True}
 DOGS = [("golden", "dog_golden.jpg", "黃金獵犬"), ("labrador", "dog_labrador.webp", "拉布拉多")]
 # key, prepared garment image (the colour Gemini draws), colour label, product id of that colour, size chart key in _data/image_text.json.
 # One entry per garment: 雨衣 / 保暖加毛 x 大狗 / 小狗. The other colours are the products sharing the garment's name; the laptop recolours them.
-COATS = [("rain_big", "rain_big.jpg", "普魯士藍", 8, "big_raincoat"), ("rain_small", "rain_small.jpg", "普魯士藍", 9, "small_cape"),
+COATS = [("rain_big", "rain_big.jpg", "普魯士藍", 8, "big_raincoat"), ("rain_small", "rain_small.jpg", "檸檬螢光黃", 16, "small_cape"),
          ("warm_big", "warm_big.jpg", "萊姆綠", 13, "big_jacket"), ("warm_small", "warm_small.jpg", "莓果桃", 15, "small_warm_cape")]
 # picture on a style card instead of the garment's reference picture (the owner's choice; Gemini still gets the reference)
 TYPE_PICTURE = {"rain": ASSET_DIR + "type_rain.jpg", "warm": ASSET_DIR + "type_warm.jpg"}
