@@ -59,7 +59,13 @@ def config():
 
 def script_tag(d, cfg, lang):
     import theme as th
-    conf = {"fb": cfg, "ver": FIREBASE_VER, "member": th.link(d, PAGE, lang)}
+    import fitstudio as fit
+    # saved try-ons can be recoloured on the laptop (same colours as the fitting room)
+    names = {"普魯士藍": {"en": "Prussian blue", "ja": "プルシアンブルー", "de": "Preußischblau"},
+             "莓果桃": {"en": "Berry pink", "ja": "ベリーピンク", "de": "Beerenpink"},
+             "檸檬螢光黃": {"en": "Lemon neon yellow", "ja": "レモンネオンイエロー", "de": "Neon-Zitronengelb"}}
+    colors = {k: [{"hex": h, "name": names.get(n, {}).get(lang, n)} for n, h, _ in v] for k, v in fit.COLORWAYS.items()}
+    conf = {"fb": cfg, "ver": FIREBASE_VER, "member": th.link(d, PAGE, lang), "api": fit.API_BASE, "key": fit.API_KEY, "colors": colors}
     return (f'<script id="apt-member" type="application/json">{json.dumps(conf, ensure_ascii=False)}</script>'
             f'<script type="module" src="{th.asset(d, "assets/member.js")}?v={th.digest(JS)}"></script>')
 
@@ -146,6 +152,17 @@ CSS = r"""
 .fit-history .item .meta{padding:10px 12px 12px;font-size:13.5px;line-height:1.45}.fit-history .item .meta b{display:block;color:var(--ink)}.fit-history .item .meta span{color:var(--mute);font-size:12px}
 .fit-history .item .del{position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:15px;line-height:30px;cursor:pointer}
 .fit-history .empty{color:var(--mute);font-size:14px}
+.fit-viewer{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(15,16,18,.94);overflow:auto}
+.fit-viewer figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:12px;max-width:100%}
+.fit-viewer img{display:block;max-width:min(900px,100%);max-height:calc(100vh - 170px);border-radius:14px;background:#fff;object-fit:contain}
+.fit-viewer figcaption{color:#fff;font-size:14px;text-align:center;line-height:1.5}.fit-viewer figcaption span{opacity:.75;font-size:13px}
+.fit-viewer .cols{display:flex;flex-direction:column;align-items:center;gap:8px}.fit-viewer .cols .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.fit-viewer .cols button{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 13px 0 7px;border-radius:999px;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.08);color:#fff;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
+.fit-viewer .cols button i{width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(255,255,255,.7)}.fit-viewer .cols button.cur{border-color:#fff;background:rgba(255,255,255,.2)}
+.fit-viewer .cols small{color:rgba(255,255,255,.7);font-size:12px;min-height:1.2em;text-align:center}
+.fit-viewer .acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.fit-viewer .acts a,.fit-viewer .acts button{display:inline-flex;align-items:center;min-height:44px;padding:0 20px;border-radius:999px;font:inherit;font-size:15px;font-weight:600;cursor:pointer;text-decoration:none}
+.fit-viewer .acts a{background:#fff;color:#17181a;border:0}.fit-viewer .acts button{background:none;color:#fff;border:1.5px solid rgba(255,255,255,.6)}
 .dog-modal{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(23,24,26,.55)}
 .dog-modal form{width:min(460px,100%);max-height:calc(100vh - 32px);overflow:auto;background:var(--card);border-radius:20px;padding:22px;box-shadow:0 24px 60px rgba(0,0,0,.25)}
 .dog-modal h3{margin:0 0 6px;font-size:20px}.dog-modal .sub{margin:0 0 16px;color:var(--ink2);font-size:14.5px;line-height:1.55}
@@ -165,6 +182,12 @@ const L = (document.documentElement.lang || 'zh').slice(0, 2);
 const T = {
   login: { zh: '用 Google 登入', en: 'Sign in with Google', ja: 'Google でログイン', de: 'Mit Google anmelden' },
   why: { zh: '登入後，毛孩的尺寸和試穿照片會幫你保存。', en: 'Sign in to keep your dog\'s measurements and try-on pictures.', ja: 'ログインすると、愛犬のサイズと試着画像が保存されます。', de: 'Anmelden, um Maße und Anprobe-Bilder zu behalten.' },
+  vDl: { zh: '下載照片', en: 'Download', ja: 'ダウンロード', de: 'Herunterladen' },
+  vColor: { zh: '換個顏色看看', en: 'Try another colour', ja: 'ほかの色も見る', de: 'Andere Farbe ansehen' },
+  vBusy: { zh: '換色中…', en: 'Changing colour…', ja: '色を変えています…', de: 'Farbe wird geändert…' },
+  vFail: { zh: '換色暫時無法使用，請稍後再試。', en: 'Colour change is unavailable right now. Please try again later.', ja: '色の変更は現在ご利用いただけません。しばらくしてからお試しください。', de: 'Farbwechsel ist gerade nicht verfügbar. Bitte später erneut versuchen.' },
+  vNote: { zh: '換色由電腦自動處理，顏色以實際商品為準。', en: 'Recoloured automatically; actual colours may differ.', ja: '色は自動で変えています。実際の商品の色とは異なる場合があります。', de: 'Automatisch umgefärbt; die echten Farben können abweichen.' },
+  vClose: { zh: '關閉', en: 'Close', ja: '閉じる', de: 'Schließen' },
   out: { zh: '登出', en: 'Sign out', ja: 'ログアウト', de: 'Abmelden' },
   dogFor: { zh: '幫誰試穿：', en: 'Dressing:', ja: '試着する子：', de: 'Für:' },
   manage: { zh: '管理毛孩', en: 'Manage dogs', ja: 'うちの子を管理', de: 'Hunde verwalten' },
@@ -206,6 +229,7 @@ const G = '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M
 const loginBtn = () => `<button type="button" class="gbtn">${G}<span>${t('login')}</span></button>`;
 
 const memPage = document.querySelector('.mem'), bar = document.querySelector('.fit-member'), hist = document.querySelector('.fit-history');
+let fits = {};
 let fb = null, user = null, conf = null, dogs = [], curDog = null, pending = null, asked = false, lastFit = null, dlWait = false;
 
 if (cfgEl && (memPage || bar)) start(JSON.parse(cfgEl.textContent)).catch(e => {
@@ -401,6 +425,44 @@ async function saveFit(d) {
 }
 
 /* ---------- try-on history (member page and fitting room) */
+/* saved pictures are data: URLs, which browsers refuse to open in a new tab: show them in a viewer on the page */
+/* the other colours are recoloured on the laptop from the saved picture and dog photo (cached per picture) */
+const rcCache = {};
+function recolorFit(id, i) {
+  const x = fits[id], cols = conf.colors[x.coat], k = id + ':' + i;
+  if (!rcCache[k]) rcCache[k] = fetch(conf.api + '/api/recolor', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, conf.key ? { 'x-api-key': conf.key } : {}),
+      body: JSON.stringify({ image: x.img, from: cols[0].hex, to: cols[i].hex, original: x.dog || undefined }) })
+    .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(d => d.image)
+    .catch(e => { delete rcCache[k]; throw e; });
+  return rcCache[k];
+}
+function viewFit(id, coat, sub) {
+  const x = fits[id]; if (!x) return;
+  const src = x.img, cols = (conf.colors && conf.api && conf.colors[x.coat]) || [];
+  const v = document.createElement('div'); v.className = 'fit-viewer'; v.setAttribute('role', 'dialog'); v.setAttribute('aria-modal', 'true');
+  v.innerHTML = `<figure><img src="${esc(src)}" alt=""><figcaption><b>${esc(coat)}</b><br><span>${esc(sub)}</span></figcaption>`
+    + (cols.length > 1 ? `<div class="cols"><div class="row">${cols.map((c, i) => `<button type="button" data-i="${i}"${i ? '' : ' class="cur"'}><i style="background:${esc(c.hex)}"></i>${esc(c.name)}</button>`).join('')}</div><small></small></div>` : '')
+    + `<div class="acts"><a href="${esc(src)}" download="apetto-fit.jpg">${t('vDl')}</a><button type="button" class="x">${t('vClose')}</button></div></figure>`;
+  const img = v.querySelector('img'), dl = v.querySelector('.acts a'), note = v.querySelector('.cols small');
+  let want = 0;
+  const show = (s) => { img.src = s; dl.href = s; };
+  v.querySelectorAll('.cols button').forEach(b => b.onclick = () => {
+    const i = +b.dataset.i; want = i;
+    v.querySelectorAll('.cols button').forEach(o => o.classList.toggle('cur', o === b));
+    if (!i) { show(src); note.textContent = ''; return; }
+    note.textContent = t('vBusy');
+    recolorFit(id, i).then(s => { if (want !== i) return; show(s); note.textContent = t('vNote'); })
+      .catch(() => { if (want === i) note.textContent = t('vFail'); });
+  });
+  // get the other colours ready while the customer looks at the picture
+  (async () => { for (let i = 1; i < cols.length; i++) { if (!v.isConnected) return; try { await recolorFit(id, i); } catch (e) { return; } } })();
+  const close = () => { v.remove(); document.removeEventListener('keydown', key); };
+  const key = e => { if (e.key === 'Escape') close(); };
+  v.onclick = e => { if (e.target === v) close(); };
+  v.querySelector('.x').onclick = close;
+  document.addEventListener('keydown', key);
+  document.body.appendChild(v); v.querySelector('.x').focus();
+}
 async function renderHistory() {
   if (!hist) return;
   if (!user) { hist.hidden = true; return; }
@@ -410,9 +472,12 @@ async function renderHistory() {
     hist.hidden = false;
     if (snap.empty) { grid.innerHTML = `<p class="empty">${t('none')}</p>`; return; }
     const fmt = new Intl.DateTimeFormat({ zh: 'zh-TW', en: 'en', ja: 'ja', de: 'de' }[L] || 'zh-TW', { dateStyle: 'medium' });
+    fits = {}; snap.docs.forEach(s => { fits[s.id] = s.data(); });
     grid.innerHTML = snap.docs.map(s => { const x = s.data(), dt = x.created && x.created.toDate ? fmt.format(x.created.toDate()) : '';
-      return `<div class="item" data-id="${esc(s.id)}"><a href="${esc(x.img)}" target="_blank" rel="noopener"><img src="${esc(x.img)}" alt="" loading="lazy"></a>`
+      return `<div class="item" data-id="${esc(s.id)}"><a href="#" role="button"><img src="${esc(x.img)}" alt="" loading="lazy"></a>`
         + `<div class="meta"><b>${esc(x.coatName)}</b><span>${esc([x.dogName, dt].filter(Boolean).join(' · '))}</span></div><button type="button" class="del" aria-label="${t('delFit')}">✕</button></div>`; }).join('');
+    grid.querySelectorAll('.item > a').forEach(a => a.onclick = ev => { ev.preventDefault(); const it = a.closest('.item');
+      viewFit(it.dataset.id, it.querySelector('.meta b').textContent, it.querySelector('.meta span').textContent); });
     grid.querySelectorAll('.del').forEach(b => b.onclick = async () => {
       if (!confirm(t('delFit'))) return;
       const it = b.closest('.item');
