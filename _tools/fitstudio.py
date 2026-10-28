@@ -8,6 +8,8 @@ The bridge API (see the FitStudio hand-over notes):
   GET  /api/health                 -> {"status":"ok"}                      no auth
   POST /api/stylist                -> {"image": dataURL, "captionId": id}  x-api-key, JSON body
        {"dogImage": dataURL, "clothesImage": dataURL, "lang": "zh"|"de", "jobId": str}; synchronous, 15-240 s
+       also coat, coatName, product, recolor {from, to[]} and colors [{hex, name}] (the coat's colours in the page
+       language, the drawn one first) so the stylist's note can suggest the other colours by name
   GET  /api/status/<jobId>         -> {"key": "srv.generating", "step": 6, "vars": {...}}   progress, no auth
   GET  /api/caption/<captionId>    -> {"status": "pending"|"ready"|"none", "caption": str}   x-api-key
 Errors are JSON {"error": str, "errorKey": str}; the keys map to the strings in STR below.
@@ -698,7 +700,8 @@ go.addEventListener('click',function(){
    if(d.key==='srv.retrying'){progT.textContent=txt;return;}
    if(st>=6)step(2,txt||t('step.draw'));else if(st>=3)step(1,txt||t('step.send'));else if(txt&&st>=2)progT.textContent=txt;}).catch(function(){});},1000);
   return fetch(cfg.api+'/api/stylist',{method:'POST',signal:ctl.signal,headers:auth({'Content-Type':'application/json'}),
-   body:JSON.stringify({dogImage:imgs[0],clothesImage:imgs[1],lang:cfg.serverLang,jobId:jobId,coat:coatKey||null,coatName:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].name)||null,product:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].product)||null,recolor:rcAsk()})});
+   body:JSON.stringify({dogImage:imgs[0],clothesImage:imgs[1],lang:cfg.serverLang,jobId:jobId,coat:coatKey||null,coatName:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].name)||null,product:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].product)||null,recolor:rcAsk(),
+    colors:((coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].colors)||[]).map(function(x){return {hex:x.hex,name:x.name};})})});
  }).then(function(r){
   if(!r.ok){return r.json().catch(function(){return {};}).then(function(d){
    if(r.status===429)throw new Error(t(d.errorKey||'err.busy'));if(r.status===503)throw new Error(t(d.errorKey||'err.allAccountsExhausted'));
