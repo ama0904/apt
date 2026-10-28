@@ -56,6 +56,12 @@ function dilate(src, w, h, r) {
   for (let x = 0; x < w; x++) for (let y = 0; y < h; y++) { let m = 0; for (let k = -r; k <= r; k++) { const yy = y + k; if (yy >= 0 && yy < h) { const v = tmp[yy * w + x]; if (v > m) m = v; } } dst[y * w + x] = m; }
   return dst;
 }
+// shrink a mask by r pixels (square): what survives was at least 2r+1 wide
+function erode(src, w, h, r) {
+  const inv = new Float32Array(src.length); for (let i = 0; i < src.length; i++) inv[i] = 1 - src[i];
+  const d = dilate(inv, w, h, r); for (let i = 0; i < d.length; i++) d[i] = 1 - d[i];
+  return d;
+}
 // connected components of mask > thr: {label (0 = none), areas (index 1..n), n}
 function components(mask, w, h, thr) {
   const N = w * h, label = new Int32Array(N), stack = new Int32Array(N), areas = [0];
@@ -117,12 +123,19 @@ async function changedRegion(original, w, h, tryon) {
   }
   const share = hot / N;
   if (share < 0.004 || share > 0.35) return null;   // nothing changed, or Gemini redrew the whole picture (a real garment is ~5-20 %)
+  // thin strips are not a garment: a leash, lead or harness that Gemini painted away leaves a narrow band of "changed"
+  // background (pavement, sky). Opening the mask (erode, then grow back) drops anything narrower than ~2 % of the picture.
+  const bin = new Float32Array(N); for (let p = 0; p < N; p++) bin[p] = m[p] > 0.5 ? 1 : 0;
+  const ro = Math.max(3, Math.round(0.009 * Math.max(w, h)));
+  const opened = dilate(erode(bin, w, h, ro), w, h, ro);
   // the garment is one or two big pieces; scattered specks are regenerated texture (grass, bokeh) and are dropped
-  const cs = components(boxBlur(dilate(m, w, h, 2), w, h, 1), w, h, 0.5), big = new Float32Array(N);
+  const cs = components(boxBlur(dilate(opened, w, h, 2), w, h, 1), w, h, 0.5), big = new Float32Array(N);
   if (!cs.n) return null;
   const largest = Math.max(...cs.areas), minArea = Math.max(0.15 * largest, 0.004 * N);
   for (let p = 0; p < N; p++) if (cs.label[p] && cs.areas[cs.label[p]] >= minArea) big[p] = 1;
-  return boxBlur(dilate(big, w, h, 2), w, h, 2);   // the blurred difference already reaches past the garment edge
+  const region = boxBlur(dilate(big, w, h, 2), w, h, 2);   // the blurred difference already reaches past the garment edge
+  region.diff = m;   // per-pixel "how much changed", for grey garments (white fur next to them did not change)
+  return region;
 }
 
 // ---------- the recolour itself
@@ -151,7 +164,8 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
     const ang = d * 180 / Math.PI;
     // grey inside the painted region: any low-chroma pixel from deep shadow to the shiny highlights (they span ~10-95 L);
     // without a region only pixels near the swatch's lightness
-    let g = neutral ? (region ? clamp01((24 - ch) / 8) * clamp01((97 - lab[p * 3]) / 6) * clamp01((lab[p * 3] - 6) / 6)
+    // and only where the picture really changed: unchanged white or grey fur along the coat stays as it was
+    let g = neutral ? (region ? clamp01((24 - ch) / 8) * clamp01((97 - lab[p * 3]) / 6) * clamp01((lab[p * 3] - 6) / 6) * (region.diff ? clamp01(region.diff[p] * 2) : 1)
                               : clamp01((14 - ch) / 6) * clamp01((42 - Math.abs(lab[p * 3] - src[0])) / 14))
                     : clamp01((hueTol - ang) / hueSoft) * clamp01((ch - chromaMin * sc) / (chromaSoft * sc));
     if (region && !neutral) g *= clamp01((65 - Math.abs(lab[p * 3] - src[0])) / 15);   // deep folds of a fluorescent cape are ~55 L darker than the swatch
