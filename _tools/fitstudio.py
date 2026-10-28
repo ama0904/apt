@@ -472,7 +472,7 @@ CSS = r"""
 .fit-size label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--ink2);font-weight:600}
 .fit-size label>div{display:flex;align-items:center;border:1.5px solid var(--line2);border-radius:10px;background:#fff;padding:0 10px}
 .fit-size label>div:focus-within{border-color:var(--ink)}.fit-size input{width:100%;min-width:0;border:0;outline:0;background:none;font:inherit;font-size:16px;font-weight:600;padding:9px 0;color:var(--ink)}
-.fit-size em{font-style:normal;font-size:13px;color:var(--mute)}
+.fit-size em{font-style:normal;font-size:13px;color:var(--mute);white-space:nowrap;flex:0 0 auto}
 .fit-size-out{margin-top:12px;font-size:14.5px;color:var(--ink2)}.fit-size-out .big{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
 .fit-size-out .big b{font-size:28px;color:var(--ink);line-height:1}.fit-size-out .big span{font-size:13px;color:var(--brand-ink);font-weight:700;letter-spacing:.06em}
 .fit-size-out p{margin:0 0 4px}.fit-size-out .btn{margin-top:10px;width:100%}
@@ -638,7 +638,8 @@ var noteTimer=null;
 function showNote(text,pending,missed){clearTimeout(captionTimer);if(!cfg.showNote){note.classList.remove('show');return;}
  var arrived=!pending&&!missed&&(text||'').trim()&&note.classList.contains('wait');
  note.classList.toggle('wait',!!pending);note.classList.toggle('miss',!!missed);
- noteP.textContent=pending?t('note.writing'):missed?t('note.missed'):(text||'');note.classList.toggle('show',!!(pending||missed||(text||'').trim()));
+ noteP.textContent=pending?t('note.writing'):missed?t('note.missed'):(text||'');noteP.classList.remove('wb');   /* the page-load word marking saw only the placeholder; plain text breaks normally */
+ note.classList.toggle('show',!!(pending||missed||(text||'').trim()));
  if(!pending)note.classList.remove('pop');if(arrived)noteReady();}
 function noteMissed(){showNote('',false,true);}
 /* the stylist's note landed after a wait: make it as hard to miss as the picture */
