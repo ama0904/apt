@@ -39,19 +39,19 @@
   {
    "key": "rain_big",
    "image": "assets/fitstudio/rain_big.jpg",
-   "product": 7,
+   "product": 8,
    "chart": "big_raincoat",
    "visible": true,
-   "label": "太空灰",
+   "label": "普魯士藍",
    "i18n": {
     "en": {
-     "label": "Space grey"
+     "label": "Prussian blue"
     },
     "ja": {
-     "label": "スペースグレー"
+     "label": "プルシアンブルー"
     },
     "de": {
-     "label": "Space-Grau"
+     "label": "Preußischblau"
     }
    }
   },
