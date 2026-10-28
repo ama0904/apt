@@ -57,14 +57,11 @@ def config():
     return {k: c[k] for k in ("apiKey", "authDomain", "projectId", "appId")}
 
 
-def script_tag(d, cfg, lang):
+def script_tag(d, cfg, lang, data=None):
     import theme as th
     import fitstudio as fit
     # saved try-ons can be recoloured on the laptop (same colours as the fitting room)
-    names = {"普魯士藍": {"en": "Prussian blue", "ja": "プルシアンブルー", "de": "Preußischblau"},
-             "莓果桃": {"en": "Berry pink", "ja": "ベリーピンク", "de": "Beerenpink"},
-             "檸檬螢光黃": {"en": "Lemon neon yellow", "ja": "レモンネオンイエロー", "de": "Neon-Zitronengelb"}}
-    colors = {k: [{"hex": h, "name": names.get(n, {}).get(lang, n)} for n, h, _ in v] for k, v in fit.COLORWAYS.items()}
+    colors = fit.member_colors(data, lang) if data else {}
     conf = {"fb": cfg, "ver": FIREBASE_VER, "member": th.link(d, PAGE, lang), "api": fit.API_BASE, "key": fit.API_KEY, "colors": colors}
     return (f'<script id="apt-member" type="application/json">{json.dumps(conf, ensure_ascii=False)}</script>'
             f'<script type="module" src="{th.asset(d, "assets/member.js")}?v={th.digest(JS)}"></script>')
@@ -97,7 +94,7 @@ def render_page(data, lang):
   {history_block()}
  </div>
 </div></div>
-{script_tag(d, cfg, lang) if cfg else ''}"""
+{script_tag(d, cfg, lang, data) if cfg else ''}"""
     return th.page(data, PAGE, lang, f"會員專區 | {th.BRAND}", body, "用 Google 登入 apetto，保存毛孩的尺寸和試穿紀錄。", current=PAGE)
 
 

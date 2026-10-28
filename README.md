@@ -73,6 +73,7 @@
 - 使用者上傳毛孩照片、選一件 apetto（處理好的「衣服套在黑色剪影上」的圖，在 `assets/fitstudio/`），按「開始試穿」後由瀏覽器直接呼叫另一台電腦上的 FitStudio 伺服器（呼叫 Gemini 產圖），本站只放前端。
 
 - **衣服與示範狗狗由後台管理**：資料在 `_data/fitstudio.json`（`coats`：key、label、image、product、chart、visible、i18n；`dogs`：key、label、image、visible、i18n）。後台「試衣間衣服」「試衣間示範狗狗」可新增、編輯、排序、隱藏、刪除，圖片上傳到 `assets/fitstudio/coat_*` / `dog_*`。衣服的「尺寸表」決定試穿後的尺寸建議，「連結商品」決定前往商品頁的連結。檔案不存在時 `fitstudio.py` 退回內建的三件。
+- **選款式與換色**：客人先選「雨衣／保暖加毛」，再選「大狗／小狗」（照片判斷出的大小會先幫忙選好並標「建議」）。每個組合對應一件衣服，由尺寸表決定是哪一格（`big_raincoat` 大狗雨衣、`small_cape` 小狗斗篷、`big_jacket` 大狗保暖夾克、`small_warm_cape` 小狗保暖斗篷）。衣服的「連結商品」就是 Gemini 畫的顏色，參考圖要是那個顏色；同名的其他商品（例如「大汪雨衣 檸檬螢光黃」）自動成為可換的顏色，由試衣間筆電換色（`_tools/fit_dogsize/recolor.mjs`），色碼在 `fitstudio.py` 的 `COLOR_HEX`，新顏色要在那裡加上色碼才會出現。
 
 - 伺服器網址與語言對應在 `_tools/fitstudio.py` 開頭（`API_BASE`）。網址換了只要改這裡再 push。伺服器的存取金鑰不放在 repo 裡：建置時從環境變數 `FITSTUDIO_API_KEY` 讀（GitHub repo 的 Settings → Secrets → Actions 新增同名 secret），寫進頁面；沒設的話請求不帶金鑰，伺服器端要改成允許本站網域。
 

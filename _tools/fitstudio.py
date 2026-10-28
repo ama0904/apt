@@ -31,9 +31,15 @@ SERVER_LANG = {"zh": "zh", "de": "de", "en": "en", "ja": "ja"}
 SHOW_NOTE = {"zh": True, "de": True, "en": True, "ja": True}
 
 DOGS = [("golden", "dog_golden.jpg", "黃金獵犬"), ("labrador", "dog_labrador.webp", "拉布拉多")]
-# key, prepared garment image, colour label, linked product id, size chart key in _data/image_text.json
-COATS = [("pink", "pink_coat.jpg", "莓果桃", 15, "small_warm_cape"), ("yellow", "yellow_coat.jpg", "檸檬螢光黃", 16, "small_cape"),
-         ("blue", "blue_coat.jpg", "普魯士藍", 8, "big_raincoat")]
+# key, prepared garment image (the colour Gemini draws), colour label, product id of that colour, size chart key in _data/image_text.json.
+# One entry per garment: 雨衣 / 保暖加毛 x 大狗 / 小狗. The other colours are the products sharing the garment's name; the laptop recolours them.
+COATS = [("rain_big", "rain_big.jpg", "太空灰", 7, "big_raincoat"), ("rain_small", "rain_small.jpg", "普魯士藍", 9, "small_cape"),
+         ("warm_big", "warm_big.jpg", "萊姆綠", 13, "big_jacket"), ("warm_small", "warm_small.jpg", "莓果桃", 15, "small_warm_cape")]
+# which garment a size chart belongs to: (type, size)
+CHART_KIND = {"big_raincoat": ("rain", "big"), "small_cape": ("rain", "small"), "big_jacket": ("warm", "big"), "small_warm_cape": ("warm", "small")}
+# garment colours for recolouring (picked from try-on pictures, reference images and product photos); unknown names get no recolour
+COLOR_HEX = {"普魯士藍": "#2346b5", "太空灰": "#4b5056", "檸檬螢光黃": "#cfe23f", "莓果桃": "#e0306e", "萊姆綠": "#b2d051",
+             "冰川藍": "#1ca2ba", "芬達桔": "#f5422a"}
 # the size charts say "pick a garment about this much shorter than the dog's back length"
 CHART_OFFSET = {"big_raincoat": 10, "big_jacket": 10, "small_cape": 6, "small_warm_cape": 6}
 # Dog breed / size guess: the photo goes to the fitting-room server (POST /api/dogsize, see _tools/fit_dogsize),
@@ -93,9 +99,9 @@ def img_url(d, site_path):
         return th.asset(d, site_path)
 
 
-# colourways of each fitting-room coat for the recolour test (?recolor=1); the first is the colour Gemini draws.
-# (name, hex, product id). Hex values were picked from try-on pictures and product photos.
-COLORWAYS = {   # every coat offers 藍 / 紅 / 黃 in the test (the owner's call); product id 0 = no matching product page
+# colourways of the earlier test coats (blue / yellow / pink): only for recolouring try-ons members saved back then.
+# (name, hex, product id); the first is the colour Gemini drew.
+COLORWAYS = {
     "blue": [("普魯士藍", "#2346b5", 8), ("莓果桃", "#e0306e", 0), ("檸檬螢光黃", "#cfe23f", 6)],
     "yellow": [("檸檬螢光黃", "#cfe23f", 16), ("普魯士藍", "#2346b5", 9), ("莓果桃", "#e0306e", 0)],
     "pink": [("莓果桃", "#e0306e", 15), ("普魯士藍", "#2346b5", 0), ("檸檬螢光黃", "#cfe23f", 0)],
@@ -104,6 +110,63 @@ COLORWAYS = {   # every coat offers 藍 / 紅 / 黃 in the test (the owner's cal
 
 def coat_label(c, lang):
     return (((c.get("i18n") or {}).get(lang) or {}).get("label") or c.get("label") or c["key"]).strip()
+
+
+def coat_kind(c):
+    """(type, size) of a fitting-room coat, from its size chart: ("rain"|"warm", "big"|"small")."""
+    return CHART_KIND.get(c.get("chart") or "", ("rain", "big"))
+
+
+def _split_name(zh, lang, table):
+    """Product name -> (garment, colour) in the page language: "大汪雨衣 太空灰" / "Big Dog Raincoat – Space Gray"."""
+    import site_builder as sb
+    base, _, colour = zh.rpartition(" ")
+    if lang == "zh" or not base:
+        return (base or zh), colour
+    tr = sb.translate_text(zh, lang, table) or ""
+    for sep in (" – ", " - "):
+        if sep in tr:
+            a, b = tr.split(sep, 1)
+            return a.strip(), b.strip()
+    if tr.count(" ") and lang == "ja":
+        a, _, b = tr.rpartition(" ")
+        return a.strip(), b.strip()
+    return (sb.translate_text(base, lang, table) or base), colour
+
+
+def coat_colors(coat, data, lang, table, link=None):
+    """The garment's colours: the coat's product first (the colour Gemini draws), then the other visible products with the
+    same garment name. [{name, zh, hex, product, url}]; colours without a known hex are left out (no recolour for them)."""
+    by_id = {p["id"]: p for p in data["products"]}
+    p0 = by_id.get(coat.get("product"))
+    if not p0:
+        return []
+    base = p0["name"].rpartition(" ")[0]
+    same = [p for p in data["products"] if p is not p0 and p.get("visible", True) and p["name"].rpartition(" ")[0] == base]
+    out = []
+    for p in [p0] + sorted(same, key=lambda x: x["id"]):
+        zh = p["name"].rpartition(" ")[2]
+        hx = COLOR_HEX.get(zh)
+        if not hx:
+            continue
+        out.append({"name": _split_name(p["name"], lang, table)[1] or zh, "zh": zh, "hex": hx, "product": p["id"],
+                    "url": link(p) if link and p.get("visible", True) else ""})
+    return out
+
+
+def member_colors(data, lang):
+    """coat key -> [{hex, name}] for recolouring saved try-ons on the member page (current coats + the earlier test coats)."""
+    import theme as th
+    table = th.sb.load_i18n(data)
+    def colour_name(zh):   # any product in that colour gives the translated colour name
+        p = next((x for x in data["products"] if x["name"].rpartition(" ")[2] == zh), None)
+        return _split_name(p["name"], lang, table)[1] if p else zh
+    out = {k: [{"hex": h, "name": colour_name(n)} for n, h, _ in v] for k, v in COLORWAYS.items()}
+    for coat in load_coats():
+        cols = coat_colors(coat, data, lang, table)
+        if len(cols) > 1:
+            out[coat["key"]] = [{"hex": c["hex"], "name": c["name"]} for c in cols]
+    return out
 
 # Markup strings (zh key -> translations); merged into theme.UI so translate_soup handles the page.
 UI = {
@@ -131,6 +194,16 @@ UI = {
     "檸檬螢光黃": {"en": "Neon lemon", "ja": "ネオンイエロー", "de": "Neongelb"},
     "普魯士藍": {"en": "Prussian blue", "ja": "プルシアンブルー", "de": "Preußischblau"},
     "查看商品": {"en": "View product", "ja": "商品を見る", "de": "Produkt ansehen"},
+    "選款式": {"en": "Choose a style", "ja": "スタイルを選ぶ", "de": "Modell wählen"},
+    "雨衣": {"en": "Raincoat", "ja": "レインコート", "de": "Regenmantel"},
+    "保暖加毛": {"en": "Warm, fleece-lined", "ja": "防寒・ボア付き", "de": "Warm, gefüttert"},
+    "防水、輕量，下雨天散步": {"en": "Waterproof and light, for rainy walks", "ja": "防水・軽量、雨の日のお散歩に", "de": "Wasserdicht und leicht, für Regenspaziergänge"},
+    "內裡加毛，冷天也暖": {"en": "Fleece inside, warm on cold days", "ja": "内側ボアで寒い日も暖か", "de": "Innen Fleece, warm an kalten Tagen"},
+    "尺寸": {"en": "Size", "ja": "サイズ", "de": "Größe"},
+    "大狗": {"en": "Big dog", "ja": "大型犬", "de": "Großer Hund"},
+    "小狗": {"en": "Small dog", "ja": "小型犬", "de": "Kleiner Hund"},
+    "建議": {"en": "Suggested", "ja": "おすすめ", "de": "Empfohlen"},
+    "先選雨衣或保暖加毛，再選大狗或小狗。": {"en": "Pick raincoat or warm first, then big or small dog.", "ja": "レインコートか防寒を選び、次に大型犬か小型犬を選んでください。", "de": "Erst Regenmantel oder warm wählen, dann großer oder kleiner Hund."},
     "開始試穿": {"en": "Try it on", "ja": "試着する", "de": "Anprobieren"},
     "AI 生成約需 20 到 40 秒，尖峰時段可能更久。": {
         "en": "Generation takes about 20 to 40 seconds, longer at busy times.",
@@ -195,7 +268,14 @@ STR = {
     "srv.done": {"zh": "圖片完成！", "en": "Picture ready!", "ja": "画像が完成！", "de": "Bild fertig!"},
     "note.writing": {"zh": "造型師正在寫推薦…", "en": "The stylist is writing a note…", "ja": "スタイリストがコメントを作成中…", "de": "Die Stylistin schreibt gerade…"},
     "note.missed": {"zh": "造型師這次沒留話，再試一次會有。", "en": "The stylist skipped the note this time. Try again and there will be one.", "ja": "今回はスタイリストのコメントがありませんでした。もう一度試すと届きます。", "de": "Diesmal gab es keine Notiz der Stylistin. Beim nächsten Versuch kommt eine."},
-    "err.pickFirst": {"zh": "請先選擇毛孩照片和一件衣服。", "en": "Please choose a photo and a coat first.", "ja": "先に写真と服を選んでください。", "de": "Bitte zuerst ein Foto und eine Jacke wählen."},
+    "err.pickFirst": {"zh": "請先選擇毛孩照片、款式和尺寸。", "en": "Please choose a photo, a style and a size first.", "ja": "先に写真・スタイル・サイズを選んでください。", "de": "Bitte zuerst Foto, Modell und Größe wählen."},
+    "rc.title": {"zh": "換個顏色看看", "en": "Try another colour", "ja": "ほかの色も見る", "de": "Andere Farbe ansehen"},
+    "rc.busy": {"zh": "換色中…", "en": "Changing colour…", "ja": "色を変えています…", "de": "Farbe wird geändert…"},
+    "rc.fail": {"zh": "這個顏色暫時換不出來，請稍後再試。", "en": "This colour is not available right now. Please try again later.", "ja": "この色は現在表示できません。しばらくしてからお試しください。", "de": "Diese Farbe geht gerade nicht. Bitte später erneut versuchen."},
+    "rc.note": {"zh": "其他顏色由電腦自動換色，顏色以實際商品為準。", "en": "Other colours are recoloured automatically; actual colours may differ.", "ja": "ほかの色は自動で色替えしています。実際の色と異なる場合があります。", "de": "Andere Farben werden automatisch umgefärbt; die echten Farben können abweichen."},
+    "rc.later": {"zh": "試穿後可以換成：", "en": "After the try-on you can switch to:", "ja": "試着後に切り替えられる色：", "de": "Nach der Anprobe umschaltbar auf:"},
+    "sz.guessS": {"zh": "照片看起來是小型犬，已幫你選小狗款。", "en": "Your dog looks small, so the small-dog size is selected.", "ja": "写真では小型犬のようなので、小型犬向けを選びました。", "de": "Dein Hund wirkt klein, daher ist die Größe für kleine Hunde gewählt."},
+    "sz.guessL": {"zh": "照片看起來是中大型犬，已幫你選大狗款。", "en": "Your dog looks medium or large, so the big-dog size is selected.", "ja": "写真では中・大型犬のようなので、大型犬向けを選びました。", "de": "Dein Hund wirkt mittelgroß oder groß, daher ist die Größe für große Hunde gewählt."},
     "err.offline": {"zh": "試衣間目前離線，請稍後再試。", "en": "The fitting room is offline right now. Please try again later.", "ja": "試着室は現在オフラインです。しばらくしてからお試しください。", "de": "Die Anprobe ist gerade offline. Bitte später erneut versuchen."},
     "err.network": {"zh": "和試衣間的連線中斷了，請稍後再試一次。", "en": "The connection to the fitting room dropped. Please try again in a moment.", "ja": "試着室との接続が切れました。しばらくしてからもう一度お試しください。", "de": "Die Verbindung zur Anprobe ist abgebrochen. Bitte gleich noch einmal versuchen."},
     "err.badFile": {"zh": "無法讀取這張照片，請改用 JPG、PNG 或 WEBP。", "en": "This photo could not be read. Please use a JPG, PNG or WEBP.", "ja": "この写真を読み込めません。JPG、PNG、WEBP をお使いください。", "de": "Dieses Foto lässt sich nicht lesen. Bitte JPG, PNG oder WEBP verwenden."},
@@ -237,7 +317,7 @@ STR = {
     "ai.unsure": {"zh": "品種不太確定，可能是米克斯或少見品種", "en": "breed unsure: maybe mixed or uncommon", "ja": "犬種は不確か（ミックスか珍しい犬種かも）", "de": "Rasse unsicher: vielleicht Mischling oder selten"},
     "guess.small": {"zh": "照片看起來是小型犬，這件是中大型犬款，可能會太大。", "en": "Your dog looks small; this one is cut for medium and large dogs and may be too big.", "ja": "写真では小型犬のようです。こちらは中・大型犬向けなので大きすぎるかもしれません。", "de": "Dein Hund wirkt klein; dieses Modell ist für mittlere und große Hunde und könnte zu groß sein."},
     "guess.large": {"zh": "照片看起來是中大型犬，這件是小型犬款，可能會太小。", "en": "Your dog looks medium or large; this one is cut for small dogs and may be too small.", "ja": "写真では中・大型犬のようです。こちらは小型犬向けなので小さすぎるかもしれません。", "de": "Dein Hund wirkt mittelgroß oder groß; dieses Modell ist für kleine Hunde und könnte zu klein sein."},
-    "guess.mid": {"zh": "照片看起來是中型犬，斗篷和雨衣都可能合身，請以背長為準；全尺寸的款式最保險。", "en": "Your dog looks medium-sized: both the capes and the raincoat may fit, so go by the back length; the all-sizes style is the safe pick.", "ja": "写真では中型犬のようです。ケープもレインコートも合う可能性があるので背丈を目安に。全サイズ対応の型がいちばん安心です。", "de": "Dein Hund wirkt mittelgroß: Capes und Regenmantel können beide passen, also nach der Rückenlänge gehen; das Modell für alle Größen ist die sichere Wahl."},
+    "guess.mid": {"zh": "照片看起來是中型犬，大狗款和小狗款都可能合身，請以背長為準。", "en": "Your dog looks medium-sized: both the big-dog and the small-dog size may fit, so go by the back length.", "ja": "写真では中型犬のようです。大型犬向け・小型犬向けのどちらも合う可能性があるので、背丈を目安にしてください。", "de": "Dein Hund wirkt mittelgroß: Beide Größen können passen, also nach der Rückenlänge gehen."},
     "guess.note": {"zh": "這是依照片估計的，幼犬或混種請以背長為準，也可以照樣試穿。", "en": "Estimated from the photo; for puppies and mixed breeds go by the back length. You can still try it on.", "ja": "写真からの推定です。子犬やミックス犬は背丈を目安に。このまま試着もできます。", "de": "Nach dem Foto geschätzt; bei Welpen und Mischlingen zählt die Rückenlänge. Anprobieren geht trotzdem."},
     "guess.pick": {"zh": "改選 {name}（{kind}）", "en": "Pick {name} ({kind})", "ja": "{name}（{kind}）にする", "de": "{name} wählen ({kind})"},
     "warn.title": {"zh": "這件可能不合身", "en": "This one may not fit", "ja": "サイズが合わないかもしれません", "de": "Das passt vielleicht nicht"},
@@ -283,6 +363,24 @@ CSS = r"""
 .fit-demo .row{display:flex;gap:10px;flex-wrap:wrap}
 .fit-demo button{display:inline-flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;border-radius:999px;border:1.5px solid var(--line2);background:#fff;font:inherit;font-size:14px;font-weight:600;color:var(--ink2);cursor:pointer}
 .fit-demo button img{width:34px;height:34px;border-radius:50%;object-fit:cover}.fit-demo button:hover{border-color:var(--ink);color:var(--ink)}.fit-demo button.cur{border-color:var(--ink);background:var(--ink);color:#fff}
+.fit-types{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fit-type{position:relative;border:2px solid var(--line);border-radius:16px;background:var(--card);padding:10px 10px 12px;text-align:left;cursor:pointer;font:inherit;color:var(--ink);transition:border-color .15s,transform .15s,box-shadow .15s}
+@media (hover:hover){.fit-type:hover{border-color:var(--ink2);transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.06)}}.fit-type.cur{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand);transform:translateY(-2px)}
+.fit-type .img{aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:#fff;display:grid;place-items:center}.fit-type img{width:100%;height:100%;object-fit:contain}
+.fit-type .nm{display:block;font-weight:800;font-size:16px;margin-top:10px;line-height:1.3}.fit-type .sub{display:block;font-size:12.5px;color:var(--mute);line-height:1.4;margin-top:2px}
+.fit-type .chk{position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;display:none;place-items:center;box-shadow:0 2px 8px rgba(255,36,20,.35);z-index:1}.fit-type.cur .chk{display:grid}
+.fit-sizes{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin-top:16px}.fit-sizes .lbl{grid-column:1/-1;font-size:14px;font-weight:700;color:var(--ink2);margin-bottom:-2px}
+.fit-sz{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:56px;padding:9px 14px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.fit-sz b{font-size:15.5px}.fit-sz i{font-style:normal;font-size:12.5px;color:var(--mute)}@media (hover:hover){.fit-sz:hover{border-color:var(--ink2)}}
+.fit-sz.cur{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
+.fit-sz .rec{display:none;position:absolute;top:-10px;right:10px;background:var(--brand);color:#fff;font-size:11.5px;font-weight:800;letter-spacing:.03em;padding:2px 8px;border-radius:999px}.fit-sz.rec .rec{display:inline-block}
+.fit-sz.rec:not(.cur){border-style:dashed;border-color:var(--brand)}
+.fit-sel{margin-top:14px;font-size:14px;color:var(--ink2)}.fit-sel .hint{margin:0;color:var(--mute);font-size:13.5px}
+.fit-sel .row{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:14px;background:var(--sand)}
+.fit-sel img{width:64px;height:64px;object-fit:contain;background:#fff;border-radius:10px;flex:0 0 auto}
+.fit-sel b{display:block;color:var(--ink);font-size:15px}.fit-sel span{display:block;font-size:12.5px;color:var(--mute);margin-top:3px;line-height:1.6}
+.fit-sel span i{display:inline-block;width:12px;height:12px;border-radius:50%;margin:0 4px 0 2px;vertical-align:-1px;border:1px solid rgba(0,0,0,.15)}
+.fit-sel a{display:inline-block;margin-top:4px;font-size:13px;color:var(--ink2);border-bottom:1px solid var(--line2)}
 .fit-coats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .fit-coat{position:relative;border:2px solid var(--line);border-radius:16px;background:var(--card);padding:10px 10px 12px;text-align:left;cursor:pointer;font:inherit;color:var(--ink);transition:border-color .15s,transform .15s,box-shadow .15s}
 .fit-coat:hover{border-color:var(--ink2);transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.06)}.fit-coat.cur{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand);transform:translateY(-2px)}
@@ -402,7 +500,7 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden)heal
 function loadImg(src){return new Promise(function(res,rej){var i=new Image();i.onload=function(){res(i);};i.onerror=rej;i.src=src;});}
 function compress(src,max,q){return loadImg(src).then(function(i){var r=Math.min(max/i.width,max/i.height,1),c=document.createElement('canvas');
  c.width=Math.max(1,Math.round(i.width*r));c.height=Math.max(1,Math.round(i.height*r));var g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(i,0,0,c.width,c.height);return c.toDataURL('image/jpeg',q);});}
-function setDog(src,demo){setErr('');warnOk=false;return loadImg(src).then(function(){dog=src;pv.src=src;drop.classList.add('has');guessSize(src,demo);
+function setDog(src,demo){setErr('');warnOk=false;sizeByUser=false;return loadImg(src).then(function(){dog=src;pv.src=src;drop.classList.add('has');guessSize(src,demo);
  document.querySelectorAll('.fit-demo button').forEach(function(b){b.classList.toggle('cur',b.dataset.dog===demo);});update();}).catch(function(){setErr(t('err.badFile'));});}
 function pick(f){if(!f)return;if(!/^image\//.test(f.type)&&!/\.(heic|heif|jpe?g|png|webp|gif|bmp)$/i.test(f.name)){setErr(t('err.badFile'));return;}
  var rd=new FileReader();rd.onload=function(){setDog(rd.result,null);};rd.onerror=function(){setErr(t('err.badFile'));};rd.readAsDataURL(f);}
@@ -411,10 +509,25 @@ file.addEventListener('change',function(){pick(file.files[0]);file.value='';});
 ['dragleave','drop'].forEach(function(n){drop.addEventListener(n,function(e){e.preventDefault();drop.classList.remove('over');});});
 drop.addEventListener('drop',function(e){pick(e.dataTransfer.files&&e.dataTransfer.files[0]);});
 document.querySelectorAll('.fit-demo button').forEach(function(b){b.addEventListener('click',function(){setDog(b.dataset.src,b.dataset.dog);});});
-/* coat */
-var coatKey=null;
-document.querySelectorAll('.fit-coat').forEach(function(b){b.addEventListener('click',function(){coat=b.dataset.src;coatKey=b.dataset.coat;warnOk=false;
- document.querySelectorAll('.fit-coat').forEach(function(x){x.classList.toggle('cur',x===b);});update();sizeOut();guessOut();});});
+/* style: 雨衣 / 保暖加毛 first, then 大狗 / 小狗 (picked from the photo until the customer chooses); one coat per pair */
+var coatKey=null,selType=null,selSize=null,sizeByUser=false;
+function coatOf(tp,sz){for(var k in cfg.coats){var o=cfg.coats[k];if(o.type===tp&&o.size===sz)return k;}return null;}
+function applySel(){var k=selType&&selSize?coatOf(selType,selSize):null;coatKey=k;coat=k?cfg.coats[k].img:null;warnOk=false;
+ document.querySelectorAll('.fit-type').forEach(function(b){b.classList.toggle('cur',b.dataset.type===selType);
+  var k2=coatOf(b.dataset.type,selSize||'big')||coatOf(b.dataset.type,'small'),im=b.querySelector('img');if(k2&&im&&im.getAttribute('src')!==cfg.coats[k2].img)im.src=cfg.coats[k2].img;});
+ document.querySelectorAll('.fit-sz').forEach(function(b){b.classList.toggle('cur',b.dataset.size===selSize);
+  var k2=coatOf(selType||'rain',b.dataset.size),o=k2&&cfg.coats[k2],i=b.querySelector('i');if(i)i.textContent=o&&o.range?o.range:'';});
+ renderSel();update();sizeOut();guessOut();}
+function selectCoat(k){var o=cfg.coats[k];if(!o)return;selType=o.type;selSize=o.size;sizeByUser=true;applySel();}
+document.querySelectorAll('.fit-type').forEach(function(b){b.addEventListener('click',function(){selType=b.dataset.type;applySel();});});
+document.querySelectorAll('.fit-sz').forEach(function(b){b.addEventListener('click',function(){selSize=b.dataset.size;sizeByUser=true;applySel();});});
+/* the chosen garment: picture, name and the colour Gemini draws; the other colours come after the try-on */
+function renderSel(){var box=$('.fit-sel');if(!box)return;var c=coatKey&&cfg.coats[coatKey];
+ if(!c){box.innerHTML='<p class="hint">'+escHtml(cfg.ui.pickHint)+'</p>';return;}
+ var cols=c.colors||[],def=cols[0];
+ box.innerHTML='<div class="row"><img src="'+c.img+'" alt=""><div><b>'+escHtml(c.label)+(def?' · '+escHtml(def.name):'')+'</b>'+
+  (cols.length>1?'<span>'+escHtml(t('rc.later'))+' '+cols.slice(1).map(function(x){return '<i style="background:'+x.hex+'"></i>'+escHtml(x.name);}).join('、')+'</span>':'')+
+  (c.url?'<a href="'+c.url+'">'+escHtml(cfg.ui.view)+'</a>':'')+'</div></div>';}
 /* small or large dog? The photo (shrunk to 384 px) goes to the fitting-room server, which runs an image model on the
    laptop and answers with the closest breeds and small / medium / large (trained on ~2,300 labelled dog photos).
    A hint is shown only when fairly sure; ?dogai=1 shows the breeds and numbers under the photo (test mode). */
@@ -423,7 +536,7 @@ var guess=null,guessFor=null,guessDemo=false,guessCtl=null,aiBox=$('.fit-ai'),wa
 /* the chosen coat does not fit (AI guess from the photo, or the typed back length): ask once before generating */
 function misfit(){var c=coatKey&&cfg.coats[coatKey];if(!c||!c.cut)return null;
  var fw=typeof fitWarn==='function'?fitWarn(c):null;if(fw&&fw.bad)return {why:'back',bad:mval('back')<c.min?t('warn.big'):t('warn.smallB'),alts:altCoats(mval('back'),c,mval('back')<c.min?-1:1)};
- if(guess&&guess!=='M'&&dog&&dog===guessFor&&c.cut!=='A'&&c.cut!==guess){var alts=Object.keys(cfg.coats).filter(function(k){var x=cfg.coats[k].cut;return x===guess||x==='A';});
+ if(guess&&guess!=='M'&&dog&&dog===guessFor&&c.cut!=='A'&&c.cut!==guess){var alts=Object.keys(cfg.coats).filter(function(k){var x=cfg.coats[k];return x.cut===guess&&x.type===c.type;});
   return {why:'guess',dog:alts.length?cfg.coats[alts[0]].kind:'',coat:c.kind,alts:alts};}
  return null;}
 function showWarn(m){var old=$('.fit-modal');if(old)old.remove();var d=document.createElement('div');d.className='fit-modal';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');
@@ -431,7 +544,7 @@ function showWarn(m){var old=$('.fit-modal');if(old)old.remove();var d=document.
  d.innerHTML='<div class="box"><h3>'+t('warn.title')+'</h3><p>'+escHtml(txt)+'</p><div class="acts">'+m.alts.map(function(k){var o=cfg.coats[k];return '<button type="button" class="btn" data-k="'+k+'">'+escHtml(t('warn.switch',{name:o.label,kind:o.kind}))+'</button>';}).join('')+
   '<button type="button" class="btn ghost" data-go="1">'+t('warn.go')+'</button><button type="button" class="cancel">'+t('warn.cancel')+'</button></div></div>';
  d.addEventListener('click',function(e){var b=e.target.closest('button');if(e.target===d){d.remove();return;}if(!b)return;d.remove();
-  if(b.dataset.k){var card=$('.fit-coat[data-coat="'+b.dataset.k+'"]');if(card){card.click();setTimeout(function(){go.click();},50);}}
+  if(b.dataset.k){selectCoat(b.dataset.k);setTimeout(function(){go.click();},50);}
   else if(b.dataset.go){warnOk=true;go.click();}});
  document.body.appendChild(d);var f=d.querySelector('.btn');if(f)f.focus();}
 function escHtml(x){return String(x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
@@ -453,17 +566,18 @@ function guessSize(src,demo){guess=null;guessFor=src;guessDemo=!!demo;guessMark(
 var guessBox=$('.fit-guess');
 /* data-guess shows the last result (S / L / none / error), handy when checking the page */
 function guessMark(v){if(guessBox)guessBox.setAttribute('data-guess',v);}
-function guessOut(){var c=coatKey&&cfg.coats[coatKey];if(!guessBox)return;
- var rec=guess&&dog&&dog===guessFor?guess:null,grid=$('.fit-coats');
- document.querySelectorAll('.fit-coat').forEach(function(b){var o=cfg.coats[b.dataset.coat];b.classList.toggle('rec-coat',!!(rec&&o&&(o.cut==='A'||(rec!=='M'&&o.cut===rec))));});
- if(grid)grid.classList.toggle('has-rec',!!rec);
- if(guess==='M'&&dog&&dog===guessFor){guessBox.innerHTML='<b>'+t('guess.mid')+'</b><p>'+t('guess.note')+'</p>';guessBox.classList.add('show');return;}
- if(!guess||!c||!c.cut||c.cut==='A'||c.cut===guess||!dog||dog!==guessFor){guessBox.classList.remove('show');guessBox.innerHTML='';return;}
- var alts=Object.keys(cfg.coats).filter(function(k){var x=cfg.coats[k].cut;return x===guess||x==='A';});
- guessBox.innerHTML='<b>'+t(guess==='S'?'guess.small':'guess.large')+'</b><p>'+t('guess.note')+'</p>'+(alts.length?'<div class="row">'+alts.map(function(k){var o=cfg.coats[k];
-  return '<button type="button" data-k="'+k+'">'+t('guess.pick',{name:o.label,kind:o.kind})+'</button>';}).join('')+'</div>':'');
+/* the photo picks 大狗 / 小狗 (marked 建議) until the customer chooses a size; choosing the other one shows why it may not fit */
+function guessOut(){if(!guessBox)return;var rec=guess&&dog&&dog===guessFor?guess:null,want=rec==='S'?'small':rec==='L'?'big':null;
+ document.querySelectorAll('.fit-sz').forEach(function(b){b.classList.toggle('rec',!!want&&b.dataset.size===want);});
+ if(want&&!sizeByUser&&selSize!==want){selSize=want;applySel();return;}
+ var c=coatKey&&cfg.coats[coatKey];
+ if(rec==='M'){guessBox.innerHTML='<b>'+t('guess.mid')+'</b><p>'+t('guess.note')+'</p>';guessBox.classList.add('show');return;}
+ if(want&&!sizeByUser){guessBox.innerHTML='<b>'+t(want==='small'?'sz.guessS':'sz.guessL')+'</b><p>'+t('guess.note')+'</p>';guessBox.classList.add('show');return;}
+ if(!rec||!c||!c.cut||c.cut==='A'||c.cut===rec){guessBox.classList.remove('show');guessBox.innerHTML='';return;}
+ var alt=coatOf(c.type,want);
+ guessBox.innerHTML='<b>'+t(rec==='S'?'guess.small':'guess.large')+'</b><p>'+t('guess.note')+'</p>'+(alt?'<div class="row"><button type="button" data-k="'+alt+'">'+t('guess.pick',{name:cfg.coats[alt].label,kind:cfg.coats[alt].kind})+'</button></div>':'');
  guessBox.classList.add('show');}
-if(guessBox)guessBox.addEventListener('click',function(e){var b=e.target.closest('button[data-k]');if(!b)return;var card=$('.fit-coat[data-coat="'+b.dataset.k+'"]');if(card)card.click();});
+if(guessBox)guessBox.addEventListener('click',function(e){var b=e.target.closest('button[data-k]');if(b)selectCoat(b.dataset.k);});
 /* size advice from the chosen coat's size chart: garment length ~ back length - offset, bumped up if neck/girth exceed the row */
 var sizeBox=$('.fit-size-out');
 function mval(k){var i=$('.fit-size input[data-m='+k+']');return i?parseFloat(i.value)||0:0;}
@@ -475,7 +589,9 @@ function recommend(c){var back=mval('back'),neck=mval('neck'),belly=mval('belly'
  return {size:r.size,len:r.len,diff:Math.round((back-r.len)*10)/10,bumped:i>best,loose:rows[i+1]?rows[i+1].size:null,note:note};}
 /* other coats whose sizes cover this back length; if none and the chosen one is too big (or small), a clearly smaller (or bigger) cut */
 function altCoats(back,c,dir){var fit=[],side=[];for(var k in cfg.coats){var o=cfg.coats[k];if(k===coatKey||!o.min)continue;
- if(back>=o.min-3&&back<=o.max+3)fit.push(k);else if((dir<0&&o.min<c.min-3)||(dir>0&&o.max>c.max+3))side.push(k);}return fit.length||!dir?fit:side;}
+ if(back>=o.min-3&&back<=o.max+3)fit.push(k);else if((dir<0&&o.min<c.min-3)||(dir>0&&o.max>c.max+3))side.push(k);}
+ var same=function(a){var x=a.filter(function(k){return cfg.coats[k].type===c.type;});return x.length?x:a;};   // the same style first
+ return fit.length||!dir?same(fit):same(side);}
 function fitWarn(c){var back=mval('back');if(!back||!c.min)return null;var dir=back<c.min-3?-1:back>c.max+3?1:0,alts=altCoats(back,c,dir);
  var btns=alts.map(function(k){var o=cfg.coats[k];return '<button type="button" class="btn'+(dir?'':' ghost')+' fit-alt" data-k="'+k+'">'+t('fit.try',{name:o.label,kind:o.kind})+'</button>';}).join('');
  if(dir<0)return {bad:true,h:'<div class="fit-warn"><b>'+t('fit.tooBig')+'</b><p>'+t('fit.tooBigP',{min:c.min})+(alts.length?' '+t('fit.better'):'')+'</p>'+btns+'</div>'};
@@ -486,12 +602,13 @@ function sizeOut(){var c=coatKey&&cfg.coats[coatKey];if(!sizeBox||!c)return;var 
  else if(rec){h='<div class="big"><span>'+t('size.rec')+'</span><b>'+rec.size+'</b></div><p>'+t('size.detail',{size:rec.size,len:rec.len,d:rec.diff})+(rec.bumped?' '+t('size.bumped'):'')+(rec.loose?' '+t('size.loose',{size:rec.loose}):'')+'</p>'+(rec.note?'<p>'+rec.note+'</p>':'');}
  else if(!fw||!fw.bad)h='<p>'+t('size.need')+'</p>';
  if(fw&&!fw.bad)h+=fw.h;
- if(stage.dataset.state==='done'&&c.url)h+='<a class="btn'+(fw&&fw.bad?' ghost':'')+'" href="'+c.url+(rec?'#size='+encodeURIComponent(rec.size):'')+'">'+(rec?t('go.product',{size:rec.size}):t('go.plain'))+'</a>';
+ var url=(c.colors&&c.colors[rcSel]&&c.colors[rcSel].url)||c.url;
+ if(stage.dataset.state==='done'&&url)h+='<a class="btn'+(fw&&fw.bad?' ghost':'')+'" href="'+url+(rec?'#size='+encodeURIComponent(rec.size):'')+'">'+(rec?t('go.product',{size:rec.size}):t('go.plain'))+'</a>';
  sizeBox.innerHTML=h;}
 document.querySelectorAll('.fit-size input').forEach(function(i){i.addEventListener('input',sizeOut);});
 /* "try this one instead": pick that coat and start again with the same photo */
-if(sizeBox)sizeBox.addEventListener('click',function(e){var b=e.target.closest('.fit-alt');if(!b)return;var card=$('.fit-coat[data-coat="'+b.dataset.k+'"]');if(!card)return;
- card.click();if(dog&&!running)go.click();});
+if(sizeBox)sizeBox.addEventListener('click',function(e){var b=e.target.closest('.fit-alt');if(!b||!cfg.coats[b.dataset.k])return;
+ selectCoat(b.dataset.k);if(dog&&!running)go.click();});
 /* progress */
 var curStep=0;
 function step(n,txt){curStep=n;steps.forEach(function(s,i){s.className=i<n?'done':i===n?'on':'';});if(txt)progT.textContent=txt;bar.style.width=Math.min(96,8+n*28)+'%';}
@@ -520,11 +637,12 @@ function celebrate(){stage.classList.remove('flash');void stage.offsetWidth;stag
  var box=$('.fit-stage .box');setTimeout(function(){box.scrollIntoView({behavior:'smooth',block:'center'});},80);
  try{if(navigator.vibrate)navigator.vibrate([40,60,40]);}catch(e){}
  blinkTitle('✓ ');}
-/* recolour test (?recolor=1): one Gemini picture, the other colourways recoloured on the laptop */
-var rcOn=/[?&]recolor=1/.test(location.search),rcBox=$('.fit-colors'),rcOrig='',rcCache={};
-function rcShow(){if(!rcBox)return;var c=coatKey&&cfg.coats[coatKey],cols=c&&c.colors||[];
+/* other colours: Gemini draws the coat's own colour, the laptop recolours that picture into the garment's other colours
+   (sent along with the picture, or fetched right after) */
+var rcOn=true,rcBox=$('.fit-colors'),rcOrig='',rcCache={},rcSel=0;
+function rcShow(){if(!rcBox)return;var c=coatKey&&cfg.coats[coatKey],cols=c&&c.colors||[];rcSel=0;
  if(!rcOn||cols.length<2||!rcOrig){rcBox.classList.remove('on');rcBox.innerHTML='';return;}
- rcBox.innerHTML='<h4>換色測試（zbook）</h4><div class="row">'+cols.map(function(x,i){return '<button type="button" data-i="'+i+'"'+(i===0?' class="cur"':'')+'><i style="background:'+x.hex+'"></i>'+x.name+(i===0?'（原圖）':'')+'</button>';}).join('')+'</div><p></p>';
+ rcBox.innerHTML='<h4>'+escHtml(t('rc.title'))+'</h4><div class="row">'+cols.map(function(x,i){return '<button type="button" data-i="'+i+'"'+(i===0?' class="cur"':'')+'><i style="background:'+x.hex+'"></i>'+escHtml(x.name)+'</button>';}).join('')+'</div><p>'+escHtml(t('rc.note'))+'</p>';
  rcBox.classList.add('on');
  rcBox.querySelectorAll('button').forEach(function(b){b.onclick=function(){rcPick(+b.dataset.i);};});}
 function rcFetch(i){var c=cfg.coats[coatKey],cols=c.colors,key=coatKey+':'+i,src=rcOrig;
@@ -536,13 +654,12 @@ function rcTake(v){var c=coatKey&&cfg.coats[coatKey];if(!c||!c.colors||!v||!v.le
  c.colors.forEach(function(x,i){if(!i)return;var hit=v.filter(function(y){return y&&y.hex===x.hex&&y.image;})[0];if(hit){hit.withPicture=true;rcCache[coatKey+':'+i]=Promise.resolve(hit);}});}
 function rcPrefetch(){var c=coatKey&&cfg.coats[coatKey];if(!rcOn||!c||!c.colors)return;var i=1,n=c.colors.length,orig=rcOrig;
  (function next(){if(i>=n||rcOrig!==orig)return;rcFetch(i++).catch(function(){}).then(next);})();}
-function rcPick(i){var c=cfg.coats[coatKey],cols=c.colors,info=rcBox.querySelector('p');
- rcBox.querySelectorAll('button').forEach(function(b){b.classList.toggle('cur',+b.dataset.i===i);});
- if(i===0){shot.src=rcOrig;resultUrl=rcOrig;info.textContent='';return;}
- info.textContent='換色中…';var t0=Date.now(),orig=rcOrig;
- rcFetch(i).then(function(d){if(rcOrig!==orig)return;shot.src=d.image;resultUrl=d.image;var wait=Date.now()-t0;
-   info.textContent=cols[i].name+'：zbook 換色 '+d.ms+' ms'+(d.withPicture?'（和試穿圖一起送來）':wait<150?'（已預先換好，立即顯示）':'，等了 '+wait+' ms')+(d.share<0.01?'（幾乎沒找到原本的衣服顏色）':'');})
-  .catch(function(e){info.textContent='換色失敗：'+(e&&e.message||e);});}
+function rcPick(i){var c=cfg.coats[coatKey],info=rcBox.querySelector('p');rcSel=i;
+ rcBox.querySelectorAll('button').forEach(function(b){b.classList.toggle('cur',+b.dataset.i===i);});sizeOut();
+ if(i===0){shot.src=rcOrig;resultUrl=rcOrig;info.textContent=t('rc.note');return;}
+ info.textContent=t('rc.busy');var orig=rcOrig;
+ rcFetch(i).then(function(d){if(rcOrig!==orig||rcSel!==i)return;shot.src=d.image;resultUrl=d.image;info.textContent=t('rc.note');})
+  .catch(function(){if(rcSel===i)info.textContent=t('rc.fail');});}
 function finish(){if(running){clearInterval(running.poll);clearInterval(running.tick);clearTimeout(running.tm);running=null;}update();}
 go.addEventListener('click',function(){
  if(!dog||!coat){setErr(t('err.pickFirst'));return;}if(online===false){setErr(t('err.offline'));return;}
@@ -589,8 +706,8 @@ dl.addEventListener('click',function(){if(!resultUrl||locked())return;var a=docu
 function toFile(){return fetch(resultUrl).then(function(r){return r.blob();}).then(function(b){return new File([b],t('file.name'),{type:b.type||'image/jpeg'});});}
 if(navigator.share){share.addEventListener('click',function(){if(locked())return;toFile().then(function(f){var d={files:[f],text:t('share.text')};
  if(navigator.canShare&&!navigator.canShare(d))d={text:t('share.text'),url:location.href};return navigator.share(d);}).catch(function(){});});}else{share.style.display='none';}
-again.addEventListener('click',function(){stage.dataset.state='empty';resultUrl='';rcOrig='';rcShow();showNote('');setErr('');coat=null;coatKey=null;
- document.querySelectorAll('.fit-coat').forEach(function(x){x.classList.remove('cur');});update();guessOut();$('.fit-coats').scrollIntoView({behavior:'smooth',block:'center'});});
+again.addEventListener('click',function(){stage.dataset.state='empty';resultUrl='';rcOrig='';rcShow();showNote('');setErr('');selType=null;applySel();
+ var tp=$('.fit-types');if(tp)tp.scrollIntoView({behavior:'smooth',block:'center'});});
 })();"""
 
 ICON_UP = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
@@ -605,10 +722,14 @@ ICON_CHECK = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke
 def config_json(data, lang):
     import theme as th
     strings = {k: v.get(lang) or v["zh"] for k, v in STR.items()}
-    ui = {"connecting": "連線中…", "online": "試衣間運作中", "offline": "試衣間暫停服務中，請稍後再來。"}
+    ui = {"connecting": "連線中…", "online": "試衣間運作中", "offline": "試衣間暫停服務中，請稍後再來。",
+          "pickHint": "先選雨衣或保暖加毛，再選大狗或小狗。", "view": "查看商品"}
     ui = {k: (UI[v].get(lang) if lang != "zh" else v) or v for k, v in ui.items()}
     charts = th.sb.load_image_text().get("charts", {})
     by_id = {p["id"]: p for p in data["products"]}
+    table = th.sb.load_i18n(data)
+    d = th.rel_dir(PAGE)
+    plink = lambda p: th.link(d, th.sb.product_page(p), lang)
     coats = {}
     for coat in load_coats():
         p = by_id.get(coat.get("product"))
@@ -617,12 +738,12 @@ def config_json(data, lang):
         coats[coat["key"]] = {"url": th.link(th.rel_dir(PAGE), th.sb.product_page(p), lang) if p and p.get("visible", True) else "",
                               "name": p["name"] if p else coat_label(coat, "zh"), "product": coat.get("product"),
                               "chart": {"rows": c["rows"], "offset": CHART_OFFSET.get(chart_key, 8)} if c else None,
-                              "label": coat_label(coat, lang),
-                              "colors": [{"name": n, "hex": h, "url": (th.link(th.rel_dir(PAGE), th.sb.product_page(by_id[pid]), lang) if pid in by_id else "")}
-                                         for n, h, pid in COLORWAYS.get(coat["key"], [])]}
+                              "label": _split_name(p["name"], lang, table)[0] if p else coat_label(coat, lang),
+                              "type": coat_kind(coat)[0], "size": coat_kind(coat)[1], "img": img_url(d, coat["image"]),
+                              "colors": coat_colors(coat, data, lang, table, plink)}
         fit = coat_fit(coat, charts, lang)
         if fit:
-            coats[coat["key"]].update(kind=fit["kind"], min=fit["min"], max=fit["max"], cut=fit["cut"])
+            coats[coat["key"]].update(kind=fit["kind"], min=fit["min"], max=fit["max"], cut=fit["cut"], range=fit["range"])
     return json.dumps({"api": API_BASE, "key": API_KEY, "serverLang": SERVER_LANG.get(lang, "zh"),
                        "showNote": SHOW_NOTE.get(lang, False), "strings": strings, "ui": ui, "coats": coats}, ensure_ascii=False)
 
@@ -633,19 +754,18 @@ def render(data, lang):
     by_id = {p["id"]: p for p in data["products"]}
     demo = "".join(f'<button type="button" data-dog="{th.esc(g["key"])}" data-src="{img_url(d, g["image"])}"><img src="{img_url(d, g["image"])}" alt="">{th.esc(coat_label(g, lang))}</button>'
                    for g in load_dogs())
-    coats, links = "", ""
-    charts = th.sb.load_image_text().get("charts", {})
-    for coat in load_coats():
-        p = by_id.get(coat.get("product"))
-        k, src, colour = coat["key"], img_url(d, coat["image"]), coat_label(coat, lang)
-        sub = f'<span class="sub">{th.esc(p["name"])}</span>' if p else ""
-        fit = coat_fit(coat, charts, lang)
-        fitfor = f'<span class="fitfor"><b>{th.esc(fit["kind"])}</b><i>{th.esc(fit["range"])}</i></span>' if fit else ""
-        coats += (f'<button type="button" class="fit-coat" data-coat="{th.esc(k)}" data-src="{src}">'
-                  f'<span class="chk">{ICON_CHECK}</span><span class="rec">建議款</span><span class="img"><img src="{src}" alt="{th.esc(colour)}" loading="lazy"></span>'
-                  f'<span class="nm">{th.esc(colour)}</span>{sub}{fitfor}</button>')
-        if p and p.get("visible", True):
-            links += f'<a href="{th.link(d, th.sb.product_page(p), lang)}">{th.esc(colour)}<span aria-hidden="true"> · </span>查看商品</a>'
+    # step 2: 雨衣 / 保暖加毛, then 大狗 / 小狗 (the photo suggests the size); the picture on each type card follows the size
+    by_kind = {coat_kind(c): c for c in load_coats()}
+    types = ""
+    for tk, name, sub in (("rain", "雨衣", "防水、輕量，下雨天散步"), ("warm", "保暖加毛", "內裡加毛，冷天也暖")):
+        c = by_kind.get((tk, "big")) or by_kind.get((tk, "small"))
+        if not c:
+            continue
+        src = img_url(d, c["image"])
+        types += (f'<button type="button" class="fit-type" data-type="{tk}"><span class="chk">{ICON_CHECK}</span>'
+                  f'<span class="img"><img src="{src}" alt="" loading="lazy"></span><span class="nm">{name}</span><span class="sub">{sub}</span></button>')
+    sizes = "".join(f'<button type="button" class="fit-sz" data-size="{sk}"><span class="rec">建議</span><b>{name}</b><i></i></button>'
+                    for sk, name in (("big", "大狗"), ("small", "小狗")))
     import member as mem
     mcfg = mem.config()
     crumbs = f'<li><a href="{th.link(d, "index.html", lang)}">首頁</a></li><li>試衣間</li>'
@@ -662,9 +782,10 @@ def render(data, lang):
    {f'<div class="fit-demo"><p>沒有照片？先用示範狗狗試試</p><div class="row">{demo}</div></div>' if demo else ''}
    <div class="fit-ai" hidden></div>
   </section>
-  <section class="fit-card"><h2><b>2</b>選一件 apetto</h2>
-   <div class="fit-coats">{coats}</div>
-   <div class="fit-coat-links">{links}</div>
+  <section class="fit-card"><h2><b>2</b>選款式</h2>
+   <div class="fit-types">{types}</div>
+   <div class="fit-sizes" role="group" aria-label="尺寸"><span class="lbl">尺寸</span>{sizes}</div>
+   <div class="fit-sel" aria-live="polite"><p class="hint">先選雨衣或保暖加毛，再選大狗或小狗。</p></div>
    <div class="fit-guess" role="status"></div>
    <div class="fit-go"><button type="button" class="btn brand big" disabled>開始試穿</button><p>AI 生成約需 20 到 40 秒，尖峰時段可能更久。</p></div>
    <div class="fit-err" role="alert"></div>
@@ -692,7 +813,7 @@ def render(data, lang):
  </section>
 </div>{mem.history_block() if mcfg else ""}</div>
 <script id="apt-fit" type="application/json">{config_json(data, lang)}</script>
-<script src="{th.asset(d, 'assets/fitstudio.js')}?v={th.ASSET_VER['fit']}" defer></script>{mem.script_tag(d, mcfg, lang) if mcfg else ""}"""
+<script src="{th.asset(d, 'assets/fitstudio.js')}?v={th.ASSET_VER['fit']}" defer></script>{mem.script_tag(d, mcfg, lang, data) if mcfg else ""}"""
     title = {"zh": "試衣間", "en": "Fitting Studio", "ja": "試着室", "de": "Anprobe"}[lang]
     return th.page(data, PAGE, lang, f"{title} | {th.BRAND}", body, "上傳一張毛孩的照片，挑一件 apetto，AI 會畫出牠穿上的樣子。",
                    og_image=(load_coats() or [{"image": ASSET_DIR + COATS[1][1]}])[0]["image"], current=PAGE,

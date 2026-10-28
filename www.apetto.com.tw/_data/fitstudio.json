@@ -37,51 +37,31 @@
  ],
  "coats": [
   {
-   "key": "pink",
-   "label": "莓果桃",
-   "image": "assets/fitstudio/pink_coat.jpg",
-   "product": 15,
-   "chart": "small_warm_cape",
+   "key": "rain_big",
+   "image": "assets/fitstudio/rain_big.jpg",
+   "product": 7,
+   "chart": "big_raincoat",
    "visible": true,
+   "label": "太空灰",
    "i18n": {
     "en": {
-     "label": "Berry pink"
+     "label": "Space grey"
     },
     "ja": {
-     "label": "ベリーピンク"
+     "label": "スペースグレー"
     },
     "de": {
-     "label": "Beerenrosa"
+     "label": "Space-Grau"
     }
    }
   },
   {
-   "key": "yellow",
-   "label": "檸檬螢光黃",
-   "image": "assets/fitstudio/yellow_coat.jpg",
-   "product": 16,
+   "key": "rain_small",
+   "image": "assets/fitstudio/rain_small.jpg",
+   "product": 9,
    "chart": "small_cape",
    "visible": true,
-   "i18n": {
-    "en": {
-     "label": "Neon lemon"
-    },
-    "ja": {
-     "label": "ネオンイエロー"
-    },
-    "de": {
-     "label": "Neongelb"
-    }
-   },
-   "allsizes": true
-  },
-  {
-   "key": "blue",
    "label": "普魯士藍",
-   "image": "assets/fitstudio/blue_coat.jpg",
-   "product": 8,
-   "chart": "big_raincoat",
-   "visible": true,
    "i18n": {
     "en": {
      "label": "Prussian blue"
@@ -91,6 +71,44 @@
     },
     "de": {
      "label": "Preußischblau"
+    }
+   }
+  },
+  {
+   "key": "warm_big",
+   "image": "assets/fitstudio/warm_big.jpg",
+   "product": 13,
+   "chart": "big_jacket",
+   "visible": true,
+   "label": "萊姆綠",
+   "i18n": {
+    "en": {
+     "label": "Lime green"
+    },
+    "ja": {
+     "label": "ライムグリーン"
+    },
+    "de": {
+     "label": "Limettengrün"
+    }
+   }
+  },
+  {
+   "key": "warm_small",
+   "image": "assets/fitstudio/warm_small.jpg",
+   "product": 15,
+   "chart": "small_warm_cape",
+   "visible": true,
+   "label": "莓果桃",
+   "i18n": {
+    "en": {
+     "label": "Berry pink"
+    },
+    "ja": {
+     "label": "ベリーピンク"
+    },
+    "de": {
+     "label": "Beerenrosa"
     }
    }
   }
