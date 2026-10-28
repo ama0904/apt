@@ -311,17 +311,11 @@
 <main>
   <section class="card" id="pwlogin" style="display:none">
     <h2>登入後台</h2>
-    <p>請輸入後台密碼。</p>
-    <input type="password" id="in-pw" placeholder="密碼" autocomplete="current-password">
-    <div class="dlg-foot" style="padding:14px 0 0; border:none">
-      <span class="err" id="pw-err"></span>
-      <button class="link" id="btn-advanced" style="color:var(--muted);background:none;border:none;font-size:13px">改用 token 登入</button>
-      <button class="primary" id="btn-pw">登入</button>
-    </div>
-    <div class="or-line"><span>或</span></div>
-    <button type="button" class="mb-gbtn" id="btn-google" style="width:100%;justify-content:center"><span class="gi"></span><span>用 Google 帳號登入（管理員）</span></button>
+    <p>請用管理員的 Google 帳號登入。</p>
+    <button type="button" class="mb-gbtn" id="btn-google" style="width:100%;justify-content:center;margin-top:6px"><span class="gi"></span><span>用 Google 帳號登入（管理員）</span></button>
     <p class="err" id="g-err" style="margin:10px 0 0;font-size:13.5px"></p>
-    <div class="hint" style="margin-top:6px">用 Google 登入時，存檔會經過試衣間筆電；筆電關機時只能瀏覽、不能存檔。</div>
+    <div class="hint" style="margin-top:6px">讀取和存檔會經過試衣間筆電；筆電關機時無法登入。</div>
+    <div style="margin-top:14px;text-align:right"><button class="link" id="btn-advanced" style="color:var(--muted);background:none;border:none;font-size:12.5px;cursor:pointer">緊急用：改用 GitHub token 登入</button></div>
   </section>
 
   <section class="card" id="login" style="display:none">
@@ -652,6 +646,9 @@
 const $ = s => document.querySelector(s);
 const UI_LANG = localStorage.getItem('apetto_admin_lang') || ((navigator.language || '').toLowerCase().startsWith('de') ? 'de' : 'zh');
 const DE = {
+  "請用管理員的 Google 帳號登入。": "Bitte mit dem Google-Konto eines Admins anmelden.",
+  "讀取和存檔會經過試衣間筆電；筆電關機時無法登入。": "Lesen und Speichern laufen über den Laptop der Anprobe; ist er aus, ist keine Anmeldung möglich.",
+  "緊急用：改用 GitHub token 登入": "Notfall: mit GitHub-Token anmelden",
   "或": "oder",
   "正在透過試衣間筆電讀取資料…（第一次約 10–30 秒）": "Daten werden über den Laptop der Anprobe geladen… (beim ersten Mal ca. 10–30 s)",
   "試衣間筆電太久沒有回應，請稍後再試。": "Der Laptop der Anprobe antwortet nicht, bitte später erneut versuchen.",
@@ -934,7 +931,7 @@ function applyLang() {
 $('#ui-lang').onchange = e => { localStorage.setItem('apetto_admin_lang', e.target.value); location.reload(); };
 
 /* ---------------------------------------------------------------- config / auth */
-const LS = { token: 'apetto_admin_token', repo: 'apetto_admin_repo', branch: 'apetto_admin_branch', fit: 'apetto_fit_admin_token', mode: 'apetto_admin_mode' };
+const LS = { token: 'apetto_admin_token', repo: 'apetto_admin_repo', branch: 'apetto_admin_branch', fit: 'apetto_fit_admin_token', mode: 'apetto_admin_mode', manual: 'apetto_admin_token_manual' };
 /* Google mode: no GitHub token in this browser; every GitHub call goes through the laptop, which checks the admin's Google sign-in */
 const gMode = () => localStorage.getItem(LS.mode) === 'google';
 const SITE_DIR = 'www.apetto.com.tw';
@@ -1653,38 +1650,11 @@ $('#form').onsubmit = async (ev) => {
   finally { btn.disabled = false; prog(''); }
 };
 
-/* ---------------------------------------------------------------- password login (token encrypted in admin_secret.json) */
-let SECRET = null;
-async function loadSecret() {
-  try { const r = await fetch('admin_secret.json', { cache: 'no-store' }); if (r.ok) SECRET = await r.json(); } catch (e) { SECRET = null; }
-}
-const b64bytes = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
-async function decryptToken(password) {
-  const enc = new TextEncoder();
-  const baseKey = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
-  const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b64bytes(SECRET.salt), iterations: SECRET.iter, hash: 'SHA-256' }, baseKey, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
-  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64bytes(SECRET.iv) }, key, b64bytes(SECRET.ct));
-  return new TextDecoder().decode(pt);
-}
+/* ---------------------------------------------------------------- login screen (Google; token login is the emergency entry) */
 function showPw(err) {
   $('#pwlogin').style.display = ''; $('#login').style.display = 'none'; $('#app').style.display = 'none';
-  $('#pw-err').textContent = err || ''; $('#in-pw').value = '';
-  ['#in-pw', '#btn-pw'].forEach(x => $(x).style.display = SECRET ? '' : 'none');   // no password file: Google (or token) only
-  if (SECRET) $('#in-pw').focus();
+  $('#g-err').textContent = err || '';
 }
-async function pwConnect() {
-  const pw = $('#in-pw').value; if (!pw) return $('#pw-err').textContent = t('請輸入密碼');
-  $('#pw-err').textContent = t('驗證中…'); $('#btn-pw').disabled = true;
-  try {
-    const plain = await decryptToken(pw); let token = plain, fit = '';
-    if (plain.trim().startsWith('{')) { try { const o = JSON.parse(plain); token = o.token || ''; fit = o.fit || ''; } catch (e) {} }
-    localStorage.setItem(LS.token, token); localStorage.removeItem(LS.mode); if (fit) localStorage.setItem(LS.fit, fit);
-    await load(); $('#pwlogin').style.display = 'none'; $('#app').style.display = ''; afterLogin();
-  } catch (e) { $('#pw-err').textContent = e.name === 'OperationError' ? t('密碼錯誤') : t('連接失敗：') + e.message; }
-  finally { $('#btn-pw').disabled = false; }
-}
-$('#btn-pw').onclick = pwConnect;
-$('#in-pw').addEventListener('keydown', e => { if (e.key === 'Enter') pwConnect(); });
 $('#btn-advanced').onclick = () => showLogin('');
 async function googleConnect() {
   const err = $('#g-err'); err.textContent = t('驗證中…'); $('#btn-google').disabled = true;
@@ -2749,7 +2719,7 @@ function showLogin(err) {
 async function connect() {
   const repo = $('#in-repo').value.trim() || guessRepo(), branch = $('#in-branch').value.trim() || 'main', token = $('#in-token').value.trim();
   if (!token) return $('#login-err').textContent = t('請輸入 token');
-  localStorage.setItem(LS.repo, repo); localStorage.setItem(LS.branch, branch); localStorage.setItem(LS.token, token); localStorage.removeItem(LS.mode);
+  localStorage.setItem(LS.repo, repo); localStorage.setItem(LS.branch, branch); localStorage.setItem(LS.token, token); localStorage.removeItem(LS.mode); localStorage.setItem(LS.manual, '1');
   const fit = $('#in-fit').value.trim(); if (fit) localStorage.setItem(LS.fit, fit); else localStorage.removeItem(LS.fit);
   $('#login-err').textContent = t('連接中…');
   try { await load(); $('#login').style.display = 'none'; $('#app').style.display = ''; afterLogin(); }
@@ -2758,7 +2728,7 @@ async function connect() {
 $('#btn-login').onclick = connect;
 $('#in-token').addEventListener('keydown', e => { if (e.key === 'Enter') connect(); });
 $('#btn-settings').onclick = () => showLogin('');
-$('#btn-logout').onclick = () => { localStorage.removeItem(LS.token); localStorage.removeItem(LS.mode); location.reload(); };
+$('#btn-logout').onclick = () => { localStorage.removeItem(LS.token); localStorage.removeItem(LS.mode); localStorage.removeItem(LS.manual); location.reload(); };
 $('#btn-add').onclick = () => openForm(null);
 $('#btn-reload').onclick = () => load().then(() => toast(t('已重新載入'))).catch(e => alert(e.message));
 $('#btn-redeploy').onclick = async () => { try { await gh(`/repos/${cfg.repo}/actions/workflows/deploy.yml/dispatches`, { method: 'POST', body: JSON.stringify({ ref: cfg.branch }) }); toast(t('已觸發重新部署')); setTimeout(() => watchDeploy(), 3000); } catch (e) { alert(e.message); } };
@@ -2771,11 +2741,13 @@ $('#dlg-close').onclick = $('#dlg-cancel').onclick = () => $('#dlg').close();
   applyLang();
   loadCharts();
   if (UI_LANG !== 'zh') { try { const r = await fetch(siteUrl() + '_data/i18n.json', { cache: 'no-store' }); if (r.ok) SITE_TR = await r.json(); } catch (e) {} }
-  await loadSecret();
+  // password login is gone: a GitHub token it left in this browser is removed (a token typed in by hand stays)
+  if (localStorage.getItem(LS.token) && localStorage.getItem(LS.manual) !== '1') localStorage.removeItem(LS.token);
+  if (gMode()) localStorage.removeItem(LS.token);
   const entry = err => showPw(err);
   if (!cfg.token && !gMode()) return entry('');
   try { await load(); $('#app').style.display = ''; afterLogin(); }
-  catch (e) { localStorage.removeItem(LS.token); localStorage.removeItem(LS.mode); entry(t('登入已失效，請重新登入。') + (SECRET ? '' : e.message)); }
+  catch (e) { localStorage.removeItem(LS.token); localStorage.removeItem(LS.mode); entry(t('登入已失效，請重新登入。') + ' ' + (e.message || '')); }
 })();
 </script>
 </body>

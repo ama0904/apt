@@ -24,13 +24,13 @@
 
 
 
-1. 打開後台網址，輸入後台密碼。密碼用來解開 `admin_secret.json` 裡加密的 GitHub token（PBKDF2 60 萬次 + AES-256-GCM），解開後 token 存在你瀏覽器的 localStorage。右上角「改用 token 登入」可以直接貼 token。
+1. 打開後台網址，按「用 Google 帳號登入（管理員）」。只有管理員名單上的 Google 帳號能進去（名單有兩份要一起改：Firebase 的 Firestore 規則 `isAdmin`，以及試衣間筆電上的 admin-emails.txt）。
 
-   - 更換密碼或 token：`python _tools/set_admin_password.py <token> <密碼>`，然後 commit 推送。
+   - 後台的讀取和存檔都經過試衣間筆電（`_tools/fit_admin/ghproxy.mjs`）：筆電驗證 Google 登入後，用它自己保管的 GitHub token 代為呼叫 GitHub。token 只放在筆電的檔案裡，不在瀏覽器、不在 repo、也不在資料庫。筆電關機時無法登入。
 
-   - 要連同試衣間後台金鑰一起加密：把 `{"token": "<GitHub token>", "fit": "<FitStudio ADMIN_TOKEN>"}` 存成一個暫存檔，執行 `python _tools/set_admin_password.py --from <檔案> <密碼>`，推送後刪掉暫存檔。沒加密進去的話，可以在後台「設定」裡手動貼金鑰（只存在該瀏覽器）。
+   - 緊急入口：登入畫面右下的「改用 GitHub token 登入」可以直接貼一組 token（只存在該瀏覽器），筆電故障時用。token 建議用只有這個 repo Contents 讀寫（加 Actions 讀寫）權限的 fine-grained token。
 
-   - 密碼越長越安全；這個檔案是公開的，三個字元的密碼只能擋住隨手亂試的人。token 建議用只有這個 repo Contents 讀寫（加 Actions 讀取）權限的 fine-grained token。
+   - 以前的密碼登入（`admin_secret.json`）已經拿掉。那個檔案還留在 git 歷史裡，裡面加密的舊 token 必須撤銷。
 
 2. 「新增商品」：填名稱、價格、分類、首頁區塊、介紹文字，上傳主圖（可再加多張圖）。瀏覽器會自動裁出列表方塊圖與縮圖，然後連同 `products.json` 一次 commit 進 repo。
 
@@ -84,7 +84,7 @@
 
 - 請求 body 另帶 `coat`（款式 key）、`coatName`、`product`（商品編號），伺服器會存進紀錄。
 
-- **試穿紀錄（後台）**：`admin.html` 最下方「試衣間紀錄」區塊讀取伺服器的 `GET /api/admin/list?hours=&limit=`（header `x-admin-token`）與 `GET /api/admin/image/:file?token=`，顯示統計（次數、成功/失敗、平均耗時、款式/語言/地區分布）和每筆的毛孩照、結果圖、造型師文案、耗時、來源；點卡片看明細。金鑰（伺服器 `.env` 的 `ADMIN_TOKEN`，與公開的 FITSTUDIO_API_KEY 是不同的一組）由後台密碼解開或在「設定」手動貼上，不會出現在 repo 明文裡。伺服器端只保留 60 天。
+- **試穿紀錄（後台）**：`admin.html` 最下方「試衣間紀錄」區塊讀取伺服器的 `GET /api/admin/list?hours=&limit=`（header `x-admin-token`）與 `GET /api/admin/image/:file?token=`，顯示統計（次數、成功/失敗、平均耗時、款式/語言/地區分布）和每筆的毛孩照、結果圖、造型師文案、耗時、來源；點卡片看明細。金鑰（伺服器 `.env` 的 `ADMIN_TOKEN`，與公開的 FITSTUDIO_API_KEY 是不同的一組）在後台「設定」手動貼上（以前由後台密碼解開；密碼登入已拿掉），不會出現在 repo 明文裡。伺服器端只保留 60 天。
 
 
 
