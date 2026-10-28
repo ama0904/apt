@@ -124,13 +124,19 @@ function kmeans(samples, k, iters = 8) {
 const median = arr => { if (!arr.length) return NaN; const s = Float64Array.from(arr).sort(); return s[s.length >> 1]; };
 
 // where the try-on differs from the customer's photo = where the garment was painted. null when unusable.
+const SATW = 1.5;   // weight of the saturation change in the "what changed" measure below (zbook, tested on 83 pairs)
 async function changedRegion(original, w, h, tryon) {
   const a = await sharp(original).rotate().resize(w, h, { fit: 'fill' }).blur(3).removeAlpha().raw().toBuffer();
   const b = await sharp(tryon, { raw: { width: w, height: h, channels: 3 } }).blur(3).raw().toBuffer();
   const N = w * h, m = new Float32Array(N);
   let hot = 0;
   for (let p = 0; p < N; p++) {
-    const d = Math.abs(a[p * 3] - b[p * 3]) + Math.abs(a[p * 3 + 1] - b[p * 3 + 1]) + Math.abs(a[p * 3 + 2] - b[p * 3 + 2]);
+    // zbook 2026-10-28: a dark navy coat over black fur differs little in plain rgb (black 20,20,25 -> navy 2,24,63 is 60,
+    // below the 0.5 point); the shaded half of a 普魯士藍 cape stayed blue on a black shih tzu (ux4). A change of
+    // saturation (max - min) counts too: fur has none, fabric of any colour has plenty.
+    const sa = Math.max(a[p * 3], a[p * 3 + 1], a[p * 3 + 2]) - Math.min(a[p * 3], a[p * 3 + 1], a[p * 3 + 2]);
+    const sb = Math.max(b[p * 3], b[p * 3 + 1], b[p * 3 + 2]) - Math.min(b[p * 3], b[p * 3 + 1], b[p * 3 + 2]);
+    const d = Math.abs(a[p * 3] - b[p * 3]) + Math.abs(a[p * 3 + 1] - b[p * 3 + 1]) + Math.abs(a[p * 3 + 2] - b[p * 3 + 2]) + SATW * Math.abs(sa - sb);
     m[p] = clamp01((d - 40) / 64);
     if (m[p] > 0.5) hot++;
   }
@@ -266,6 +272,23 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
   const Lm = Ls.length ? median(Ls) : src[0], cm = Math.max(1, Cs.length ? median(Cs) : sc);
   // inside the region, fade out pixels far less saturated than the fabric: white fur tinted by JPEG bleed would otherwise get a halo
   if (region && !neutral) for (let p = 0; p < N; p++) if (mask[p] > 0) mask[p] *= clamp01((Math.hypot(lab[p * 3 + 1], lab[p * 3 + 2]) / cm - 0.35) / 0.2);
+  // zbook 2026-10-28: holes inside the fabric. The deepest folds of a dark coat (L < ~15, a faint tint of the old hue) are
+  // too dull for that fade and were left as navy blobs in a yellow coat (black shih tzu, ux4). A dark pixel of the old hue
+  // that lies inside the fabric's outline (closing of the mask, ~2 % of the picture) is fabric; at the outline it is left
+  // alone, so black fur with a little blue bleed along the edge is not lifted.
+  if (region && !neutral) {
+    const mc = new Float32Array(N); for (let p = 0; p < N; p++) mc[p] = mask[p] > 0.5 ? 1 : 0;
+    const rc = Math.max(4, Math.round(0.02 * Math.max(w, h)));
+    const closed = erode(dilate(mc, w, h, rc), w, h, rc);
+    for (let p = 0; p < N; p++) {
+      if (closed[p] < 0.5 || mask[p] > 0.9) continue;
+      const L = lab[p * 3]; if (L >= 18) continue;
+      const a = lab[p * 3 + 1], b = lab[p * 3 + 2], ch = Math.hypot(a, b); if (ch < 5) continue;
+      let d = Math.abs(Math.atan2(b, a) - sang); if (d > Math.PI) d = 2 * Math.PI - d;
+      const g = clamp01((hueTol - d * 180 / Math.PI) / hueSoft) * clamp01((ch - 5) / 5) * clamp01((18 - L) / 6) * Math.min(1, region[p] * 1.5);
+      if (g > mask[p]) mask[p] = g;
+    }
+  }
   // much lighter target: compress the shading (a shiny grey coat spans ~60 L; on neon yellow that would blow out to white)
   const k = dst[0] > Lm + 25 ? (neutral ? 0.5 : 0.85) : 1.0;
   // colour spill: Gemini lets the garment colour glow onto the fur and the seam just outside the garment. Those light,
@@ -277,6 +300,18 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
   const dc = Math.hypot(dst[1], dst[2]), spillK = Math.min(1, dc / Math.max(1, sc));
   const ux = src[1] / Math.max(1, sc), uy = src[2] / Math.max(1, sc), vx = dst[1] / Math.max(1, dc), vy = dst[2] / Math.max(1, dc);
   const refs = surround && surround.length ? surround : [[70, 0, 0]];
+  // zbook 2026-10-28: the deepest folds of a dark coat (L < ~15, a faint tint of the old hue) are too dull for the chroma
+  // fade above, and on black fur they cannot be told from fur anyway. They are not lifted to the new colour, but their
+  // tint is turned to the new hue at their own lightness: a near-black fold stays a near-black fold instead of a navy blob
+  // on a yellow coat. Black fur with a little blue bleed stays black.
+  const dark = new Float32Array(N);
+  if (region && !neutral) for (let p = 0; p < N; p++) {
+    const L = lab[p * 3]; if (L >= 18 || mask[p] > 0.6 || region[p] < 0.2) continue;
+    const a = lab[p * 3 + 1], b = lab[p * 3 + 2], ch = Math.hypot(a, b); if (ch < 5) continue;
+    let d = Math.abs(Math.atan2(b, a) - sang); if (d > Math.PI) d = 2 * Math.PI - d;
+    const g = clamp01((hueTol - d * 180 / Math.PI) / hueSoft) * clamp01((ch - 5) / 5) * clamp01((18 - L) / 6);
+    if (g > 0) dark[p] = g * Math.min(1, region[p] * 1.5) * (1 - mask[p]);
+  }
   const spill = new Float32Array(N), spillAB = new Float32Array(N * 2);
   for (let p = 0; p < N; p++) {
     if (neutral || band[p] < 0.02 || mask[p] > 0.98) continue;   // a grey garment casts no coloured glow
@@ -294,7 +329,12 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
   }
   const out = Buffer.alloc(N * 3), px = new Float64Array(3);
   for (let p = 0; p < N; p++) {
-    const m = mask[p], r = data[p * 3], g = data[p * 3 + 1], b = data[p * 3 + 2];
+    const m = mask[p]; let r = data[p * 3], g = data[p * 3 + 1], b = data[p * 3 + 2];
+    if (dark[p] > 0.004) {   // deep fold: same lightness and chroma, new hue (see above)
+      const dk = dark[p], ch = Math.hypot(lab[p * 3 + 1], lab[p * 3 + 2]) * spillK;
+      fromLab(lab[p * 3], ch * vx, ch * vy, px, 0);
+      r = r * (1 - dk) + px[0] * dk; g = g * (1 - dk) + px[1] * dk; b = b * (1 - dk) + px[2] * dk;
+    }
     if (spill[p] > 0.004) {   // the faint glow: same lightness, same faint chroma, new hue
       const sp = spill[p];
       fromLab(lab[p * 3], spillAB[p * 2], spillAB[p * 2 + 1], px, 0);
