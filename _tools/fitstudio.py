@@ -372,7 +372,7 @@ CSS = r"""
 .fit-types{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .fit-type{position:relative;border:2px solid var(--line);border-radius:16px;background:var(--card);padding:10px 10px 12px;text-align:left;cursor:pointer;font:inherit;color:var(--ink);transition:border-color .15s,transform .15s,box-shadow .15s}
 @media (hover:hover){.fit-type:hover{border-color:var(--ink2);transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.06)}}.fit-type.cur{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand);transform:translateY(-2px)}
-.fit-type .img{aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:#fff;display:grid;place-items:center}.fit-type img{width:100%;height:100%;object-fit:contain}.fit-type[data-fixed] img{object-fit:cover}
+.fit-type .img{aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:#fff;display:grid;place-items:center}.fit-type img{width:100%;height:100%;object-fit:contain}.fit-type[data-fixed] img{object-fit:cover}.fit-type img.show{object-fit:contain}
 .fit-type .nm{display:block;font-weight:800;font-size:16px;margin-top:10px;line-height:1.3}.fit-type .sub{display:block;font-size:12.5px;color:var(--mute);line-height:1.4;margin-top:2px}
 .fit-type .chk{position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;display:none;place-items:center;box-shadow:0 2px 8px rgba(255,36,20,.35);z-index:1}.fit-type.cur .chk{display:grid}
 .fit-sizes{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin-top:16px}.fit-sizes .lbl{grid-column:1/-1;font-size:14px;font-weight:700;color:var(--ink2);margin-bottom:-2px}
@@ -524,7 +524,10 @@ var coatKey=null,selType=null,selSize=null,sizeByUser=false;
 function coatOf(tp,sz){for(var k in cfg.coats){var o=cfg.coats[k];if(o.type===tp&&o.size===sz)return k;}return null;}
 function applySel(){var k=selType&&selSize?coatOf(selType,selSize):null;coatKey=k;coat=k?cfg.coats[k].img:null;warnOk=false;
  document.querySelectorAll('.fit-type').forEach(function(b){b.classList.toggle('cur',b.dataset.type===selType);
-  var k2=coatOf(b.dataset.type,selSize||'big')||coatOf(b.dataset.type,'small'),im=b.querySelector('img');if(!b.dataset.fixed&&k2&&im&&im.getAttribute('src')!==cfg.coats[k2].img)im.src=cfg.coats[k2].img;});
+  var k2=coatOf(b.dataset.type,selSize||'big')||coatOf(b.dataset.type,'small'),im=b.querySelector('img');if(!im)return;
+  if(!im.dataset.src0)im.dataset.src0=im.getAttribute('src');
+  var ks=selSize&&coatOf(b.dataset.type,selSize),show=ks&&cfg.coats[ks].show,want=show||(b.dataset.fixed||!k2?im.dataset.src0:cfg.coats[k2].img);
+  im.classList.toggle('show',!!show);if(im.getAttribute('src')!==want)im.src=want;});
  document.querySelectorAll('.fit-sz').forEach(function(b){b.classList.toggle('cur',b.dataset.size===selSize);
   var k2=coatOf(selType||'rain',b.dataset.size),o=k2&&cfg.coats[k2],i=b.querySelector('i');if(i)i.textContent=o&&o.range?o.range:'';});
  renderSel();update();sizeOut();guessOut();}
@@ -535,7 +538,7 @@ document.querySelectorAll('.fit-sz').forEach(function(b){b.addEventListener('cli
 function renderSel(){var box=$('.fit-sel');if(!box)return;var c=coatKey&&cfg.coats[coatKey];
  if(!c){box.innerHTML='<p class="hint">'+escHtml(cfg.ui.pickHint)+'</p>';return;}
  var cols=c.colors||[],def=cols[0];
- box.innerHTML='<div class="row"><img src="'+c.img+'" alt=""><div><b>'+escHtml(c.label)+(def?' · '+escHtml(def.name):'')+'</b>'+
+ box.innerHTML='<div class="row"><img src="'+(c.show||c.img)+'" alt=""><div><b>'+escHtml(c.label)+(def?' · '+escHtml(def.name):'')+'</b>'+
   (cols.length>1?'<span>'+escHtml(t('rc.later'))+' '+cols.slice(1).map(function(x){return '<i style="background:'+x.hex+'"></i>'+escHtml(x.name);}).join('、')+'</span>':'')+
   (c.url?'<a href="'+c.url+'">'+escHtml(cfg.ui.view)+'</a>':'')+'</div></div>';}
 /* small or large dog? The photo (shrunk to 384 px) goes to the fitting-room server, which runs an image model on the
@@ -756,6 +759,8 @@ def config_json(data, lang):
                               "chart": {"rows": c["rows"], "offset": CHART_OFFSET.get(chart_key, 8)} if c else None,
                               "label": _split_name(p["name"], lang, table)[0] if p else coat_label(coat, lang),
                               "type": coat_kind(coat)[0], "size": coat_kind(coat)[1], "img": img_url(d, coat["image"]),
+                              # "show": a picture for the customer only (a dog wearing it); Gemini keeps the flat shot "img"
+                              "show": img_url(d, coat["show"]) if coat.get("show") else "",
                               "colors": coat_colors(coat, data, lang, table, plink)}
         fit = coat_fit(coat, charts, lang)
         if fit:

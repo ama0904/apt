@@ -56,7 +56,8 @@
    },
    "skip_colors": [
     "檸檬螢光黃"
-   ]
+   ],
+   "show": "assets/fitstudio/show_rain_big.jpg"
   },
   {
    "key": "rain_small",
@@ -78,7 +79,8 @@
    },
    "skip_colors": [
     "檸檬螢光黃"
-   ]
+   ],
+   "show": "assets/fitstudio/show_rain_small.jpg"
   },
   {
    "key": "warm_big",
@@ -97,7 +99,8 @@
     "de": {
      "label": "Limettengrün"
     }
-   }
+   },
+   "show": "assets/fitstudio/show_warm_big.jpg"
   },
   {
    "key": "warm_small",
