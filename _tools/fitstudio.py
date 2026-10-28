@@ -524,7 +524,8 @@ document.querySelectorAll('.fit-demo button').forEach(function(b){b.addEventList
 /* style: 雨衣 / 保暖加毛 first, then 大狗 / 小狗 (picked from the photo until the customer chooses); one coat per pair */
 var coatKey=null,selType=null,selSize=null,sizeByUser=false;
 function coatOf(tp,sz){for(var k in cfg.coats){var o=cfg.coats[k];if(o.type===tp&&o.size===sz)return k;}return null;}
-function applySel(){var k=selType&&selSize?coatOf(selType,selSize):null;coatKey=k;coat=k?cfg.coats[k].img:null;warnOk=false;
+function applySel(){var k=selType&&selSize?coatOf(selType,selSize):null;coatKey=k;coat=k?(cfg.coats[k].show||cfg.coats[k].img):null;   /* Gemini gets the dog-wearing-it picture when there is one (owner 2026-10-28: closer to a real fit than the flat shot) */
+ warnOk=false;
  document.querySelectorAll('.fit-type').forEach(function(b){b.classList.toggle('cur',b.dataset.type===selType);
   var k2=coatOf(b.dataset.type,selSize||'big')||coatOf(b.dataset.type,'small'),im=b.querySelector('img');if(!b.dataset.fixed&&k2&&im&&im.getAttribute('src')!==cfg.coats[k2].img)im.src=cfg.coats[k2].img;});
  document.querySelectorAll('.fit-sz').forEach(function(b){b.classList.toggle('cur',b.dataset.size===selSize);
@@ -758,7 +759,7 @@ def config_json(data, lang):
                               "chart": {"rows": c["rows"], "offset": CHART_OFFSET.get(chart_key, 8)} if c else None,
                               "label": _split_name(p["name"], lang, table)[0] if p else coat_label(coat, lang),
                               "type": coat_kind(coat)[0], "size": coat_kind(coat)[1], "img": img_url(d, coat["image"]),
-                              # "show": the chosen-coat picture under the sizes (a dog wearing it); Gemini keeps the flat shot "img"
+                              # "show": a dog wearing it (black silhouette): the chosen-coat picture under the sizes, and the reference Gemini gets
                               "show": img_url(d, coat["show"]) if coat.get("show") else "",
                               "colors": coat_colors(coat, data, lang, table, plink)}
         fit = coat_fit(coat, charts, lang)
