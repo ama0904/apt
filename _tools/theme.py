@@ -235,6 +235,7 @@ UI = {
     "回到商品列表": {"en": "Back to products", "ja": "商品一覧へ戻る", "de": "Zurück zu den Produkten"},
     "分享": {"en": "Share", "ja": "シェア", "de": "Teilen"},
     "主選單": {"en": "Main menu", "ja": "メインメニュー", "de": "Hauptmenü"},
+    "選單": {"en": "Menu", "ja": "メニュー", "de": "Menü"},
     "查看連結": {"en": "Open link", "ja": "リンクを見る", "de": "Link öffnen"},
     "目前沒有消息": {"en": "No news yet", "ja": "お知らせはまだありません", "de": "Noch keine Neuigkeiten"},
     "訂購步驟": {"en": "How to order", "ja": "ご注文の流れ", "de": "So bestellen Sie"},
@@ -386,7 +387,8 @@ p{margin:0 0 1em;text-wrap:pretty}h1,h2,h3{text-wrap:balance}ul,ol{margin:0;padd
 .lang a{display:inline-flex;align-items:center;justify-content:center;min-width:56px;height:38px;padding:0 13px;white-space:nowrap;border-radius:999px;font-weight:700;font-size:15px;color:var(--ink2)}
 .lang a:hover{background:var(--sand);color:var(--ink)}.lang a.cur{background:var(--ink);color:#fff}
 .burger{display:none;border:0;background:none;width:44px;height:44px;border-radius:12px;cursor:pointer;color:var(--ink);padding:0;transition:background .15s}
-.burger:active{background:var(--sand)}
+.burger:active{background:var(--sand)}.burger .bl{display:block;margin-top:5px;font-size:10.5px;font-weight:700;line-height:1;letter-spacing:.04em;white-space:nowrap}
+.burger{width:auto;min-width:44px;height:48px;align-content:center;gap:0}
 .bars{display:block;width:22px;height:14px;position:relative}.bars i{position:absolute;left:0;width:22px;height:2px;border-radius:2px;background:currentColor;transition:transform .25s,opacity .2s}
 .bars i:nth-child(1){top:0}.bars i:nth-child(2){top:6px}.bars i:nth-child(3){top:12px}
 body.menu-open .bars i:nth-child(1){transform:translateY(6px) rotate(45deg)}body.menu-open .bars i:nth-child(2){opacity:0}body.menu-open .bars i:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
@@ -711,7 +713,7 @@ def header(data, site_rel, lang, current=""):
   <a class="logo" href="{link(d, 'index.html', lang)}" aria-label="apetto"><img src="{asset(d, LOGO)}" alt="apetto"></a>
   <nav class="nav" aria-label="主選單">{nav_links(data, d, lang, current)}</nav>
   <div class="lang" aria-label="語言">{lang_links(site_rel, lang)}</div>
-  <button class="burger" aria-label="選單" aria-expanded="false"><span class="bars"><i></i><i></i><i></i></span></button>
+  <button class="burger" aria-label="選單" aria-expanded="false"><span class="bars"><i></i><i></i><i></i></span><span class="bl">選單</span></button>
  </div>
 </header>
 <div class="mobile-menu" role="dialog" aria-label="選單"><div class="mm-panel">

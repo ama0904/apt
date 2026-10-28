@@ -117,7 +117,7 @@ CSS = r"""
 .mem-loading{color:var(--mute);padding:30px 0}
 .mem-out{max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px}.mem-out p{margin:0 0 16px;font-size:16px;color:var(--ink2);line-height:1.6}.mem-out .mem-fine{margin:16px 0 0;font-size:13px;color:var(--mute)}
 .mem-who{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:22px;font-size:15px}.mem-who img{width:44px;height:44px;border-radius:50%;object-fit:cover}.mem-who b{display:block;font-size:17px;color:var(--ink)}.mem-who span{color:var(--mute);font-size:13.5px}
-.mem-who .out{margin-left:auto;background:none;border:0;font:inherit;font-size:14px;color:var(--mute);text-decoration:underline;cursor:pointer}
+.mem-who .out{margin-left:auto;display:inline-flex;align-items:center;gap:7px;min-height:42px;padding:0 16px;border:1.5px solid var(--line2);border-radius:999px;background:var(--card);font:inherit;font-size:14.5px;font-weight:600;color:var(--ink);cursor:pointer}.mem-who .out svg{width:17px;height:17px}.mem-who .out:hover{border-color:var(--brand);color:var(--brand-ink)}
 .mem-head{display:flex;align-items:center;justify-content:flex-start;gap:16px;margin-bottom:12px}.mem-head h2{margin:0;font-size:22px}.mem-head .btn{min-height:42px;padding:0 16px;font-size:14.5px}
 .mem-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
 .mem-dog{border:1px solid var(--line);border-radius:16px;background:var(--card);padding:16px 18px;display:grid;gap:8px}
@@ -287,7 +287,7 @@ function renderMember() {
   }
   memPage.dataset.state = 'in';
   const who = memPage.querySelector('.mem-who');
-  who.innerHTML = `${user.photoURL ? `<img src="${esc(user.photoURL)}" alt="" referrerpolicy="no-referrer">` : ''}<div><b>${esc(user.displayName || '')}</b><span>${esc(user.email || '')}</span></div><button type="button" class="out">${t('out')}</button>`;
+  who.innerHTML = `${user.photoURL ? `<img src="${esc(user.photoURL)}" alt="" referrerpolicy="no-referrer">` : ''}<div><b>${esc(user.displayName || '')}</b><span>${esc(user.email || '')}</span></div><button type="button" class="out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>${t('out')}</button>`;
   who.querySelector('.out').onclick = () => fb.A.signOut(fb.auth);
   memPage.querySelector('.mem-add').onclick = () => dogForm(null, false);
   const list = memPage.querySelector('.mem-list');
