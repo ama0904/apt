@@ -189,6 +189,9 @@
   .mb-gate:empty { display:none; }
   .mb-gbtn { display:inline-flex; align-items:center; gap:10px; padding:9px 16px 9px 12px; border-radius:999px; border:1.5px solid var(--line); background:#fff; font:inherit; font-weight:700; cursor:pointer; }
   .mb-gbtn svg { width:18px; height:18px; }
+  .or-line { display:flex; align-items:center; gap:10px; margin:18px 0 14px; color:var(--muted); font-size:13px; }
+  .or-line::before, .or-line::after { content:""; flex:1; height:1px; background:var(--line); }
+  .mb-gbtn .gi svg { width:18px; height:18px; display:block; }
   .mb-table td { vertical-align:middle; }
   .mb-user { display:flex; align-items:center; gap:10px; min-width:0; }
   .mb-user img, .mb-user .ph { width:34px; height:34px; border-radius:50%; object-fit:cover; flex:0 0 auto; background:#eee; }
@@ -315,6 +318,10 @@
       <button class="link" id="btn-advanced" style="color:var(--muted);background:none;border:none;font-size:13px">改用 token 登入</button>
       <button class="primary" id="btn-pw">登入</button>
     </div>
+    <div class="or-line"><span>或</span></div>
+    <button type="button" class="mb-gbtn" id="btn-google" style="width:100%;justify-content:center"><span class="gi"></span><span>用 Google 帳號登入（管理員）</span></button>
+    <p class="err" id="g-err" style="margin:10px 0 0;font-size:13.5px"></p>
+    <div class="hint" style="margin-top:6px">用 Google 登入時，存檔會經過試衣間筆電；筆電關機時只能瀏覽、不能存檔。</div>
   </section>
 
   <section class="card" id="login" style="display:none">
@@ -645,6 +652,14 @@
 const $ = s => document.querySelector(s);
 const UI_LANG = localStorage.getItem('apetto_admin_lang') || ((navigator.language || '').toLowerCase().startsWith('de') ? 'de' : 'zh');
 const DE = {
+  "或": "oder",
+  "用 Google 帳號登入（管理員）": "Mit Google-Konto anmelden (Admin)",
+  "用 Google 登入時，存檔會經過試衣間筆電；筆電關機時只能瀏覽、不能存檔。": "Mit Google-Anmeldung läuft das Speichern über den Laptop der Anprobe; ist er aus, kann nur gelesen werden.",
+  "Google 登入已失效，請重新登入。": "Google-Anmeldung abgelaufen, bitte neu anmelden.",
+  "連不上試衣間筆電，暫時不能讀寫（筆電可能關機）。": "Der Laptop der Anprobe ist nicht erreichbar (vielleicht ausgeschaltet); Lesen und Speichern geht gerade nicht.",
+  "這個 Google 帳號不是管理員。": "Dieses Google-Konto ist kein Admin.",
+  "筆電還沒放 GitHub 金鑰。": "Auf dem Laptop ist noch kein GitHub-Schlüssel hinterlegt.",
+  "驗證中…": "Wird geprüft…",
   "會員": "Mitglieder",
   "搜尋名字、Email 或毛孩": "Name, E-Mail oder Hund suchen",
   "在網站上用 Google 登入過的會員。這一頁要用管理員的 Google 帳號登入才看得到；會員自己的資料只有他本人和管理員能讀。": "Mitglieder, die sich auf der Website mit Google angemeldet haben. Sichtbar nur nach Anmeldung mit einem Admin-Google-Konto; die Daten eines Mitglieds lesen nur es selbst und Admins.",
@@ -916,7 +931,9 @@ function applyLang() {
 $('#ui-lang').onchange = e => { localStorage.setItem('apetto_admin_lang', e.target.value); location.reload(); };
 
 /* ---------------------------------------------------------------- config / auth */
-const LS = { token: 'apetto_admin_token', repo: 'apetto_admin_repo', branch: 'apetto_admin_branch', fit: 'apetto_fit_admin_token' };
+const LS = { token: 'apetto_admin_token', repo: 'apetto_admin_repo', branch: 'apetto_admin_branch', fit: 'apetto_fit_admin_token', mode: 'apetto_admin_mode' };
+/* Google mode: no GitHub token in this browser; every GitHub call goes through the laptop, which checks the admin's Google sign-in */
+const gMode = () => localStorage.getItem(LS.mode) === 'google';
 const SITE_DIR = 'www.apetto.com.tw';
 const SECTIONS_FALLBACK = [{ key: 'latest', name: '推薦商品' }];
 
@@ -935,8 +952,28 @@ const rawUrl = p => `https://raw.githubusercontent.com/${cfg.repo}/${cfg.branch}
 const siteUrl = () => { const [o, r] = cfg.repo.split('/'); return `https://${o}.github.io/${r}/`; };
 
 /* ---------------------------------------------------------------- github api */
+async function idToken() {
+  await mbInit();
+  if (!MB.user) throw new Error(t('Google 登入已失效，請重新登入。'));
+  return MB.user.getIdToken();
+}
+async function viaLaptop(path, opts = {}) {
+  let r;
+  try {
+    r = await fetch(FIT_API + '/api/admin/gh', { method: 'POST', cache: 'no-store',
+      headers: { Authorization: 'Bearer ' + await idToken(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ method: opts.method || 'GET', path, body: opts.body ? JSON.parse(opts.body) : undefined, accept: (opts.headers || {}).Accept }) });
+  } catch (e) { if (e instanceof TypeError) throw new Error(t('連不上試衣間筆電，暫時不能讀寫（筆電可能關機）。')); throw e; }
+  if (r.status === 401 || r.status === 403 || r.status === 503) {
+    let m = ''; try { m = (await r.clone().json()).message || ''; } catch (e) {}
+    if (/admin/.test(m)) throw new Error(t('這個 Google 帳號不是管理員。'));
+    if (/token not set up/.test(m)) throw new Error(t('筆電還沒放 GitHub 金鑰。'));
+    if (/signed in|expired|bad token/.test(m)) throw new Error(t('Google 登入已失效，請重新登入。'));
+  }
+  return r;
+}
 async function gh(path, opts = {}) {
-  const r = await fetch(`https://api.github.com${path}`, {
+  const r = gMode() ? await viaLaptop(path, opts) : await fetch(`https://api.github.com${path}`, {
     ...opts,
     headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${cfg.token}`, 'X-GitHub-Api-Version': '2022-11-28', ...(opts.body ? { 'Content-Type': 'application/json' } : {}), ...(opts.headers || {}) },
   });
@@ -1591,7 +1628,9 @@ async function decryptToken(password) {
 }
 function showPw(err) {
   $('#pwlogin').style.display = ''; $('#login').style.display = 'none'; $('#app').style.display = 'none';
-  $('#pw-err').textContent = err || ''; $('#in-pw').value = ''; $('#in-pw').focus();
+  $('#pw-err').textContent = err || ''; $('#in-pw').value = '';
+  ['#in-pw', '#btn-pw'].forEach(x => $(x).style.display = SECRET ? '' : 'none');   // no password file: Google (or token) only
+  if (SECRET) $('#in-pw').focus();
 }
 async function pwConnect() {
   const pw = $('#in-pw').value; if (!pw) return $('#pw-err').textContent = t('請輸入密碼');
@@ -1599,7 +1638,7 @@ async function pwConnect() {
   try {
     const plain = await decryptToken(pw); let token = plain, fit = '';
     if (plain.trim().startsWith('{')) { try { const o = JSON.parse(plain); token = o.token || ''; fit = o.fit || ''; } catch (e) {} }
-    localStorage.setItem(LS.token, token); if (fit) localStorage.setItem(LS.fit, fit);
+    localStorage.setItem(LS.token, token); localStorage.removeItem(LS.mode); if (fit) localStorage.setItem(LS.fit, fit);
     await load(); $('#pwlogin').style.display = 'none'; $('#app').style.display = ''; afterLogin();
   } catch (e) { $('#pw-err').textContent = e.name === 'OperationError' ? t('密碼錯誤') : t('連接失敗：') + e.message; }
   finally { $('#btn-pw').disabled = false; }
@@ -1607,6 +1646,21 @@ async function pwConnect() {
 $('#btn-pw').onclick = pwConnect;
 $('#in-pw').addEventListener('keydown', e => { if (e.key === 'Enter') pwConnect(); });
 $('#btn-advanced').onclick = () => showLogin('');
+async function googleConnect() {
+  const err = $('#g-err'); err.textContent = t('驗證中…'); $('#btn-google').disabled = true;
+  try {
+    await mbInit();
+    if (!MB.user) { await MB.A.signInWithPopup(MB.auth, new MB.A.GoogleAuthProvider()); MB.user = MB.auth.currentUser; }
+    localStorage.setItem(LS.mode, 'google');
+    try { await load(); }
+    catch (e) { localStorage.removeItem(LS.mode); throw e; }
+    $('#pwlogin').style.display = 'none'; $('#login').style.display = 'none'; $('#app').style.display = ''; afterLogin();
+    err.textContent = '';
+  } catch (e) {
+    err.textContent = /popup-closed|cancelled-popup/.test((e && e.code) || '') ? '' : ((e && (e.message || e.code)) || String(e));
+  } finally { $('#btn-google').disabled = false; }
+}
+$('#btn-google').onclick = googleConnect;
 
 /* ---------------------------------------------------------------- fitting-room garments + sample dogs (_data/fitstudio.json) */
 const fitPath = () => `${SITE_DIR}/_data/fitstudio.json`;
@@ -1723,7 +1777,8 @@ const fitImg = u => { if (!u) return ''; let url = /^[a-z]+:/i.test(u) ? u : FIT
 const fitLogRepo = () => cfg.repo + '-fitlog';   // private repo with the records (e.g. ama0904/apt-fitlog)
 const GH_BLOBS = new Map();
 const fitSrc = u => /^images\//.test(u || '') ? `data-gh="${escHtml(u)}" src="data:image/gif;base64,R0lGODlhAQABAAAAACw="` : `src="${escHtml(fitImg(u))}"`;
-const ghRaw = (repo, path) => fetch(`https://api.github.com/repos/${repo}/contents/${encPath(path)}`, { headers: { Accept: 'application/vnd.github.raw', Authorization: `Bearer ${cfg.token}` }, cache: 'no-store' });
+const ghRaw = (repo, path) => gMode() ? viaLaptop(`/repos/${repo}/contents/${encPath(path)}`, { headers: { Accept: 'application/vnd.github.raw' } })
+  : fetch(`https://api.github.com/repos/${repo}/contents/${encPath(path)}`, { headers: { Accept: 'application/vnd.github.raw', Authorization: `Bearer ${cfg.token}` }, cache: 'no-store' });
 const ghIO = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(x => { if (x.isIntersecting) { ghIO.unobserve(x.target); ghLoad(x.target); } }), { rootMargin: '300px' }) : null;
 async function ghLoad(img) {
   const path = img.dataset.gh; if (!path) return;
@@ -2652,7 +2707,7 @@ function showLogin(err) {
 async function connect() {
   const repo = $('#in-repo').value.trim() || guessRepo(), branch = $('#in-branch').value.trim() || 'main', token = $('#in-token').value.trim();
   if (!token) return $('#login-err').textContent = t('請輸入 token');
-  localStorage.setItem(LS.repo, repo); localStorage.setItem(LS.branch, branch); localStorage.setItem(LS.token, token);
+  localStorage.setItem(LS.repo, repo); localStorage.setItem(LS.branch, branch); localStorage.setItem(LS.token, token); localStorage.removeItem(LS.mode);
   const fit = $('#in-fit').value.trim(); if (fit) localStorage.setItem(LS.fit, fit); else localStorage.removeItem(LS.fit);
   $('#login-err').textContent = t('連接中…');
   try { await load(); $('#login').style.display = 'none'; $('#app').style.display = ''; afterLogin(); }
@@ -2661,21 +2716,22 @@ async function connect() {
 $('#btn-login').onclick = connect;
 $('#in-token').addEventListener('keydown', e => { if (e.key === 'Enter') connect(); });
 $('#btn-settings').onclick = () => showLogin('');
-$('#btn-logout').onclick = () => { localStorage.removeItem(LS.token); location.reload(); };
+$('#btn-logout').onclick = () => { localStorage.removeItem(LS.token); localStorage.removeItem(LS.mode); location.reload(); };
 $('#btn-add').onclick = () => openForm(null);
 $('#btn-reload').onclick = () => load().then(() => toast(t('已重新載入'))).catch(e => alert(e.message));
 $('#btn-redeploy').onclick = async () => { try { await gh(`/repos/${cfg.repo}/actions/workflows/deploy.yml/dispatches`, { method: 'POST', body: JSON.stringify({ ref: cfg.branch }) }); toast(t('已觸發重新部署')); setTimeout(() => watchDeploy(), 3000); } catch (e) { alert(e.message); } };
 $('#dlg-close').onclick = $('#dlg-cancel').onclick = () => $('#dlg').close();
 
 (async () => {
+  document.querySelectorAll('#btn-google .gi').forEach(el => el.innerHTML = G_ICON);
   applyLang();
   loadCharts();
   if (UI_LANG !== 'zh') { try { const r = await fetch(siteUrl() + '_data/i18n.json', { cache: 'no-store' }); if (r.ok) SITE_TR = await r.json(); } catch (e) {} }
   await loadSecret();
-  const entry = err => SECRET ? showPw(err) : showLogin(err);
-  if (!cfg.token) return entry('');
+  const entry = err => showPw(err);
+  if (!cfg.token && !gMode()) return entry('');
   try { await load(); $('#app').style.display = ''; afterLogin(); }
-  catch (e) { localStorage.removeItem(LS.token); entry(t('登入已失效，請重新登入。') + (SECRET ? '' : e.message)); }
+  catch (e) { localStorage.removeItem(LS.token); localStorage.removeItem(LS.mode); entry(t('登入已失效，請重新登入。') + (SECRET ? '' : e.message)); }
 })();
 </script>
 </body>
