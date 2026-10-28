@@ -195,6 +195,24 @@ export async function recolor(buf, fromHex, toHex, opts = {}) {
         for (const c of Bc) db = Math.min(db, labDist(L, a, b, c[0], c[1], c[2]));
         mask[p] *= clamp01((db - df) / 10 + 1);
       }
+      // opts.edge 6: mode 5, but a pixel whose hue is within ~12° of the fabric's own measured hue is always fabric, however
+      // dark (hem shadows of a yellow cape are dark olive, of a pink coat dark pink); only pixels of another hue (grass is
+      // ~20-30° greener than a yellow-green cape) can be given back to the surroundings.
+      let fh = 0, fn = 0, fx = 0, fy = 0;
+      for (let p = 0; p < N; p += 3) if (mask[p] > 0.85) { const a = lab[p * 3 + 1], b = lab[p * 3 + 2], c = Math.hypot(a, b); if (c > 5) { fx += a / c; fy += b / c; fn++; } }
+      fh = Math.atan2(fy, fx);
+      if (fn && Bc.length && (opts.edge || 0) === 6) for (let p = 0; p < N; p++) {
+        if (mask[p] < 0.004 || mask[p] > 0.97) continue;
+        const L = lab[p * 3], a = lab[p * 3 + 1], b = lab[p * 3 + 2];
+        let d = Math.abs(Math.atan2(b, a) - fh); if (d > Math.PI) d = 2 * Math.PI - d;
+        const keep = clamp01((16 - d * 180 / Math.PI) / 8);   // 1 within 8°, 0 beyond 16°
+        if (keep >= 1) continue;
+        let df = Infinity, db = Infinity;
+        for (const c of F) df = Math.min(df, labDist(L, a, b, c[0], c[1], c[2]));
+        for (const c of Bc) db = Math.min(db, labDist(L, a, b, c[0], c[1], c[2]));
+        const m5 = clamp01((db - df) / 10 + 1);
+        mask[p] *= keep + (1 - keep) * m5;
+      }
     }
   }
   const Ls = [], Cs = []; let cnt = 0;
