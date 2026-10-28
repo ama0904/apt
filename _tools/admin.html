@@ -105,7 +105,7 @@
   td img { width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid var(--line); background:#fff; }
   .tag { display:inline-block; padding:2px 8px; border-radius:999px; background:#eef2ff; color:#3730a3; font-size:12px; margin:1px 2px 1px 0; }
   .tag.sec { background:#ecfdf5; color:#065f46; }
-  .badge { font-size:12px; padding:2px 8px; border-radius:999px; }
+  .badge { font-size:12px; padding:2px 8px; border-radius:999px; white-space:nowrap; display:inline-block; }
   .badge.on { background:#dcfce7; color:#166534; }
   .badge.off { background:#f3f4f6; color:#6b7280; }
   .actions { display:flex; gap:6px; flex-wrap:wrap; }
@@ -962,14 +962,14 @@ async function idToken() {
 }
 let LAPTOP_WAIT = 0;   // calls in flight, shown while signing in
 function laptopProgress() { const e = $('#g-err'); if (e && $('#pwlogin').style.display !== 'none' && LAPTOP_WAIT > 0) e.textContent = t('正在透過試衣間筆電讀取資料…（第一次約 10–30 秒）'); }
-async function viaLaptop(path, opts = {}) {
+// one POST to the laptop; errors that mean "the laptop said no" become readable messages
+async function laptopPost(payload, long) {
   let r;
-  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), (opts.method && opts.method !== 'GET') ? 180000 : 60000);
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), long ? 180000 : 60000);
   LAPTOP_WAIT++; laptopProgress();
   try {
     r = await fetch(FIT_API + '/api/admin/gh', { method: 'POST', cache: 'no-store', signal: ctl.signal,
-      headers: { Authorization: 'Bearer ' + await idToken(), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ method: opts.method || 'GET', path, body: opts.body ? JSON.parse(opts.body) : undefined, accept: (opts.headers || {}).Accept }) });
+      headers: { Authorization: 'Bearer ' + await idToken(), 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
   } catch (e) {
     if (e && e.name === 'AbortError') throw new Error(t('試衣間筆電太久沒有回應，請稍後再試。'));
     if (e instanceof TypeError) throw new Error(t('連不上試衣間筆電，暫時不能讀寫（筆電可能關機）。'));
@@ -984,6 +984,35 @@ async function viaLaptop(path, opts = {}) {
   }
   return r;
 }
+// reads issued at the same moment (the first load reads six files) travel together in one batch: one round trip
+let GET_QUEUE = null, NO_BATCH = false;
+function laptopGet(path, accept) {
+  if (NO_BATCH) return laptopPost({ method: 'GET', path, accept });
+  return new Promise((resolve, reject) => {
+    if (!GET_QUEUE) { GET_QUEUE = []; setTimeout(flushGets, 15); }
+    GET_QUEUE.push({ path, accept, resolve, reject });
+  });
+}
+const b64ToBytes = b => Uint8Array.from(atob(b), c => c.charCodeAt(0));
+async function flushGets() {
+  const items = GET_QUEUE; GET_QUEUE = null;
+  const single = x => laptopPost({ method: 'GET', path: x.path, accept: x.accept }).then(x.resolve, x.reject);
+  if (items.length === 1) return single(items[0]);
+  try {
+    const r = await laptopPost({ batch: items.map(x => ({ path: x.path, accept: x.accept })) });
+    let arr = null; try { arr = await r.json(); } catch (e) {}
+    if (!r.ok || !Array.isArray(arr) || arr.length !== items.length) { NO_BATCH = true; return items.forEach(single); }   // laptop without batch support
+    arr.forEach((a, i) => items[i].resolve(new Response([204, 304].includes(a.status) ? null : b64ToBytes(a.body || ''), { status: a.status, headers: { 'Content-Type': a.type || 'application/json' } })));
+  } catch (e) { items.forEach(x => x.reject(e)); }
+}
+function viaLaptop(path, opts = {}) {
+  const m = (opts.method || 'GET').toUpperCase();
+  if (m === 'GET' && !opts.body) return laptopGet(path, (opts.headers || {}).Accept);
+  return laptopPost({ method: m, path, body: opts.body ? JSON.parse(opts.body) : undefined, accept: (opts.headers || {}).Accept }, true);
+}
+// warm up: open the connection to the laptop (TLS through the Funnel takes seconds) and load the Google sign-in code
+// while the admin looks at the login screen, so the click itself only costs the data
+function warmLaptop() { fetch(FIT_API + '/api/health', { cache: 'no-store' }).catch(() => {}); mbInit().catch(() => {}); }
 async function gh(path, opts = {}) {
   const r = gMode() ? await viaLaptop(path, opts) : await fetch(`https://api.github.com${path}`, {
     ...opts,
@@ -1152,10 +1181,10 @@ function render() {
 
 async function load() {
   // independent files in parallel: in Google mode every call goes through the laptop
-  await Promise.all([readProducts().then(x => { S = x; }), readNews(), readFit()]);
+  await Promise.all([readProducts().then(x => { S = x; }), readNews(), readFit(), readContent()]);
+  if (S.data && !Array.isArray(S.data.groups)) S.data.groups = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
   $('#repo-label').textContent = `${cfg.repo} @ ${cfg.branch}`;
   $('#site-link').href = siteUrl();
-  await readContent();
   render();
   renderNews();
   renderCoats();
@@ -2185,7 +2214,7 @@ async function readContent() {
   GUIDES = guides || { items: [] }; if (!Array.isArray(GUIDES.items)) GUIDES.items = [];
   QA = qa || { faq: [] }; if (!Array.isArray(QA.faq)) QA.faq = [];
   if (typeof renderQA === 'function') renderQA();
-  if (S.data && !Array.isArray(S.data.groups)) S.data.groups = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
+  if (S && S.data && !Array.isArray(S.data.groups)) S.data.groups = JSON.parse(JSON.stringify(DEFAULT_GROUPS));
 }
 const contentImg = p => p ? rawUrl(p) : '';
 const trName = o => (UI_LANG !== 'zh' && o.i18n && o.i18n[UI_LANG] && o.i18n[UI_LANG].name) || tName(o.name);
@@ -2737,6 +2766,8 @@ $('#dlg-close').onclick = $('#dlg-cancel').onclick = () => $('#dlg').close();
 
 (async () => {
   document.querySelectorAll('#btn-google .gi').forEach(el => el.innerHTML = G_ICON);
+  warmLaptop();
+  ['mouseenter', 'touchstart', 'focus'].forEach(ev => $('#btn-google').addEventListener(ev, () => fetch(FIT_API + '/api/health', { cache: 'no-store' }).catch(() => {}), { passive: true }));
   applyLang();
   loadCharts();
   if (UI_LANG !== 'zh') { try { const r = await fetch(siteUrl() + '_data/i18n.json', { cache: 'no-store' }); if (r.ok) SITE_TR = await r.json(); } catch (e) {} }

@@ -93,6 +93,23 @@ export async function ghProxyHandler(req, res) {
   try {
     const who = await verifyAdmin(req);
     let q; try { q = JSON.parse((await readBody(req)).toString('utf8')); } catch (e) { throw fail(400, 'bad request'); }
+    // batch of reads: {"batch": [{"path", "accept"}, ...]} -> [{"status", "type", "body" (base64)}, ...] in one round trip
+    // (the admin page reads several files at once; each separate call through the Funnel costs a round trip or a TLS handshake)
+    if (Array.isArray(q.batch)) {
+      if (!q.batch.length || q.batch.length > 20) throw fail(400, 'bad batch');
+      if (!q.batch.every(x => x && allowedPath(x.path))) throw fail(403, 'path not allowed');
+      let token = '';
+      try { token = fs.readFileSync(TOKEN_FILE, 'utf8').trim(); } catch (e) { /* below */ }
+      if (!token) throw fail(503, 'GitHub token not set up on the laptop');
+      const out = await Promise.all(q.batch.map(async x => {
+        try {
+          const accept = /^application\/vnd\.github(\.[a-z0-9.+-]+)?$|^application\/json$/i.test(x.accept || '') ? x.accept : 'application/vnd.github+json';
+          const r = await fetch('https://api.github.com' + x.path, { headers: { Accept: accept, Authorization: 'Bearer ' + token, 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'apetto-admin-proxy' } });
+          return { status: r.status, type: r.headers.get('content-type') || '', body: Buffer.from(await r.arrayBuffer()).toString('base64') };
+        } catch (e) { return { status: 502, type: 'application/json', body: Buffer.from('{"message":"GitHub unreachable"}').toString('base64') }; }
+      }));
+      return send(res, 200, out);
+    }
     const method = String(q.method || 'GET').toUpperCase();
     if (!['GET', 'POST', 'PATCH', 'PUT'].includes(method)) throw fail(400, 'method not allowed');
     if (!allowedPath(q.path)) throw fail(403, 'path not allowed');
