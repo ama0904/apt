@@ -704,30 +704,29 @@ function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.rem
    .catch(function(){delete pxCache[q];return null;})))
   .then(function(x){if(!x||running!==run)return;var box=$('.fit-stage .box'),Z=box&&box.clientWidth<420?2:3,cv=el.firstChild,g=cv.getContext('2d'),d=x.d,rm=x.rm,
     wxH=x.wx.reduce(function(m,w){return Math.max(m,w.s.h);},0),
-    W=Math.max(120,Math.floor((box?box.clientWidth:360)/Z)),H=Math.max(d.h,rm?rm.h:0)+(wxH?wxH-6:0)+2,ms=1000/(d.fps||10);
+    W=Math.max(120,Math.floor((box?box.clientWidth:360)/Z)),H=Math.max(d.h+(wxH?wxH-6:0),rm?rm.h:0)+2,ms=1000/(d.fps||10);
    cv.width=W;cv.height=H;cv.style.width=W*Z+'px';cv.style.height=H*Z+'px';g.imageSmoothingEnabled=false;el.classList.add('on');
    var rx=rm?W-rm.w:W,door=rm?rx+Math.round((rm.w-d.w)/2):W,dy=H-1-d.h,still=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
    function dogAt(img,px,f,flip){var fx=(f%d.frames)*d.w;if(!flip){g.drawImage(img,fx,0,d.w,d.h,Math.round(px),dy,d.w,d.h);return;}
     g.save();g.translate(Math.round(px)+d.w,dy);g.scale(-1,1);g.drawImage(img,fx,0,d.w,d.h,0,0,d.w,d.h);g.restore();}
    function roomAt(f){if(rm)g.drawImage(x.room,f*rm.w,0,rm.w,rm.h,rx,H-1-rm.h,rm.w,rm.h);}
-   /* weather (owner's request): a random sun / rain cloud / storm each loop, a little above the dog (centred on it, never flipped),
-      over the booth while it changes */
+   /* weather (owner's request): a random sun / rain cloud / storm each loop, fixed in the sky over the middle of the track
+      (it doesn't follow the dog), a little above the dog's height */
    var picks=[];
-   function wxAt(cx,loop,t,top){if(!x.wx.length||cx==null)return;var w=picks[loop];if(w==null)w=picks[loop]=Math.floor(Math.random()*x.wx.length);
+   function wxAt(cx,loop,t){if(!x.wx.length||cx==null)return;var w=picks[loop];if(w==null)w=picks[loop]=Math.floor(Math.random()*x.wx.length);
     var o=x.wx[w],s=o.s,f=still?0:Math.floor(t/(1000/(s.fps||8)))%s.frames;
-    g.drawImage(o.img,f*s.w,0,s.w,s.h,Math.round(cx-s.w/2),Math.max(0,(top==null?dy:top)-s.h+6),s.w,s.h);}
+    g.drawImage(o.img,f*s.w,0,s.w,s.h,Math.round(cx-s.w/2),Math.max(0,dy-s.h+6),s.w,s.h);}
    var t0=performance.now();
    (function frame(now){if(running!==run||stage.dataset.state!=='busy')return;g.clearRect(0,0,W,H);
     var el2=now-t0,loop=Math.floor(el2/7700);
     if(!rm){dogAt(x.dressed,(W-d.w)/2,still?0:Math.floor(el2/ms),false);wxAt(W/2,loop,el2);}   /* no booth from the server: the dressed dog runs in place */
-    else if(still){roomAt(1);dogAt(x.dressed,door-d.w-6,0,true);wxAt(door-6-d.w/2,0,0);}
-    else{var t=el2%7700,f=Math.floor(t/ms),px=null;
-     if(t<2600){roomAt(0);px=-d.w+(door+d.w)*t/2600;dogAt(x.plain,px,f,false);}
-     else if(t<4400){roomAt(1+Math.floor((t-2600)/220)%2);wxAt(rx+rm.w/2,loop,el2,H-1-rm.h);}
-     else if(t<4700){roomAt(0);px=door;dogAt(x.dressed,px,0,true);}
-     else if(t<7300){roomAt(0);px=door-(door+d.w)*(t-4700)/2600;dogAt(x.dressed,px,f,true);}
-     else roomAt(0);
-     if(px!=null)wxAt(px+d.w/2,loop,el2);}
+    else if(still){roomAt(1);dogAt(x.dressed,door-d.w-6,0,true);wxAt(rx/2,0,0);}
+    else{var t=el2%7700,f=Math.floor(t/ms);wxAt(rx/2,loop,el2);
+     if(t<2600){roomAt(0);dogAt(x.plain,-d.w+(door+d.w)*t/2600,f,false);}
+     else if(t<4400){roomAt(1+Math.floor((t-2600)/220)%2);}
+     else if(t<4700){roomAt(0);dogAt(x.dressed,door,0,true);}
+     else if(t<7300){roomAt(0);dogAt(x.dressed,door-(door+d.w)*(t-4700)/2600,f,true);}
+     else roomAt(0);}
     if(!still)requestAnimationFrame(frame);})(t0);});}
 function finish(){if(running){clearInterval(running.poll);clearInterval(running.tick);clearTimeout(running.tm);running=null;}update();}
 go.addEventListener('click',function(){
