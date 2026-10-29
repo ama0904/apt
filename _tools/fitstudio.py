@@ -524,12 +524,12 @@ function setDog(src,demo){setErr('');warnOk=false;sizeByUser=false;var prev=dog;
  /* the customer's own photo: the demo dogs are no longer needed */
  if(!demo){var dm=$('.fit-demo');if(dm)dm.hidden=true;}update();}).catch(function(){setErr(t('err.badFile'));});}
 function pick(f){if(!f)return;if(!/^image\//.test(f.type)&&!/\.(heic|heif|jpe?g|png|webp|gif|bmp)$/i.test(f.name)){setErr(t('err.badFile'));return;}
- var rd=new FileReader();rd.onload=function(){setDog(rd.result,null);};rd.onerror=function(){setErr(t('err.badFile'));};rd.readAsDataURL(f);}
+ var rd=new FileReader();rd.onload=function(){demoBreed=null;setDog(rd.result,null);};rd.onerror=function(){setErr(t('err.badFile'));};rd.readAsDataURL(f);}
 file.addEventListener('change',function(){pick(file.files[0]);file.value='';});
 ['dragenter','dragover'].forEach(function(n){drop.addEventListener(n,function(e){e.preventDefault();drop.classList.add('over');});});
 ['dragleave','drop'].forEach(function(n){drop.addEventListener(n,function(e){e.preventDefault();drop.classList.remove('over');});});
 drop.addEventListener('drop',function(e){pick(e.dataTransfer.files&&e.dataTransfer.files[0]);});
-document.querySelectorAll('.fit-demo button').forEach(function(b){b.addEventListener('click',function(){setDog(b.dataset.src,b.dataset.dog);});});
+document.querySelectorAll('.fit-demo button').forEach(function(b){b.addEventListener('click',function(){demoBreed=b.dataset.breed?{zh:b.dataset.breedZh||'',name:b.dataset.breed,p:1}:null;setDog(b.dataset.src,b.dataset.dog);});});
 /* style: 雨衣 / 保暖加毛 first, then 大狗 / 小狗 (picked from the photo until the customer chooses); one coat per pair */
 var coatKey=null,selType=null,selSize=null,sizeByUser=false;
 function coatOf(tp,sz){for(var k in cfg.coats){var o=cfg.coats[k];if(o.type===tp&&o.size===sz)return k;}return null;}
@@ -554,7 +554,7 @@ function renderSel(){var box=$('.fit-sel');if(!box)return;var c=coatKey&&cfg.coa
    laptop and answers with the closest breeds and small / medium / large (trained on ~2,300 labelled dog photos).
    A hint is shown only when fairly sure; ?dogai=1 shows the breeds and numbers under the photo (test mode). */
 var aiDebug=/[?&]dogai=1/.test(location.search);try{sessionStorage.removeItem('apetto_dogai');}catch(e){}
-var guess=null,guessTop=null,guessFor=null,guessDemo=false,guessCtl=null,aiBox=$('.fit-ai'),warnOk=false;
+var guess=null,guessTop=null,demoBreed=null,guessFor=null,guessDemo=false,guessCtl=null,aiBox=$('.fit-ai'),warnOk=false;
 /* the chosen coat does not fit (AI guess from the photo, or the typed back length): ask once before generating */
 function misfit(){var c=coatKey&&cfg.coats[coatKey];if(!c||!c.cut)return null;
  var fw=typeof fitWarn==='function'?fitWarn(c):null;if(fw&&fw.bad)return {why:'back',bad:mval('back')<c.min?t('warn.big'):t('warn.smallB'),alts:altCoats(mval('back'),c,mval('back')<c.min?-1:1)};
@@ -589,7 +589,7 @@ function guessSize(src,demo){guess=null;guessTop=null;guessFor=src;guessDemo=!!d
  var t0=Date.now(),ctl=new AbortController();guessCtl=ctl;aiShow('wait');
  compress(src,384,.85).then(function(img){return fetch(cfg.api+'/api/dogsize',{method:'POST',signal:ctl.signal,headers:auth({'Content-Type':'application/json'}),body:JSON.stringify({image:img})});})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-  .then(function(r){if(guessFor!==src)return;guessTop=r.P&&r.top&&r.top.length?r.top.slice(0,3).map(function(x){return {zh:x.zh||'',name:x.name||'',p:x.p};}):null;guess=r.guess==='S'||r.guess==='L'?r.guess:sizeLean(r.P);guessMark(guess||(r.P?'none':'nodog'));aiShow('done',r,Date.now()-t0);guessOut();})
+  .then(function(r){if(guessFor!==src)return;guessTop=guessDemo&&demoBreed?[demoBreed]:r.P&&r.top&&r.top.length?r.top.slice(0,3).map(function(x){return {zh:x.zh||'',name:x.name||'',p:x.p};}):null;guess=r.guess==='S'||r.guess==='L'?r.guess:sizeLean(r.P);guessMark(guess||(r.P?'none':'nodog'));aiShow('done',r,Date.now()-t0);guessOut();})
   .catch(function(e){if(guessFor!==src||(e&&e.name==='AbortError'))return;guessMark('error');aiShow('error');});}
 var guessBox=$('.fit-guess');
 /* data-guess shows the last result (S / L / none / error), handy when checking the page */
@@ -814,7 +814,11 @@ def render(data, lang):
     import theme as th
     d = th.rel_dir(PAGE)
     by_id = {p["id"]: p for p in data["products"]}
-    demo = "".join(f'<button type="button" data-dog="{th.esc(g["key"])}" data-src="{img_url(d, g["image"])}"><img src="{img_url(d, g["image"])}" alt="">{th.esc(coat_label(g, lang))}</button>'
+    # a demo dog's "breed" ({zh, name}: a breed_head class) is known, so it replaces the photo's breed guess
+    # (pixel dog and fit log; the model reads the Shih Tzu photo as a Maltese)
+    bre = lambda g: (f' data-breed="{th.esc(g["breed"]["name"])}" data-breed-zh="{th.esc(g["breed"].get("zh", ""))}"'
+                     if isinstance(g.get("breed"), dict) and g["breed"].get("name") else "")
+    demo = "".join(f'<button type="button" data-dog="{th.esc(g["key"])}"{bre(g)} data-src="{img_url(d, g["image"])}"><img src="{img_url(d, g["image"])}" alt="">{th.esc(coat_label(g, lang))}</button>'
                    for g in load_dogs())
     # step 2: 雨衣 / 保暖加毛, then 大狗 / 小狗 (the photo suggests the size); the picture on each type card follows the size
     by_kind = {coat_kind(c): c for c in load_coats()}

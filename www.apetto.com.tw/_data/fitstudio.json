@@ -2,6 +2,7 @@
  "dogs": [
   {
    "key": "shihtzu",
+   "breed": {"zh": "西施犬", "name": "Shih Tzu"},
    "label": "西施犬",
    "image": "assets/fitstudio/dog_shihtzu.jpg",
    "visible": true,
@@ -19,6 +20,7 @@
   },
   {
    "key": "labrador",
+   "breed": {"zh": "拉布拉多", "name": "Labrador Retriever"},
    "label": "拉布拉多",
    "image": "assets/fitstudio/dog_labrador.webp",
    "visible": true,
