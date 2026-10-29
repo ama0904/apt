@@ -13,6 +13,8 @@ The bridge API (see the FitStudio hand-over notes):
        breed [{zh, name, p}] = /api/dogsize's top 3 for this photo (null if not back yet / no dog), for the fit log
   GET  /api/status/<jobId>         -> {"key": "srv.generating", "step": 6, "vars": {...}}   progress, no auth
   GET  /api/caption/<captionId>    -> {"status": "pending"|"ready"|"none", "caption": str}   x-api-key
+  GET  /api/pixeldog?breed=&size=S|L&coat=%23rrggbb&type=rain|warm -> {w, h, frames, fps, image: PNG strip}   x-api-key
+       a pixel-art dog of the guessed breed (generic dog when breed is left out) wearing the coat, run while waiting
 Errors are JSON {"error": str, "errorKey": str}; the keys map to the strings in STR below.
 
 The bridge's access key is not kept in this repository: the build reads it from the FITSTUDIO_API_KEY
@@ -421,6 +423,13 @@ CSS = r"""
 .fit-stage .shot{width:100%;height:100%;object-fit:contain;display:none;background:#fff}
 .fit-stage .busy{display:none;width:100%;height:100%;background:#111}
 .fit-stage .busy img{width:100%;height:100%;object-fit:contain;opacity:.55;filter:saturate(.7)}
+.fit-stage .pxdog{position:absolute;left:0;right:0;bottom:100px;height:var(--ph,96px);pointer-events:none;display:none}
+.fit-stage .pxdog.on{display:block}
+.fit-stage .pxdog i{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);width:var(--pw);height:var(--ph);background-repeat:no-repeat;background-size:var(--pbs) var(--ph);image-rendering:pixelated;animation:fit-px-run var(--pd) steps(var(--pf)) infinite}
+.fit-stage .pxdog:after{content:"";position:absolute;left:12%;right:12%;bottom:3px;height:3px;border-radius:2px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.75) 0 12px,transparent 12px 24px);animation:fit-px-ground .35s linear infinite}
+@keyframes fit-px-run{to{background-position:calc(-1 * var(--pbs)) 0}}
+@keyframes fit-px-ground{to{background-position:-24px 0}}
+@media (prefers-reduced-motion:reduce){.fit-stage .pxdog i,.fit-stage .pxdog:after{animation:none}}
 .fit-stage .busy:after{content:"";position:absolute;left:0;right:0;top:-30%;height:30%;background:linear-gradient(to bottom,transparent,rgba(255,255,255,.55),transparent);animation:fit-scan 2.2s linear infinite}
 @keyframes fit-scan{to{top:100%}}
 .fit-stage .prog{position:absolute;left:0;right:0;bottom:0;padding:16px 18px 18px;background:linear-gradient(to top,rgba(0,0,0,.78),rgba(0,0,0,0));color:#fff;display:none}
@@ -683,13 +692,22 @@ function rcPick(i){var c=cfg.coats[coatKey],info=rcBox.querySelector('p');rcSel=
  info.textContent=t('rc.busy');var orig=rcOrig;
  rcFetch(i).then(function(d){if(rcOrig!==orig||rcSel!==i)return;shot.src=d.image;resultUrl=d.image;info.textContent=t('rc.note');})
   .catch(function(){if(rcSel===i)info.textContent=t('rc.fail');});}
+/* while it draws: a little pixel dog of the guessed breed runs in the chosen coat (only when the breed guess is fairly sure) */
+var pxCache={};
+function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.remove('on');
+ var c=coatKey&&cfg.coats[coatKey],b=guessFor===dog&&guessTop&&guessTop[0]&&guessTop[0].p>=0.3?guessTop[0].name:'',
+  q='size='+((c?c.size==='small':guess==='S')?'S':'L')+(b?'&breed='+encodeURIComponent(b):'')+(c&&c.colors&&c.colors[0]?'&coat='+encodeURIComponent(c.colors[0].hex)+'&type='+(c.type||'rain'):'');
+ (pxCache[q]||(pxCache[q]=fetch(cfg.api+'/api/pixeldog?'+q,{headers:auth()}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}).catch(function(){delete pxCache[q];return null;})))
+  .then(function(d){if(!d||!d.image||!d.w||!d.frames||running!==run)return;var box=$('.fit-stage .box'),Z=box&&box.clientWidth<420?2:3,i=el.firstChild;
+   el.style.setProperty('--pw',d.w*Z+'px');el.style.setProperty('--ph',d.h*Z+'px');el.style.setProperty('--pbs',d.w*d.frames*Z+'px');
+   el.style.setProperty('--pf',d.frames);el.style.setProperty('--pd',(d.frames/(d.fps||10))+'s');i.style.backgroundImage='url("'+d.image+'")';el.classList.add('on');});}
 function finish(){if(running){clearInterval(running.poll);clearInterval(running.tick);clearTimeout(running.tm);running=null;}update();}
 go.addEventListener('click',function(){
  if(!dog||!coat){setErr(t('err.pickFirst'));return;}if(online===false){setErr(t('err.offline'));return;}
  if(!warnOk){var mf=misfit();if(mf){showWarn(mf);return;}}
  setErr('');showNote('');resultUrl='';var jobId=(crypto.randomUUID&&crypto.randomUUID())||(Date.now()+'-'+Math.random().toString(36).slice(2));
  var ctl=new AbortController(),t0=Date.now(),run={ctl:ctl};running=run;update();
- busyImg.src=dog;stage.dataset.state='busy';step(0,t('step.prepare'));progS.textContent=t('elapsed',{sec:0});sizeOut();
+ busyImg.src=dog;stage.dataset.state='busy';pxDog(run);step(0,t('step.prepare'));progS.textContent=t('elapsed',{sec:0});sizeOut();
  if(window.innerWidth<981)setTimeout(function(){stage.scrollIntoView({behavior:'smooth',block:'start'});},50);
  run.tick=setInterval(function(){progS.textContent=t('elapsed',{sec:Math.round((Date.now()-t0)/1000)});},1000);
  run.tm=setTimeout(function(){ctl.abort('timeout');},300000);
@@ -823,7 +841,7 @@ def render(data, lang):
  <section class="fit-stage rv in" data-state="empty" aria-live="polite"><h2 class="sr-only">試穿結果</h2>
   <div class="box">
    <div class="empty">{ICON_PIC}<span>選好照片和衣服後，試穿結果會出現在這裡。</span></div>
-   <div class="busy"><img alt=""></div>
+   <div class="busy"><img alt=""><div class="pxdog" aria-hidden="true"><i></i></div></div>
    <img class="shot" alt="試穿結果">
    <div class="prog"><b></b><span></span><div class="bar"><i></i></div></div>
    <div class="done-badge"><span aria-hidden="true">✓</span><span>試穿完成</span></div>
