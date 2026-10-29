@@ -129,9 +129,10 @@ CSS = r"""
 .mem-dog .acts{display:flex;gap:12px;font-size:13.5px}.mem-dog .acts button{background:none;border:0;padding:0;font:inherit;color:var(--ink2);text-decoration:underline;cursor:pointer}
 .mem-go{margin:18px 0 0}
 .fit-member{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:14px 0 0;font-size:14px;color:var(--ink2)}
-.fit-member:has(.top){display:grid;gap:10px;max-width:460px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card)}
+.fit-member:has(.top){display:grid;gap:10px;max-width:calc((100% - 28px)*5/11);padding:16px 22px;border:1px solid var(--line);border-radius:var(--radius);background:var(--card)}
 .fit-member .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .fit-member .who b{font-weight:700}
+@media (max-width:980px){.fit-member:has(.top){max-width:none}}
 .fit-member .pick{display:grid;gap:6px;font-size:13px;color:var(--mute);font-weight:600}
 .fit-member .pick select{width:100%;min-height:44px;font-size:16px;padding:0 14px}
 .fit-member .why{color:var(--mute);font-size:13.5px;max-width:42ch}
