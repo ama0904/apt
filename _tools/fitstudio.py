@@ -699,7 +699,7 @@ function pxStrip(o){return o&&o.image&&o.w?pxImg(o.image).then(function(i){retur
 function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.remove('on');
  var c=coatKey&&cfg.coats[coatKey],b=guessFor===dog&&guessTop&&guessTop[0]&&guessTop[0].p>=0.3?guessTop[0].name:'',
   q='size='+((c?c.size==='small':guess==='S')?'S':'L')+(b?'&breed='+encodeURIComponent(b):'')+(c&&c.colors&&c.colors[0]?'&coat='+encodeURIComponent(c.colors[0].hex)+'&type='+(c.type||'rain'):'');
- (pxCache[q]||(pxCache[q]=fetch(cfg.api+'/api/pixeldog?'+q,{headers:auth()}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+ (pxCache[q]||(pxCache[q]=fetch(cfg.api+'/api/pixeldog?'+q,{headers:auth(),cache:'no-cache'})   /* always revalidate: an old day-cached copy lacked the weather and the new booth */.then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
    .then(function(d){if(!d||!d.image||!d.w||!d.frames)throw new Error('bad');
      var dogS=function(u,f,fps){return u?{w:d.w,h:d.h,frames:f||d.frames,fps:fps||d.fps,image:u}:null;},wx=d.weather||{},sn=d.snowy||{},sh=d.shake||{},
       keys=['sun','rain','storm','snow','rainbow','tornado'];
