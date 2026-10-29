@@ -693,7 +693,12 @@ function rcPick(i){var c=cfg.coats[coatKey],info=rcBox.querySelector('p');rcSel=
    in the chosen coat (laptop's /api/pixeldog; it draws a default dog when the breed guess is unsure). Each round has random
    weather fixed in the sky (sun / rain / storm / snow / rainbow); in rain or a storm the dog stops half way to shake itself dry,
    in snow it gets snowed on and shakes the snow off; a tornado chases it from the left and leaves it frizzy until it changes (owner's requests) */
-var pxCache={};
+var pxCache={},pxBag=[],pxLast=null;
+/* weather order: a shuffled bag of all kinds, reshuffled when empty, never the same kind twice in a row (owner: 不要重複出現天氣) */
+function pxNext(kinds){if(!kinds.length)return null;pxBag=pxBag.filter(function(k){return kinds.indexOf(k)>=0;});
+ if(!pxBag.length){pxBag=kinds.slice();for(var i=pxBag.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=pxBag[i];pxBag[i]=pxBag[j];pxBag[j]=t;}
+  if(pxBag.length>1&&pxBag[0]===pxLast)pxBag.push(pxBag.shift());}
+ return pxLast=pxBag.shift();}
 function pxImg(u){return new Promise(function(ok,no){var i=new Image();i.onload=function(){ok(i);};i.onerror=no;i.src=u;});}
 function pxStrip(o){return o&&o.image&&o.w?pxImg(o.image).then(function(i){return {s:o,img:i};},function(){return null;}):Promise.resolve(null);}
 function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.remove('on');
@@ -722,7 +727,7 @@ function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.rem
    function wxCx(o){return Math.min(Math.max(rx/2,o.s.w/2),W-o.s.w/2);}
    function wxAt(k,t){var o=k&&k!=='tornado'&&x.wx[k];if(!o)return;var cx=wxCx(o);strip(o,at(o,t),cx-o.s.w/2,Math.max(0,dy-o.s.h+6),false);}
    var RUN=2600,SHAKE=1400,L=null;
-   function round(now){var k=kinds.length?kinds[Math.floor(Math.random()*kinds.length)]:null,
+   function round(now){var k=pxNext(kinds),
      stop=(k==='rain'||k==='storm')&&x.shake||k==='snow'&&x.snowShake?SHAKE:0;
     L={t0:now,k:k,stop:stop,len:RUN+stop+1800+300+RUN+400};}
    (function frame(now){if(running!==run||stage.dataset.state!=='busy')return;g.clearRect(0,0,W,H);
