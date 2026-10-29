@@ -689,7 +689,7 @@ function rcPick(i){var c=cfg.coats[coatKey],info=rcBox.querySelector('p');rcSel=
  info.textContent=t('rc.busy');var orig=rcOrig;
  rcFetch(i).then(function(d){if(rcOrig!==orig||rcSel!==i)return;shot.src=d.image;resultUrl=d.image;info.textContent=t('rc.note');})
   .catch(function(){if(rcSel===i)info.textContent=t('rc.fail');});}
-/* while it draws: a pixel dog of the guessed breed runs into a fitting-room booth on the right, changes, and runs back out
+/* while it draws: a pixel dog of the guessed breed runs into a fitting-room booth at the right edge, changes, and runs back out
    in the chosen coat (laptop's /api/pixeldog; it draws a default dog when the breed guess is unsure) */
 var pxCache={};
 function pxImg(u){return new Promise(function(ok,no){var i=new Image();i.onload=function(){ok(i);};i.onerror=no;i.src=u;});}
@@ -703,7 +703,7 @@ function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.rem
   .then(function(x){if(!x||running!==run)return;var box=$('.fit-stage .box'),Z=box&&box.clientWidth<420?2:3,cv=el.firstChild,g=cv.getContext('2d'),d=x.d,rm=x.rm,
     W=Math.max(120,Math.floor((box?box.clientWidth:360)/Z)),H=Math.max(d.h,rm?rm.h:0)+2,ms=1000/(d.fps||10);
    cv.width=W;cv.height=H;cv.style.width=W*Z+'px';cv.style.height=H*Z+'px';g.imageSmoothingEnabled=false;el.classList.add('on');
-   var rx=rm?W-rm.w-Math.round(W*0.06):W,door=rm?rx+Math.round((rm.w-d.w)/2):W,dy=H-1-d.h,still=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+   var rx=rm?W-rm.w:W,door=rm?rx+Math.round((rm.w-d.w)/2):W,dy=H-1-d.h,still=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
    function dogAt(img,px,f,flip){var fx=(f%d.frames)*d.w;if(!flip){g.drawImage(img,fx,0,d.w,d.h,Math.round(px),dy,d.w,d.h);return;}
     g.save();g.translate(Math.round(px)+d.w,dy);g.scale(-1,1);g.drawImage(img,fx,0,d.w,d.h,0,0,d.w,d.h);g.restore();}
    function roomAt(f){if(rm)g.drawImage(x.room,f*rm.w,0,rm.w,rm.h,rx,H-1-rm.h,rm.w,rm.h);}
