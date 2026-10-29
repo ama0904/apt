@@ -848,7 +848,7 @@ const DE = {
   '圖片請用 JPG、PNG 或 WEBP': 'Bitte JPG, PNG oder WEBP verwenden', '圖片請小於 4 MB': 'Bild bitte unter 4 MB', '上傳圖片…': 'Bild wird hochgeladen…',
   '試衣間紀錄': 'Anprobe-Verlauf', '最近 24 小時': 'Letzte 24 Stunden', '最近 7 天': 'Letzte 7 Tage', '最近 30 天': 'Letzte 30 Tage', '全部': 'Alle',
   '試穿次數': 'Anproben', '成功': 'Erfolgreich', '失敗': 'Fehlgeschlagen', '額度用完': 'Kontingent erschöpft', '中途取消': 'Abgebrochen', '貼圖失敗': 'Anhängen fehlgeschlagen', '頁面逾時': 'Seite nicht geladen', '平均耗時': 'Ø Dauer',
-  '款式': 'Modell', '語言': 'Sprache', '地區': 'Region', '{n} 筆': '{n} Einträge', '伺服器已存 {mb} MB': '{mb} MB auf dem Server',
+  '款式': 'Modell', '品種': 'Rasse', '語言': 'Sprache', '地區': 'Region', '{n} 筆': '{n} Einträge', '伺服器已存 {mb} MB': '{mb} MB auf dem Server',
   '尚未設定試衣間後台金鑰。': 'Kein Admin-Schlüssel für die Anprobe hinterlegt.', '去設定': 'Einstellungen', '載入中…': 'Lädt…',
   '試衣間後台金鑰不正確（{code}）': 'Admin-Schlüssel der Anprobe ungültig ({code})', '伺服器要求金鑰（{code}）；若伺服器已信任本站網域，請稍後再試。': 'Der Server verlangt einen Schlüssel ({code}); wenn er diese Domain bereits zulässt, bitte später erneut versuchen.', '連不上試衣間伺服器（可能離線中）。': 'Anprobe-Server nicht erreichbar (vielleicht offline).',
   '這段期間沒有試穿紀錄。': 'Keine Anproben in diesem Zeitraum.', '小幫手紀錄': 'Assistent-Fragen', '只看沒答好的': 'Nur unbeantwortete', '問題數': 'Fragen', '對話數': 'Gespräche', '答得出來': 'Beantwortet', '靠語意模型答出': 'Per Sprachmodell', '沒答好': 'Unbeantwortet', '最常沒答好的問題': 'Häufigste unbeantwortete Fragen', '語意': 'Modell', '語意模型分數': 'Modell-Score',
@@ -1799,6 +1799,11 @@ async function ghLoad(img) {
 }
 const ghHydrate = root => root.querySelectorAll('img[data-gh]').forEach(i => ghIO ? ghIO.observe(i) : ghLoad(i));
 const fitStatus = e => e.status || (e.resultUrl ? 'ok' : 'failed');
+/* breed as guessed by the laptop (/api/dogsize top 3, [{zh, name, p}]); older entries have none */
+const fitBreeds = e => Array.isArray(e.breed) ? e.breed.filter(b => b && (b.zh || b.name)) : [];
+const breedLabel = b => (UI_LANG === 'de' ? b.name || b.zh : b.zh || b.name) || '';
+const fitBreed = e => { const b = fitBreeds(e)[0]; return b ? breedLabel(b) : ''; };
+const fitBreedFull = e => fitBreeds(e).map(b => breedLabel(b) + (b.p != null ? ' ' + Math.round(b.p * 100) + '%' : '')).join('、');
 const fitCoat = e => e.coatName || (coatRec(e.coat) ? itemLabel(coatRec(e.coat)) : '') || (e.coat && FIT_COATS[e.coat]) || e.coat || '';
 const fmtDur = ms => ms == null ? '' : (ms / 1000).toFixed(ms < 10000 ? 1 : 0) + ' s';
 const fmtTime = (iso, long) => { const d = new Date(iso); if (isNaN(d)) return iso || ''; return d.toLocaleString(UI_LANG === 'de' ? 'de-DE' : 'zh-TW', long ? {} : { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }); };
@@ -1861,10 +1866,10 @@ function renderFit(j) {
   $('#fit-count').textContent = t('{n} 筆', { n: j.total != null ? j.total : es.length }) + (j.savedBytes ? ' · ' + t('伺服器已存 {mb} MB', { mb: (j.savedBytes / 1048576).toFixed(1) }) : '');
   const stat = (v, label, wide) => wide ? `<div class="stat wide"><span>${escHtml(t(label))}</span>${v}</div>` : `<div class="stat"><b>${v}</b><span>${escHtml(t(label))}</span></div>`;
   $('#fit-stats').innerHTML = stat(es.length, '試穿次數') + stat(ok.length, '成功') + stat(es.length - ok.length, '失敗') + stat(avg != null ? fmtDur(avg) : '—', '平均耗時')
-    + stat(top(count(es, e => { const c = fitCoat(e); return c && tName(c); })), '款式', true) + stat(top(count(es, e => LANG_NAME[e.lang] || e.lang)), '語言', true) + stat(top(count(es, e => e.country)), '地區', true);
+    + stat(top(count(es, e => { const c = fitCoat(e); return c && tName(c); })), '款式', true) + stat(top(count(es, fitBreed)), '品種', true) + stat(top(count(es, e => LANG_NAME[e.lang] || e.lang)), '語言', true) + stat(top(count(es, e => e.country)), '地區', true);
   $('#fit-grid').innerHTML = es.map((e, i) => {
     const st = fitStatus(e), [label, cls] = FIT_STATUS[st] || FIT_STATUS.failed, coat = fitCoat(e);
-    const line = [coat && tName(coat), LANG_NAME[e.lang] || e.lang, e.country, e.durationMs > 0 && fmtDur(e.durationMs)].filter(Boolean).map(escHtml).join(' · ');
+    const line = [coat && tName(coat), fitBreed(e), LANG_NAME[e.lang] || e.lang, e.country, e.durationMs > 0 && fmtDur(e.durationMs)].filter(Boolean).map(escHtml).join(' · ');
     return `<div class="fit-card${st === 'ok' ? '' : ' failed'}" data-i="${i}"><div class="fit-pics"><img ${fitSrc(e.dogUrl)} loading="lazy" alt=""><span>→</span><div class="fit-res">${e.resultUrl ? `<img ${fitSrc(e.resultUrl)} loading="lazy" alt="">` : '<div class="fit-none">✕</div>'}${coatThumb(e)}</div></div>`
       + `<div class="fit-info"><div><b>${escHtml(fmtTime(e.time))}</b> <span class="badge ${cls}">${escHtml(t(label))}</span></div><div class="muted">${line}</div>${e.caption ? `<p class="fit-cap">${escHtml(e.caption)}</p>` : ''}</div></div>`;
   }).join('');
@@ -1877,6 +1882,7 @@ function openFit(i) {
     ['時間', escHtml(e.time ? fmtTime(e.time, true) : e.stamp || '')],
     ['狀態', `<span class="badge ${cls}">${escHtml(t(label))}</span>${e.error ? ' <code>' + escHtml(e.error) + '</code>' : ''}`],
     ['款式', coat ? escHtml(tName(coat)) + (e.product ? ` · <a href="${siteUrl()}product/product&amp;product_id=${encodeURIComponent(e.product)}.html" target="_blank">${escHtml(t('查看商品 ↗'))}</a>` : '') : '—'],
+    ['品種', escHtml(fitBreedFull(e) || '—')],
     ['語言', escHtml(LANG_NAME[e.lang] || e.lang || '—')],
     ['地區', escHtml([e.country, e.ip].filter(Boolean).join(' · ') || '—')],
     ['耗時', e.durationMs > 0 ? escHtml(fmtDur(e.durationMs) + (e.queuedMs > 0 ? ' ' + t('（排隊 {s}）', { s: fmtDur(e.queuedMs) }) : '')) : '—'],
