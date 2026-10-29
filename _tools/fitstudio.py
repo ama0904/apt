@@ -413,7 +413,7 @@ CSS = r"""
 .fit-go{margin-top:16px}.fit-go .btn{width:100%}.fit-go .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
 .fit-go p{margin:10px 0 0;font-size:13.5px;color:var(--mute);text-align:center}
 .fit-stage{position:sticky;top:96px}
-.fit-stage .box{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;aspect-ratio:1;display:grid;place-items:center}
+.fit-stage .box{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;aspect-ratio:1;display:grid;grid-template:minmax(0,1fr)/minmax(0,1fr);place-items:center}
 .fit-stage .box>*{grid-area:1/1}
 .fit-stage .empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:30px;color:var(--mute);font-size:15px;max-width:34ch}
 .fit-stage .empty svg{width:44px;height:44px;color:var(--line2)}
