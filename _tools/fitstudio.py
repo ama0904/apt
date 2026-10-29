@@ -692,7 +692,7 @@ function rcPick(i){var c=cfg.coats[coatKey],info=rcBox.querySelector('p');rcSel=
 /* while it draws: a pixel dog of the guessed breed runs into a fitting-room booth at the right edge, changes, and runs back out
    in the chosen coat (laptop's /api/pixeldog; it draws a default dog when the breed guess is unsure). Each round has random
    weather fixed in the sky (sun / rain / storm / snow / rainbow); in rain or a storm the dog stops half way to shake itself dry,
-   in snow it gets snowed on and shakes the snow off (owner's requests) */
+   in snow it gets snowed on and shakes the snow off; a tornado chases it from the left and leaves it frizzy until it changes (owner's requests) */
 var pxCache={};
 function pxImg(u){return new Promise(function(ok,no){var i=new Image();i.onload=function(){ok(i);};i.onerror=no;i.src=u;});}
 function pxStrip(o){return o&&o.image&&o.w?pxImg(o.image).then(function(i){return {s:o,img:i};},function(){return null;}):Promise.resolve(null);}
@@ -702,15 +702,15 @@ function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.rem
  (pxCache[q]||(pxCache[q]=fetch(cfg.api+'/api/pixeldog?'+q,{headers:auth()}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
    .then(function(d){if(!d||!d.image||!d.w||!d.frames)throw new Error('bad');
      var dogS=function(u,f,fps){return u?{w:d.w,h:d.h,frames:f||d.frames,fps:fps||d.fps,image:u}:null;},wx=d.weather||{},sn=d.snowy||{},sh=d.shake||{},
-      keys=['sun','rain','storm','snow','rainbow'];
+      keys=['sun','rain','storm','snow','rainbow','tornado'];
      return Promise.all([pxStrip(dogS(d.image)),pxStrip(dogS(d.plain||d.image)),pxStrip(d.room),pxStrip(dogS(sh.image,sh.frames,sh.fps)),
-       pxStrip(dogS(sn.run)),pxStrip(dogS(sn.shake&&(sn.shake.image||sn.shake),sn.shake&&sn.shake.frames||sh.frames||6,sn.shake&&sn.shake.fps||sh.fps||14))]
+       pxStrip(dogS(sn.run)),pxStrip(dogS(sn.shake&&(sn.shake.image||sn.shake),sn.shake&&sn.shake.frames||sh.frames||6,sn.shake&&sn.shake.fps||sh.fps||14)),pxStrip(dogS(d.frizzy))]
        .concat(keys.map(function(k){return pxStrip(wx[k]);})))
-      .then(function(a){if(!a[0])throw new Error('bad');var w={};keys.forEach(function(k,n){if(a[6+n])w[k]=a[6+n];});
-       return {d:d,dressed:a[0],plain:a[1]||a[0],room:a[2],shake:a[3],snowRun:a[4],snowShake:a[5],wx:w};});})
+      .then(function(a){if(!a[0])throw new Error('bad');var w={};keys.forEach(function(k,n){if(a[7+n])w[k]=a[7+n];});
+       return {d:d,dressed:a[0],plain:a[1]||a[0],room:a[2],shake:a[3],snowRun:a[4],snowShake:a[5],frizzy:a[6],wx:w};});})
    .catch(function(){delete pxCache[q];return null;})))
   .then(function(x){if(!x||running!==run)return;var box=$('.fit-stage .box'),Z=box&&box.clientWidth<420?2:3,cv=el.firstChild,g=cv.getContext('2d'),d=x.d,rm=x.room&&x.room.s,
-    kinds=Object.keys(x.wx),wxH=kinds.reduce(function(m,k){return Math.max(m,x.wx[k].s.h);},0),
+    kinds=Object.keys(x.wx),wxH=kinds.reduce(function(m,k){return k==='tornado'?m:Math.max(m,x.wx[k].s.h);},0),
     W=Math.max(120,Math.floor((box?box.clientWidth:360)/Z)),H=Math.max(d.h+(wxH?wxH-6:0),rm?rm.h:0)+2,ms=1000/(d.fps||10);
    cv.width=W;cv.height=H;cv.style.width=W*Z+'px';cv.style.height=H*Z+'px';g.imageSmoothingEnabled=false;el.classList.add('on');
    var rx=rm?W-rm.w:W,door=rm?rx+Math.round((rm.w-d.w)/2):W,dy=H-1-d.h,still=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -720,7 +720,7 @@ function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.rem
    function at(o,t){return still?0:Math.floor(t/(1000/(o.s.fps||10)));}
    function roomAt(f){if(rm)strip(x.room,f,rx,H-1-rm.h,false);}
    function wxCx(o){return Math.min(Math.max(rx/2,o.s.w/2),W-o.s.w/2);}
-   function wxAt(k,t){var o=k&&x.wx[k];if(!o)return;var cx=wxCx(o);strip(o,at(o,t),cx-o.s.w/2,Math.max(0,dy-o.s.h+6),false);}
+   function wxAt(k,t){var o=k&&k!=='tornado'&&x.wx[k];if(!o)return;var cx=wxCx(o);strip(o,at(o,t),cx-o.s.w/2,Math.max(0,dy-o.s.h+6),false);}
    var RUN=2600,SHAKE=1400,L=null;
    function round(now){var k=kinds.length?kinds[Math.floor(Math.random()*kinds.length)]:null,
      stop=(k==='rain'||k==='storm')&&x.shake||k==='snow'&&x.snowShake?SHAKE:0;
@@ -731,15 +731,19 @@ function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.rem
     wxAt(k,t);
     if(!rm){dogAt(x.dressed,(W-d.w)/2,f,false);requestAnimationFrame(frame);return;}   /* no booth from the server: the dressed dog runs in place */
     /* rain / storm / snow: the dog runs under the cloud, comes out the other side, stops to shake, then runs on */
-    var R=RUN+L.stop,v=(door+d.w)/RUN,wo=x.wx[k],ce=wo?wxCx(wo):rx/2,ww=wo?wo.s.w:0,
+    var R=RUN+L.stop,v=(door+d.w)/RUN,wo=k!=='tornado'&&x.wx[k],ce=wo?wxCx(wo):rx/2,ww=wo?wo.s.w:0,
      xs=Math.min(door-16,ce+ww/2+2),ts=L.stop?(xs+d.w)/v:RUN;
+    /* tornado round: a funnel chases the dog from the left at twice its speed, on the ground, and blows past */
+    var to=k==='tornado'&&x.wx.tornado,tor=!!to,tx=tor?-to.s.w+2*v*(t-0.15*RUN):0;
     if(t<R){roomAt(0);var px=t<ts?-d.w+v*t:t<ts+L.stop?xs:-d.w+v*(t-L.stop),snowy=k==='snow'&&x.snowRun&&px>=ce-ww/2-d.w/2&&t<ts+L.stop;
      if(L.stop&&t>=ts&&t<ts+L.stop){var o=k==='snow'?x.snowShake:x.shake;dogAt(o,xs,at(o,t-ts),false);}
-     else dogAt(snowy?x.snowRun:x.plain,px,f,false);}
+     else{if(tor&&x.frizzy&&!L.frizz&&tx+to.s.w/2>=px+d.w/2)L.frizz=true;   /* tornado caught up: frizzy until the booth */
+      dogAt(snowy?x.snowRun:L.frizz?x.frizzy:x.plain,px,f,false);}}
     else if(t<R+1800)roomAt(1+Math.floor((t-R)/220)%2);
     else if(t<R+2100){roomAt(0);dogAt(x.dressed,door,0,true);}
     else if(t<R+2100+RUN){roomAt(0);dogAt(x.dressed,door-(door+d.w)*(t-R-2100)/RUN,f,true);}
     else roomAt(0);
+    if(tor&&tx<W&&tx+to.s.w>0)strip(to,at(to,t),tx,dy+d.h-to.s.h,false);
     requestAnimationFrame(frame);})(performance.now());});}
 function finish(){if(running){clearInterval(running.poll);clearInterval(running.tick);clearTimeout(running.tm);running=null;}update();}
 go.addEventListener('click',function(){
