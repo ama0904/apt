@@ -697,7 +697,7 @@ function rcPick(i){var c=cfg.coats[coatKey],info=rcBox.querySelector('p');rcSel=
   .catch(function(){if(rcSel===i)info.textContent=t('rc.fail');});}
 /* while it draws: a pixel dog of the guessed breed runs into a fitting-room booth at the right edge, changes, and runs back out
    in the chosen coat (laptop's /api/pixeldog; it draws a default dog when the breed guess is unsure). Each round has random
-   weather fixed in the sky (sun / rain / storm / snow / rainbow); in rain or a storm the dog stops half way to shake itself dry,
+   weather fixed in the sky (sun / rain / storm / snow); in rain or a storm the dog stops half way to shake itself dry,
    in snow it gets snowed on and shakes the snow off; a tornado chases it from the left and leaves it frizzy until it changes (owner's requests) */
 var pxCache={},pxBag=[],pxLast=null;
 /* weather order: a shuffled bag of all kinds, reshuffled when empty, never the same kind twice in a row (owner: 不要重複出現天氣) */
@@ -713,7 +713,7 @@ function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.rem
  (pxCache[q]||(pxCache[q]=fetch(cfg.api+'/api/pixeldog?'+q,{headers:auth(),cache:'no-cache'})   /* always revalidate: an old day-cached copy lacked the weather and the new booth */.then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
    .then(function(d){if(!d||!d.image||!d.w||!d.frames)throw new Error('bad');
      var dogS=function(u,f,fps){return u?{w:d.w,h:d.h,frames:f||d.frames,fps:fps||d.fps,image:u}:null;},wx=d.weather||{},sn=d.snowy||{},sh=d.shake||{},
-      keys=['sun','rain','storm','snow','rainbow','tornado'];
+      keys=['sun','rain','storm','snow','tornado'];   /* the server also sends a rainbow; owner took it out */
      return Promise.all([pxStrip(dogS(d.image)),pxStrip(dogS(d.plain||d.image)),pxStrip(d.room),pxStrip(dogS(sh.image,sh.frames,sh.fps)),
        pxStrip(dogS(sn.run)),pxStrip(dogS(sn.shake&&(sn.shake.image||sn.shake),sn.shake&&sn.shake.frames||sh.frames||6,sn.shake&&sn.shake.fps||sh.fps||14)),pxStrip(dogS(d.frizzy))]
        .concat(keys.map(function(k){return pxStrip(wx[k]);})))
