@@ -660,6 +660,12 @@ function pollCaption(id){if(!cfg.showNote)return;if(!id){noteMissed();return;}va
   fetch(cfg.api+'/api/caption/'+encodeURIComponent(id),{headers:auth()}).then(function(r){return r.ok?r.json():null;}).then(function(d){
    if(d&&d.status==='ready'){showNote(d.caption);return;}if(d&&d.status==='none'){noteMissed();return;}captionTimer=setTimeout(tick,2000);}).catch(function(){captionTimer=setTimeout(tick,2500);});};
  captionTimer=setTimeout(tick,1500);}
+/* phones: bring the whole result box (the pixel-dog scene and the progress text) into view, centred in the space under the
+   sticky header; a box taller than that space starts just below the header */
+function showBox(el){if(!el)return;var h=document.querySelector('header'),hb=0;
+ if(h){var cs=getComputedStyle(h);if(cs.position==='sticky'||cs.position==='fixed')hb=Math.max(0,h.getBoundingClientRect().bottom);}
+ var r=el.getBoundingClientRect(),room=window.innerHeight-hb,top=r.height<room?hb+(room-r.height)/2:hb+8;
+ window.scrollTo({top:Math.max(0,window.scrollY+r.top-top),behavior:'smooth'});}
 /* make the finished picture impossible to miss: scroll to it, pulse the frame, badge, a short buzz on phones */
 var flashTimer=null;
 function celebrate(){stage.classList.remove('flash');void stage.offsetWidth;stage.classList.add('flash');clearTimeout(flashTimer);flashTimer=setTimeout(function(){stage.classList.remove('flash');},3400);
@@ -757,7 +763,7 @@ go.addEventListener('click',function(){
  setErr('');showNote('');resultUrl='';var jobId=(crypto.randomUUID&&crypto.randomUUID())||(Date.now()+'-'+Math.random().toString(36).slice(2));
  var ctl=new AbortController(),t0=Date.now(),run={ctl:ctl};running=run;update();
  busyImg.src=dog;stage.dataset.state='busy';pxDog(run);step(0,t('step.prepare'));progS.textContent=t('elapsed',{sec:0});sizeOut();
- if(window.innerWidth<981)setTimeout(function(){stage.scrollIntoView({behavior:'smooth',block:'start'});},50);
+ if(window.innerWidth<981)setTimeout(function(){showBox(stage.querySelector('.box'));},50);
  run.tick=setInterval(function(){progS.textContent=t('elapsed',{sec:Math.round((Date.now()-t0)/1000)});},1000);
  run.tm=setTimeout(function(){ctl.abort('timeout');},300000);
  var soft=setTimeout(function(){if(running===run&&curStep<1)step(1,t('step.send'));},9000);
