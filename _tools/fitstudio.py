@@ -719,8 +719,9 @@ function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.rem
    function dogAt(o,px,f,flip){strip(o,f,px,dy,flip);}
    function at(o,t){return still?0:Math.floor(t/(1000/(o.s.fps||10)));}
    function roomAt(f){if(rm)strip(x.room,f,rx,H-1-rm.h,false);}
-   function wxAt(k,t){var o=k&&x.wx[k];if(!o)return;var cx=Math.min(Math.max(rx/2,o.s.w/2),W-o.s.w/2);strip(o,at(o,t),cx-o.s.w/2,Math.max(0,dy-o.s.h+6),false);}
-   var RUN=2600,SHAKE=1100,L=null;
+   function wxCx(o){return Math.min(Math.max(rx/2,o.s.w/2),W-o.s.w/2);}
+   function wxAt(k,t){var o=k&&x.wx[k];if(!o)return;var cx=wxCx(o);strip(o,at(o,t),cx-o.s.w/2,Math.max(0,dy-o.s.h+6),false);}
+   var RUN=2600,SHAKE=1400,L=null;
    function round(now){var k=kinds.length?kinds[Math.floor(Math.random()*kinds.length)]:null,
      stop=(k==='rain'||k==='storm')&&x.shake||k==='snow'&&x.snowShake?SHAKE:0;
     L={t0:now,k:k,stop:stop,len:RUN+stop+1800+300+RUN+400};}
@@ -729,11 +730,12 @@ function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.rem
     if(still){wxAt(k,0);roomAt(1);dogAt(x.dressed,door-d.w-6,0,true);return;}
     wxAt(k,t);
     if(!rm){dogAt(x.dressed,(W-d.w)/2,f,false);requestAnimationFrame(frame);return;}   /* no booth from the server: the dressed dog runs in place */
-    var R=RUN+L.stop,X=function(p){return -d.w+(door+d.w)*p;};
-    if(t<R){roomAt(0);var half=RUN/2,snowy=k==='snow'&&x.snowRun&&t>=RUN/4&&t<half+L.stop;
-     if(t<half)dogAt(snowy?x.snowRun:x.plain,X(t/RUN),f,false);
-     else if(t<half+L.stop){var o=k==='snow'?x.snowShake:x.shake;dogAt(o,X(.5),at(o,t-half),false);}
-     else dogAt(x.plain,X((t-L.stop)/RUN),f,false);}
+    /* rain / storm / snow: the dog runs under the cloud, comes out the other side, stops to shake, then runs on */
+    var R=RUN+L.stop,v=(door+d.w)/RUN,wo=x.wx[k],ce=wo?wxCx(wo):rx/2,ww=wo?wo.s.w:0,
+     xs=Math.min(door-16,ce+ww/2+2),ts=L.stop?(xs+d.w)/v:RUN;
+    if(t<R){roomAt(0);var px=t<ts?-d.w+v*t:t<ts+L.stop?xs:-d.w+v*(t-L.stop),snowy=k==='snow'&&x.snowRun&&px>=ce-ww/2-d.w/2&&t<ts+L.stop;
+     if(L.stop&&t>=ts&&t<ts+L.stop){var o=k==='snow'?x.snowShake:x.shake;dogAt(o,xs,at(o,t-ts),false);}
+     else dogAt(snowy?x.snowRun:x.plain,px,f,false);}
     else if(t<R+1800)roomAt(1+Math.floor((t-R)/220)%2);
     else if(t<R+2100){roomAt(0);dogAt(x.dressed,door,0,true);}
     else if(t<R+2100+RUN){roomAt(0);dogAt(x.dressed,door-(door+d.w)*(t-R-2100)/RUN,f,true);}
