@@ -9,7 +9,8 @@ The bridge API (see the FitStudio hand-over notes):
   POST /api/stylist                -> {"image": dataURL, "captionId": id}  x-api-key, JSON body
        {"dogImage": dataURL, "clothesImage": dataURL, "lang": "zh"|"de", "jobId": str}; synchronous, 15-240 s
        also coat, coatName, product, recolor {from, to[]} and colors [{hex, name}] (the coat's colours in the page
-       language, the drawn one first) so the stylist's note can suggest the other colours by name
+       language, the drawn one first) so the stylist's note can suggest the other colours by name;
+       breed [{zh, name, p}] = /api/dogsize's top 3 for this photo (null if not back yet / no dog), for the fit log
   GET  /api/status/<jobId>         -> {"key": "srv.generating", "step": 6, "vars": {...}}   progress, no auth
   GET  /api/caption/<captionId>    -> {"status": "pending"|"ready"|"none", "caption": str}   x-api-key
 Errors are JSON {"error": str, "errorKey": str}; the keys map to the strings in STR below.
@@ -547,7 +548,7 @@ function renderSel(){var box=$('.fit-sel');if(!box)return;var c=coatKey&&cfg.coa
    laptop and answers with the closest breeds and small / medium / large (trained on ~2,300 labelled dog photos).
    A hint is shown only when fairly sure; ?dogai=1 shows the breeds and numbers under the photo (test mode). */
 var aiDebug=/[?&]dogai=1/.test(location.search);try{sessionStorage.removeItem('apetto_dogai');}catch(e){}
-var guess=null,guessFor=null,guessDemo=false,guessCtl=null,aiBox=$('.fit-ai'),warnOk=false;
+var guess=null,guessTop=null,guessFor=null,guessDemo=false,guessCtl=null,aiBox=$('.fit-ai'),warnOk=false;
 /* the chosen coat does not fit (AI guess from the photo, or the typed back length): ask once before generating */
 function misfit(){var c=coatKey&&cfg.coats[coatKey];if(!c||!c.cut)return null;
  var fw=typeof fitWarn==='function'?fitWarn(c):null;if(fw&&fw.bad)return {why:'back',bad:mval('back')<c.min?t('warn.big'):t('warn.smallB'),alts:altCoats(mval('back'),c,mval('back')<c.min?-1:1)};
@@ -576,13 +577,13 @@ function aiShow(state,r,ms){if(!aiBox||!aiDebug)return;aiBox.hidden=false;var h=
 /* the server only answers S / L when one side is >= 70 %. A clear lean (over half, the opposite end under 15 %) is enough to
    pick 大狗 / 小狗: a golden retriever came back large 59 % / small 9 % and got no suggestion at all */
 function sizeLean(P){if(!P||P.length<3)return null;if(P[2]>=0.5&&P[0]<0.15)return 'L';if(P[0]>=0.5&&P[2]<0.15)return 'S';return P[1]>=0.5?'M':null;}
-function guessSize(src,demo){guess=null;guessFor=src;guessDemo=!!demo;guessMark('');guessOut();
+function guessSize(src,demo){guess=null;guessTop=null;guessFor=src;guessDemo=!!demo;guessMark('');guessOut();
  if(guessCtl){guessCtl.abort();guessCtl=null;}
  if(!src){if(aiBox)aiBox.hidden=true;return;}
  var t0=Date.now(),ctl=new AbortController();guessCtl=ctl;aiShow('wait');
  compress(src,384,.85).then(function(img){return fetch(cfg.api+'/api/dogsize',{method:'POST',signal:ctl.signal,headers:auth({'Content-Type':'application/json'}),body:JSON.stringify({image:img})});})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-  .then(function(r){if(guessFor!==src)return;guess=r.guess==='S'||r.guess==='L'?r.guess:sizeLean(r.P);guessMark(guess||(r.P?'none':'nodog'));aiShow('done',r,Date.now()-t0);guessOut();})
+  .then(function(r){if(guessFor!==src)return;guessTop=r.P&&r.top&&r.top.length?r.top.slice(0,3).map(function(x){return {zh:x.zh||'',name:x.name||'',p:x.p};}):null;guess=r.guess==='S'||r.guess==='L'?r.guess:sizeLean(r.P);guessMark(guess||(r.P?'none':'nodog'));aiShow('done',r,Date.now()-t0);guessOut();})
   .catch(function(e){if(guessFor!==src||(e&&e.name==='AbortError'))return;guessMark('error');aiShow('error');});}
 var guessBox=$('.fit-guess');
 /* data-guess shows the last result (S / L / none / error), handy when checking the page */
@@ -702,7 +703,8 @@ go.addEventListener('click',function(){
    if(st>=6)step(2,txt||t('step.draw'));else if(st>=3)step(1,txt||t('step.send'));else if(txt&&st>=2)progT.textContent=txt;}).catch(function(){});},1000);
   return fetch(cfg.api+'/api/stylist',{method:'POST',signal:ctl.signal,headers:auth({'Content-Type':'application/json'}),
    body:JSON.stringify({dogImage:imgs[0],clothesImage:imgs[1],lang:cfg.serverLang,jobId:jobId,coat:coatKey||null,coatName:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].name)||null,product:(coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].product)||null,recolor:rcAsk(),
-    colors:((coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].colors)||[]).map(function(x){return {hex:x.hex,name:x.name};})})});
+    colors:((coatKey&&cfg.coats[coatKey]&&cfg.coats[coatKey].colors)||[]).map(function(x){return {hex:x.hex,name:x.name};}),
+    breed:guessFor===dog?guessTop:null})});
  }).then(function(r){
   if(!r.ok){return r.json().catch(function(){return {};}).then(function(d){
    if(r.status===429)throw new Error(t(d.errorKey||'err.busy'));if(r.status===503)throw new Error(t(d.errorKey||'err.allAccountsExhausted'));
