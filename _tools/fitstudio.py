@@ -707,7 +707,8 @@ function rcPick(i){var c=cfg.coats[coatKey],info=rcBox.querySelector('p');rcSel=
    weather fixed in the sky (sun / rain / storm / snow); in rain or a storm the dog stops half way to shake itself dry,
    in snow it gets snowed on and shakes the snow off; a tornado chases it from the left and leaves it frizzy until it changes;
    on a sunny round the dressed dog stops under the sun on the way out, sunglasses drop onto its face, it grins and sparkles,
-   then runs off wearing them (owner's requests; d.cool is optional) */
+   then runs off wearing them; on a night round a small meteor streaks down past it, then the coat's reflective strip lights up
+   and it grins (owner's requests; d.cool, d.glow and the night/meteor weather are optional) */
 var pxCache={},pxBag=[],pxLast=null;
 /* weather order: a shuffled bag of all kinds, reshuffled when empty, never the same kind twice in a row (owner: 不要重複出現天氣) */
 function pxNext(kinds){if(!kinds.length)return null;pxBag=pxBag.filter(function(k){return kinds.indexOf(k)>=0;});
@@ -722,15 +723,18 @@ function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.rem
  (pxCache[q]||(pxCache[q]=fetch(cfg.api+'/api/pixeldog?'+q,{headers:auth(),cache:'no-cache'})   /* always revalidate: an old day-cached copy lacked the weather and the new booth */.then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
    .then(function(d){if(!d||!d.image||!d.w||!d.frames)throw new Error('bad');
      var dogS=function(u,f,fps){return u?{w:d.w,h:d.h,frames:f||d.frames,fps:fps||d.fps,image:u}:null;},wx=d.weather||{},sn=d.snowy||{},sh=d.shake||{},
-      keys=['sun','rain','storm','snow','tornado'];   /* the server also sends a rainbow; owner took it out */
+      keys=['sun','rain','storm','snow','tornado','night','meteor'];   /* the server also sends a rainbow; owner took it out */
      return Promise.all([pxStrip(dogS(d.image)),pxStrip(dogS(d.plain||d.image)),pxStrip(d.room),pxStrip(dogS(sh.image,sh.frames,sh.fps)),
        pxStrip(dogS(sn.run)),pxStrip(dogS(sn.shake&&(sn.shake.image||sn.shake),sn.shake&&sn.shake.frames||sh.frames||6,sn.shake&&sn.shake.fps||sh.fps||14)),pxStrip(dogS(d.frizzy)),
        pxStrip(d.cool&&dogS(d.cool.image,d.cool.frames,d.cool.fps)),pxStrip(d.cool&&dogS(d.cool.run)),
-       pxStrip(d.cool&&d.cool.glasses&&{w:d.cool.glasses.w,h:d.cool.glasses.h,frames:1,image:d.cool.glasses.image})]
+       pxStrip(d.cool&&d.cool.glasses&&{w:d.cool.glasses.w,h:d.cool.glasses.h,frames:1,image:d.cool.glasses.image}),
+       pxStrip(d.glow&&dogS(d.glow.image,d.glow.frames,d.glow.fps)),pxStrip(d.glow&&dogS(d.glow.run))]
        .concat(keys.map(function(k){return pxStrip(wx[k]);})))
-      .then(function(a){if(!a[0])throw new Error('bad');var w={};keys.forEach(function(k,n){if(a[10+n])w[k]=a[10+n];});
+      .then(function(a){if(!a[0])throw new Error('bad');var w={};keys.forEach(function(k,n){if(a[12+n])w[k]=a[12+n];});
+       var met=w.meteor;delete w.meteor;if(!(a[10]&&met&&w.night))delete w.night;   /* night needs the glow dog and the meteor */
        return {d:d,dressed:a[0],plain:a[1]||a[0],room:a[2],shake:a[3],snowRun:a[4],snowShake:a[5],frizzy:a[6],
-        cool:a[7]&&a[9]&&d.cool.at?{img:a[7],run:a[8]||a[0],glasses:a[9],at:d.cool.at}:null,wx:w};});})
+        cool:a[7]&&a[9]&&d.cool.at?{img:a[7],run:a[8]||a[0],glasses:a[9],at:d.cool.at}:null,
+        glow:w.night?{img:a[10],run:a[11]||a[0],meteor:met}:null,wx:w};});})
    .catch(function(){delete pxCache[q];return null;})))
   .then(function(x){if(!x||running!==run)return;var box=$('.fit-stage .box'),Z=box&&box.clientWidth<420?2:3,cv=el.firstChild,g=cv.getContext('2d'),d=x.d,rm=x.room&&x.room.s,
     kinds=Object.keys(x.wx),wxH=kinds.reduce(function(m,k){return k==='tornado'?m:Math.max(m,x.wx[k].s.h);},0),
@@ -747,13 +751,18 @@ function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.rem
    var RUN=2600,SHAKE=1400,L=null,
     /* sunny stop: [cool frame, ms] - turn, face us (glasses fall), shades on, grin, sparkle twice, grin */
     COOL_STEPS=[[0,160],[1,160],[2,950],[3,260],[4,380],[5,110],[6,420],[7,110],[5,110],[6,380],[4,450]],
-    COOL=COOL_STEPS.reduce(function(a,b){return a+b[1];},0),FALL_FROM=160+160+250,FALL=700;
+    COOL=COOL_STEPS.reduce(function(a,b){return a+b[1];},0),FALL_FROM=160+160+250,FALL=700,
+    /* night stop: [glow frame, ms] - the meteor passes, then the strip lights, rays, head turns, grin with a twinkle */
+    GLOW_STEPS=[[0,1250],[1,200],[2,300],[3,320],[4,240],[5,420],[6,420],[7,180],[6,360],[5,420]],
+    GLOW=GLOW_STEPS.reduce(function(a,b){return a+b[1];},0),M_START=150,M_FLY=750,M_FADE=150;
+   function stepAt(steps,tc){for(var i=0;i<steps.length;i++){if(tc<steps[i][1])return steps[i][0];tc-=steps[i][1];}return steps[steps.length-1][0];}
    function round(now){var k=pxNext(kinds),
-     stop=(k==='rain'||k==='storm')&&x.shake||k==='snow'&&x.snowShake?SHAKE:0,cool=k==='sun'&&x.cool&&x.wx.sun?COOL:0;
-    L={t0:now,k:k,stop:stop,cool:cool,len:RUN+stop+1800+300+RUN+cool+400};}
+     stop=(k==='rain'||k==='storm')&&x.shake||k==='snow'&&x.snowShake?SHAKE:0,
+     mode=k==='sun'&&x.cool&&x.wx.sun?'cool':k==='night'&&x.glow?'glow':'',stay=mode==='cool'?COOL:mode==='glow'?GLOW:0;
+    L={t0:now,k:k,stop:stop,mode:mode,cool:stay,len:RUN+stop+1800+300+RUN+stay+400};}
    (function frame(now){if(running!==run||stage.dataset.state!=='busy')return;g.clearRect(0,0,W,H);
     if(!L||now>=L.t0+L.len)round(now);var t=now-L.t0,f=Math.floor(t/ms),k=L.k;
-    if(still){wxAt(k,0);roomAt(1);dogAt(x.dressed,door-d.w-6,0,true);return;}
+    if(still){wxAt(k,0);roomAt(1);if(L.mode==='glow')dogAt(x.glow.img,door-d.w-6,6,true);else dogAt(x.dressed,door-d.w-6,0,true);return;}
     wxAt(k,t);
     if(!rm){dogAt(x.dressed,(W-d.w)/2,f,false);requestAnimationFrame(frame);return;}   /* no booth from the server: the dressed dog runs in place */
     /* rain / storm / snow: the dog runs under the cloud, comes out the other side, stops to shake, then runs on */
@@ -769,9 +778,16 @@ function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.rem
     else if(t<R+2100){roomAt(0);dogAt(x.dressed,door,0,true);}
     else if(t<R+2100+RUN+L.cool){roomAt(0);var t2=t-R-2100,outX=function(u){return door-(door+d.w)*u;};
      if(!L.cool){dogAt(x.dressed,outX(t2/RUN),f,true);}
-     else{var stopX=Math.min(door,Math.round(wxCx(x.wx.sun)-d.w/2)),tStop=RUN*(door-stopX)/(door+d.w);
+     else{var stopX=Math.min(door,Math.round(wxCx(x.wx[k])-d.w/2)),tStop=RUN*(door-stopX)/(door+d.w);
       if(t2<tStop)dogAt(x.dressed,outX(t2/RUN),f,true);
-      else if(t2<tStop+COOL){var tc=t2-tStop,fr=4;for(var i=0;i<COOL_STEPS.length;i++){if(tc<COOL_STEPS[i][1]){fr=COOL_STEPS[i][0];break;}tc-=COOL_STEPS[i][1];}
+      else if(L.mode==='glow'){var tg=t2-tStop;
+       if(tg<GLOW){dogAt(x.glow.img,stopX,stepAt(GLOW_STEPS,tg),true);
+        var m=x.glow.meteor,ms_=m.s,tm=tg-M_START;
+        if(tm>=0&&tm<M_FLY+M_FADE){   /* one small meteor from the top right down to just past the dog, then it fades */
+         var sl=ms_.slope||0.45,hd=ms_.head||[1,6],px0=stopX+d.w/2,py0=dy+2,sx=px0+(py0+ms_.h)/sl,sy=-ms_.h,ex=px0-18,ey=py0+18*sl,u=tm/(M_FLY+M_FADE);
+         strip(m,tm<M_FLY?Math.floor(tm/60)%4:(ms_.fade!=null?ms_.fade:4),sx+(ex-sx)*u-hd[0],Math.round(sy+(ey-sy)*u-hd[1]),false);}}
+       else dogAt(x.glow.run,outX((t2-GLOW)/RUN),f,true);}
+      else if(t2<tStop+COOL){var fr=stepAt(COOL_STEPS,t2-tStop);
        dogAt(x.cool.img,stopX,fr,true);
        var tf=t2-tStop-FALL_FROM,gl=x.cool.glasses,gw=gl.s.w,gh=gl.s.h;
        if(tf>=0&&tf<FALL){var kk=tf/FALL;   /* falls from the top with ease-in and a little wobble, mirrored like the dog */
