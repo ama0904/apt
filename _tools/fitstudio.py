@@ -506,11 +506,18 @@ function setErr(m){err.textContent=m||'';err.classList.toggle('show',!!m);}
 function setStatus(st){online=st;status.className='fit-status '+(st===null?'':st?'on':'off');
  status.lastElementChild.textContent=st===null?cfg.ui.connecting:st?cfg.ui.online:cfg.ui.offline;update();}
 function update(){go.disabled=!(dog&&coat&&!running);}
-function health(again){var c=new AbortController();var tm=setTimeout(function(){c.abort();},20000);
- // a busy server can answer slowly: wait up to 20 s and try once more before showing "offline"
- fetch(cfg.api+'/api/health',{signal:c.signal,cache:'no-store'}).then(function(r){setStatus(r.ok);}).catch(function(){if(again)setStatus(false);else setTimeout(function(){health(true);},3000);}).then(function(){clearTimeout(tm);});}
-health();setInterval(health,45000);
+/* a phone tab coming back from the background or a mobile-data handover can drop the connection for a few seconds:
+   try 4 times (2 / 4 / 8 s apart) before showing "offline", then keep checking every 15 s so it recovers on its own */
+var hcBusy=false,hcWait=[];
+function health(cb){if(typeof cb==='function')hcWait.push(cb);if(hcBusy)return;hcBusy=true;
+ (function attempt(n){var c=new AbortController(),tm=setTimeout(function(){c.abort();},15000);
+  fetch(cfg.api+'/api/health',{signal:c.signal,cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return true;})
+   .catch(function(){return false;}).then(function(ok){clearTimeout(tm);
+    if(!ok&&n<3){setTimeout(function(){attempt(n+1);},[2000,4000,8000][n]);return;}
+    hcBusy=false;setStatus(ok);var w=hcWait;hcWait=[];w.forEach(function(f){f(ok);});});})(0);}
+health();setInterval(function(){if(online!==false)health();},45000);setInterval(function(){if(online===false&&!document.hidden)health();},15000);
 document.addEventListener('visibilitychange',function(){if(!document.hidden)health();});
+window.addEventListener('online',function(){health();});window.addEventListener('pageshow',function(e){if(e.persisted)health();});
 /* photo */
 function loadImg(src){return new Promise(function(res,rej){var i=new Image();i.onload=function(){res(i);};i.onerror=rej;i.src=src;});}
 function compress(src,max,q){return loadImg(src).then(function(i){var r=Math.min(max/i.width,max/i.height,1),c=document.createElement('canvas');
@@ -775,7 +782,7 @@ function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.rem
     requestAnimationFrame(frame);})(performance.now());});}
 function finish(){if(running){clearInterval(running.poll);clearInterval(running.tick);clearTimeout(running.tm);running=null;}update();}
 go.addEventListener('click',function(){
- if(!dog||!coat){setErr(t('err.pickFirst'));return;}if(online===false){setErr(t('err.offline'));return;}
+ if(!dog||!coat){setErr(t('err.pickFirst'));return;}if(online===false){setErr(t('err.offline'));health(function(ok){if(ok&&!running){setErr('');go.click();}});return;}   /* re-check first: it may have been a short drop */
  if(!warnOk){var mf=misfit();if(mf){showWarn(mf);return;}}
  setErr('');showNote('');resultUrl='';var jobId=(crypto.randomUUID&&crypto.randomUUID())||(Date.now()+'-'+Math.random().toString(36).slice(2));
  var ctl=new AbortController(),t0=Date.now(),run={ctl:ctl};running=run;update();
