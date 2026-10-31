@@ -285,6 +285,7 @@ STR = {
     "rc.note": {"zh": "其他顏色由電腦自動換色，顏色以實際商品為準。", "en": "Other colours are recoloured automatically; actual colours may differ.", "ja": "ほかの色は自動で色替えしています。実際の色と異なる場合があります。", "de": "Andere Farben werden automatisch umgefärbt; die echten Farben können abweichen."},
     "rc.later": {"zh": "試穿後可以換成：", "en": "After the try-on you can switch to:", "ja": "試着後に切り替えられる色：", "de": "Nach der Anprobe umschaltbar auf:"},
     "sz.cat": {"zh": "貓咪", "en": "Cat", "ja": "ネコ", "de": "Katze"},
+    "sel.catHint": {"zh": "先選雨衣或保暖加毛。", "en": "Choose raincoat or warm fleece first.", "ja": "まずレインコートか裏起毛を選んでください。", "de": "Wähle zuerst Regenmantel oder warmes Fleece."},
     "sz.guessS": {"zh": "照片看起來是小型犬，已幫你選小狗款。", "en": "Your dog looks small, so the small-dog size is selected.", "ja": "写真では小型犬のようなので、小型犬向けを選びました。", "de": "Dein Hund wirkt klein, daher ist die Größe für kleine Hunde gewählt."},
     "sz.guessL": {"zh": "照片看起來是中大型犬，已幫你選大狗款。", "en": "Your dog looks medium or large, so the big-dog size is selected.", "ja": "写真では中・大型犬のようなので、大型犬向けを選びました。", "de": "Dein Hund wirkt mittelgroß oder groß, daher ist die Größe für große Hunde gewählt."},
     "err.offline": {"zh": "試衣間目前離線，請稍後再試。", "en": "The fitting room is offline right now. Please try again later.", "ja": "試着室は現在オフラインです。しばらくしてからお試しください。", "de": "Die Anprobe ist gerade offline. Bitte später erneut versuchen."},
@@ -570,7 +571,7 @@ document.querySelectorAll('.fit-type').forEach(function(b){b.addEventListener('c
 document.querySelectorAll('.fit-sz').forEach(function(b){b.addEventListener('click',function(){selSize=b.dataset.size;sizeByUser=true;applySel();});});
 /* the chosen garment: picture, name and the colour Gemini draws; the other colours come after the try-on */
 function renderSel(){var box=$('.fit-sel');if(!box)return;var c=coatKey&&cfg.coats[coatKey];
- if(!c){box.innerHTML='<p class="hint">'+escHtml(cfg.ui.pickHint)+'</p>';return;}
+ if(!c){box.innerHTML='<p class="hint">'+escHtml(isCat?t('sel.catHint'):cfg.ui.pickHint)+'</p>';return;}   /* a cat has no 大狗 / 小狗 to pick */
  var cols=c.colors||[],def=cols[0];
  box.innerHTML='<div class="row"><img src="'+(c.show||c.img)+'" alt=""><div><b>'+escHtml(c.label)+(def?' · '+escHtml(def.name):'')+'</b>'+
   (cols.length>1?'<span>'+escHtml(t('rc.later'))+' '+cols.slice(1).map(function(x){return '<i style="background:'+x.hex+'"></i>'+escHtml(x.name);}).join('、')+'</span>':'')+
