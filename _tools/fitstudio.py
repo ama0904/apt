@@ -284,6 +284,7 @@ STR = {
     "rc.fail": {"zh": "這個顏色暫時換不出來，請稍後再試。", "en": "This colour is not available right now. Please try again later.", "ja": "この色は現在表示できません。しばらくしてからお試しください。", "de": "Diese Farbe geht gerade nicht. Bitte später erneut versuchen."},
     "rc.note": {"zh": "其他顏色由電腦自動換色，顏色以實際商品為準。", "en": "Other colours are recoloured automatically; actual colours may differ.", "ja": "ほかの色は自動で色替えしています。実際の色と異なる場合があります。", "de": "Andere Farben werden automatisch umgefärbt; die echten Farben können abweichen."},
     "rc.later": {"zh": "試穿後可以換成：", "en": "After the try-on you can switch to:", "ja": "試着後に切り替えられる色：", "de": "Nach der Anprobe umschaltbar auf:"},
+    "sz.cat": {"zh": "貓咪", "en": "Cat", "ja": "ネコ", "de": "Katze"},
     "sz.guessS": {"zh": "照片看起來是小型犬，已幫你選小狗款。", "en": "Your dog looks small, so the small-dog size is selected.", "ja": "写真では小型犬のようなので、小型犬向けを選びました。", "de": "Dein Hund wirkt klein, daher ist die Größe für kleine Hunde gewählt."},
     "sz.guessL": {"zh": "照片看起來是中大型犬，已幫你選大狗款。", "en": "Your dog looks medium or large, so the big-dog size is selected.", "ja": "写真では中・大型犬のようなので、大型犬向けを選びました。", "de": "Dein Hund wirkt mittelgroß oder groß, daher ist die Größe für große Hunde gewählt."},
     "err.offline": {"zh": "試衣間目前離線，請稍後再試。", "en": "The fitting room is offline right now. Please try again later.", "ja": "試着室は現在オフラインです。しばらくしてからお試しください。", "de": "Die Anprobe ist gerade offline. Bitte später erneut versuchen."},
@@ -381,6 +382,15 @@ CSS = r"""
 .fit-type .img{aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:#fff;display:grid;place-items:center}.fit-type img{width:100%;height:100%;object-fit:contain}.fit-type[data-fixed] img{object-fit:cover}
 .fit-type .nm{display:block;font-weight:800;font-size:16px;margin-top:10px;line-height:1.3}.fit-type .sub{display:block;font-size:12.5px;color:var(--mute);line-height:1.4;margin-top:2px}
 .fit-type .chk{position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;display:none;place-items:center;box-shadow:0 2px 8px rgba(255,36,20,.35);z-index:1}.fit-type.cur .chk{display:grid}
+.fit-sizes.cat .fit-sz{display:none}.fit-sizes .fit-cat{display:none;grid-column:1/-1}.fit-sizes.cat .fit-cat{display:flex}
+/* a cat photo: three claw marks slash across the screen, then fade (owner: 被貓抓三痕爪痕) */
+.fit-claw{position:fixed;inset:0;z-index:9999;pointer-events:none;animation:fitClawOut .3s ease-in .8s forwards}
+.fit-claw svg{width:100%;height:100%;display:block}
+.fit-claw path{fill:none;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:fitClaw .2s cubic-bezier(.3,.7,.4,1) forwards}
+.fit-claw .gash{stroke:#5b1d1d;stroke-width:13}.fit-claw .lip{stroke:#fff;stroke-opacity:.6;stroke-width:3}
+@media (min-width:700px){.fit-claw .gash{stroke-width:18}.fit-claw .lip{stroke-width:4}}
+.fit-claw .c2 path{animation-delay:.07s}.fit-claw .c3 path{animation-delay:.14s}
+@keyframes fitClaw{to{stroke-dashoffset:0}}@keyframes fitClawOut{to{opacity:0}}
 .fit-sizes{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin-top:16px}.fit-sizes .lbl{grid-column:1/-1;font-size:14px;font-weight:700;color:var(--ink2);margin-bottom:-2px}
 .fit-sz{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:56px;padding:9px 14px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
 .fit-sz b{font-size:15.5px}.fit-sz i{font-style:normal;font-size:12.5px;color:var(--mute)}@media (hover:hover){.fit-sz:hover{border-color:var(--ink2)}}
@@ -540,11 +550,11 @@ document.querySelectorAll('.fit-demo button').forEach(function(b){b.addEventList
 /* style: 雨衣 / 保暖加毛 first, then 大狗 / 小狗 (picked from the photo until the customer chooses); one coat per pair */
 var coatKey=null,selType=null,selSize=null,sizeByUser=false;
 function coatOf(tp,sz){for(var k in cfg.coats){var o=cfg.coats[k];if(o.type===tp&&o.size===sz)return k;}return null;}
-function applySel(){var k=selType&&selSize?coatOf(selType,selSize):null;coatKey=k;coat=k?(cfg.coats[k].show||cfg.coats[k].img):null;   /* Gemini gets the dog-wearing-it picture when there is one (owner 2026-10-28: closer to a real fit than the flat shot) */
+function applySel(){if(isCat)selSize='small';var k=selType&&selSize?coatOf(selType,selSize):null;coatKey=k;coat=k?(cfg.coats[k].show||cfg.coats[k].img):null;   /* Gemini gets the dog-wearing-it picture when there is one (owner 2026-10-28: closer to a real fit than the flat shot) */
  warnOk=false;
  document.querySelectorAll('.fit-type').forEach(function(b){b.classList.toggle('cur',b.dataset.type===selType);
   var k2=coatOf(b.dataset.type,selSize||'big')||coatOf(b.dataset.type,'small'),im=b.querySelector('img');if(!b.dataset.fixed&&k2&&im&&im.getAttribute('src')!==cfg.coats[k2].img)im.src=cfg.coats[k2].img;});
- document.querySelectorAll('.fit-sz').forEach(function(b){b.classList.toggle('cur',b.dataset.size===selSize);
+ document.querySelectorAll('.fit-sz').forEach(function(b){b.classList.toggle('cur',b===catBtn||b.dataset.size===selSize);
   var k2=coatOf(selType||'rain',b.dataset.size),o=k2&&cfg.coats[k2],i=b.querySelector('i');if(i)i.textContent=o&&o.range?o.range:'';});
  renderSel();update();sizeOut();guessOut();}
 function selectCoat(k){var o=cfg.coats[k];if(!o)return;selType=o.type;selSize=o.size;sizeByUser=true;applySel();}
@@ -561,11 +571,25 @@ function renderSel(){var box=$('.fit-sel');if(!box)return;var c=coatKey&&cfg.coa
    laptop and answers with the closest breeds and small / medium / large (trained on ~2,300 labelled dog photos).
    A hint is shown only when fairly sure; ?dogai=1 shows the breeds and numbers under the photo (test mode). */
 var aiDebug=/[?&]dogai=1/.test(location.search);try{sessionStorage.removeItem('apetto_dogai');}catch(e){}
-var guess=null,guessTop=null,demoBreed=null,guessFor=null,guessDemo=false,guessCtl=null,aiBox=$('.fit-ai'),warnOk=false;
+var guess=null,guessTop=null,demoBreed=null,guessFor=null,guessDemo=false,guessCtl=null,aiBox=$('.fit-ai'),warnOk=false,
+ isCat=false,   /* the server is very sure the photo is a cat (dogsize cat:true): only the 貓咪 option (small coats) */
+ catDebug=/[?&]cat=1/.test(location.search);   /* ?cat=1: every photo, demo dogs included, is treated as a British Shorthair (for checking cat mode) */
+/* cat mode: hide 小狗 / 大狗, show one selected 貓咪 button; small coats behind it */
+var szBox=$('.fit-sizes'),catBtn=null;
+if(szBox){catBtn=document.createElement('button');catBtn.type='button';catBtn.className='fit-sz fit-cat cur';catBtn.dataset.size='small';
+ catBtn.innerHTML='<b></b><i></i>';catBtn.querySelector('b').textContent=t('sz.cat');szBox.appendChild(catBtn);}
+function catMode(on){isCat=!!on;if(szBox)szBox.classList.toggle('cat',isCat);if(isCat){selSize='small';sizeByUser=false;}}
+function catScratch(){if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;var o=$('.fit-claw');if(o)o.remove();
+ var d=document.createElement('div');d.className='fit-claw';d.setAttribute('aria-hidden','true');
+ var W=window.innerWidth,H=window.innerHeight,X=function(v){return Math.round(v*W/100);},Y=function(v){return Math.round(v*H/100);};   /* drawn in screen pixels */
+ d.innerHTML='<svg viewBox="0 0 '+W+' '+H+'">'+[0,1,2].map(function(n){var x=n*13;
+  var p='M'+X(58+x)+' '+Y(10+n*4)+' Q'+X(47+x)+' '+Y(52)+' '+X(28+x)+' '+Y(90-n*3);
+  return '<g class="c'+(n+1)+'"><path class="gash" pathLength="1" d="'+p+'"/><path class="lip" pathLength="1" d="'+p+'" transform="translate(-3 0)"/></g>';}).join('')+'</svg>';
+ document.body.appendChild(d);setTimeout(function(){d.remove();},1300);}
 /* the chosen coat does not fit (AI guess from the photo, or the typed back length): ask once before generating */
 function misfit(){var c=coatKey&&cfg.coats[coatKey];if(!c||!c.cut)return null;
  var fw=typeof fitWarn==='function'?fitWarn(c):null;if(fw&&fw.bad)return {why:'back',bad:mval('back')<c.min?t('warn.big'):t('warn.smallB'),alts:altCoats(mval('back'),c,mval('back')<c.min?-1:1)};
- if(guess&&guess!=='M'&&dog&&dog===guessFor&&c.cut!=='A'&&c.cut!==guess){var alts=Object.keys(cfg.coats).filter(function(k){var x=cfg.coats[k];return x.cut===guess&&x.type===c.type;});
+ if(!isCat&&guess&&guess!=='M'&&dog&&dog===guessFor&&c.cut!=='A'&&c.cut!==guess){var alts=Object.keys(cfg.coats).filter(function(k){var x=cfg.coats[k];return x.cut===guess&&x.type===c.type;});
   return {why:'guess',dog:alts.length?cfg.coats[alts[0]].kind:'',coat:c.kind,alts:alts};}
  return null;}
 function showWarn(m){var old=$('.fit-modal');if(old)old.remove();var d=document.createElement('div');d.className='fit-modal';d.setAttribute('role','dialog');d.setAttribute('aria-modal','true');
@@ -590,19 +614,25 @@ function aiShow(state,r,ms){if(!aiBox||!aiDebug)return;aiBox.hidden=false;var h=
 /* the server only answers S / L when one side is >= 70 %. A clear lean (over half, the opposite end under 15 %) is enough to
    pick 大狗 / 小狗: a golden retriever came back large 59 % / small 9 % and got no suggestion at all */
 function sizeLean(P){if(!P||P.length<3)return null;if(P[2]>=0.5&&P[0]<0.15)return 'L';if(P[0]>=0.5&&P[2]<0.15)return 'S';return P[1]>=0.5?'M':null;}
-function guessSize(src,demo){guess=null;guessTop=null;guessFor=src;guessDemo=!!demo;guessMark('');guessOut();
+function guessSize(src,demo){guess=null;guessTop=null;guessFor=src;guessDemo=!!demo;guessMark('');if(isCat){catMode(false);applySel();}guessOut();
  if(guessCtl){guessCtl.abort();guessCtl=null;}
  if(!src){if(aiBox)aiBox.hidden=true;return;}
  var t0=Date.now(),ctl=new AbortController();guessCtl=ctl;aiShow('wait');
  compress(src,384,.85).then(function(img){return fetch(cfg.api+'/api/dogsize',{method:'POST',signal:ctl.signal,headers:auth({'Content-Type':'application/json'}),body:JSON.stringify({image:img})});})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-  .then(function(r){if(guessFor!==src)return;guessTop=guessDemo&&demoBreed?[demoBreed]:r.P&&r.top&&r.top.length?r.top.slice(0,3).map(function(x){return {zh:x.zh||'',name:x.name||'',p:x.p};}):null;guess=r.guess==='S'||r.guess==='L'?r.guess:sizeLean(r.P);guessMark(guess||(r.P?'none':'nodog'));aiShow('done',r,Date.now()-t0);guessOut();})
+  .then(function(r){if(guessFor!==src)return;
+   if(catDebug)r={cat:true,catP:.93,top:[{name:'British Shorthair',zh:'英國短毛貓',p:.9}],P:[.85,.12,.03],guess:'S',breedSure:true};
+   guessTop=catDebug?r.top.slice():guessDemo&&demoBreed?[demoBreed]:r.P&&r.top&&r.top.length?r.top.slice(0,3).map(function(x){return {zh:x.zh||'',name:x.name||'',p:x.p};}):null;guess=r.guess==='S'||r.guess==='L'?r.guess:sizeLean(r.P);
+   if(r.cat===true&&(!guessDemo||catDebug)){catMode(true);guess='S';guessMark('cat');aiShow('done',r,Date.now()-t0);applySel();catScratch();return;}
+   guessMark(guess||(r.P?'none':'nodog'));aiShow('done',r,Date.now()-t0);guessOut();})
   .catch(function(e){if(guessFor!==src||(e&&e.name==='AbortError'))return;guessMark('error');aiShow('error');});}
 var guessBox=$('.fit-guess');
 /* data-guess shows the last result (S / L / none / error), handy when checking the page */
 function guessMark(v){if(guessBox)guessBox.setAttribute('data-guess',v);}
 /* the photo picks 大狗 / 小狗 (marked 建議) until the customer chooses a size; choosing the other one shows why it may not fit */
-function guessOut(){if(!guessBox)return;var rec=guess&&dog&&dog===guessFor?guess:null,want=rec==='S'?'small':rec==='L'?'big':null;
+function guessOut(){if(!guessBox)return;
+ if(isCat){document.querySelectorAll('.fit-sz').forEach(function(b){b.classList.remove('rec');});guessBox.classList.remove('show');guessBox.innerHTML='';return;}
+ var rec=guess&&dog&&dog===guessFor?guess:null,want=rec==='S'?'small':rec==='L'?'big':null;
  document.querySelectorAll('.fit-sz').forEach(function(b){b.classList.toggle('rec',!!want&&b.dataset.size===want);});
  if(want&&!sizeByUser&&selSize!==want){selSize=want;applySel();return;}
  var c=coatKey&&cfg.coats[coatKey];
@@ -623,7 +653,7 @@ function recommend(c){var back=mval('back'),neck=mval('neck'),belly=mval('belly'
  var r=rows[i],note='';if(target<rows[0].len-3)note=t('size.small');else if(target>rows[rows.length-1].len+3)note=t('size.big',{size:r.size});
  return {size:r.size,len:r.len,diff:Math.round((back-r.len)*10)/10,bumped:i>best,loose:rows[i+1]?rows[i+1].size:null,note:note};}
 /* other coats whose sizes cover this back length; if none and the chosen one is too big (or small), a clearly smaller (or bigger) cut */
-function altCoats(back,c,dir){var fit=[],side=[];for(var k in cfg.coats){var o=cfg.coats[k];if(k===coatKey||!o.min)continue;
+function altCoats(back,c,dir){var fit=[],side=[];for(var k in cfg.coats){var o=cfg.coats[k];if(k===coatKey||!o.min||(isCat&&o.size!=='small'))continue;
  if(back>=o.min-3&&back<=o.max+3)fit.push(k);else if((dir<0&&o.min<c.min-3)||(dir>0&&o.max>c.max+3))side.push(k);}
  var same=function(a){var x=a.filter(function(k){return cfg.coats[k].type===c.type;});return x.length?x:a;};   // the same style first
  return fit.length||!dir?same(fit):same(side);}
