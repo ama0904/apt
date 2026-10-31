@@ -386,10 +386,10 @@ CSS = r"""
 /* a cat photo: three claw marks slash across the screen, then fade (owner: 被貓抓三痕爪痕) */
 .fit-claw{position:fixed;inset:0;z-index:9999;pointer-events:none;animation:fitClawOut .3s ease-in .8s forwards}
 .fit-claw svg{width:100%;height:100%;display:block}
-.fit-claw path{fill:none;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:fitClaw .2s cubic-bezier(.3,.7,.4,1) forwards}
-.fit-claw .gash{stroke:#5b1d1d;stroke-width:13}.fit-claw .lip{stroke:#fff;stroke-opacity:.6;stroke-width:3}
-@media (min-width:700px){.fit-claw .gash{stroke-width:18}.fit-claw .lip{stroke-width:4}}
-.fit-claw .c2 path{animation-delay:.07s}.fit-claw .c3 path{animation-delay:.14s}
+/* each mark is a torn, needle-ended shape revealed by a fast stroke in its mask */
+.fit-claw .rev{fill:none;stroke:#fff;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:fitClaw .15s cubic-bezier(.2,.9,.3,1) forwards}
+.fit-claw .out{fill:#111}
+.fit-claw .m2 .rev{animation-delay:.05s}.fit-claw .m3 .rev{animation-delay:.1s}
 @keyframes fitClaw{to{stroke-dashoffset:0}}@keyframes fitClawOut{to{opacity:0}}
 .fit-sizes{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin-top:16px}.fit-sizes .lbl{grid-column:1/-1;font-size:14px;font-weight:700;color:var(--ink2);margin-bottom:-2px}
 .fit-sz{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:56px;padding:9px 14px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
@@ -582,12 +582,23 @@ function catMode(on){isCat=!!on;if(szBox)szBox.classList.toggle('cat',isCat);if(
 /* phones: bring 尺寸 / 貓咪 into view first, then scratch (owner: 手機要往下拉才看得到) */
 function catShow(){var r=szBox&&szBox.getBoundingClientRect();
  if(window.innerWidth<981&&r&&(r.top<70||r.bottom>window.innerHeight-10)){showBox(szBox);setTimeout(catScratch,550);}else catScratch();}
+/* a black tear along a quadratic curve: needle points at both ends, widest a little above the middle, rough jagged edges
+   (owner's reference picture) */
+function clawTear(a,c,b,wd,seed){var L=[],Rr=[],n=70,r=seed||1,rnd=function(){r=(r*16807)%2147483647;return r/2147483647;};
+ for(var i=0;i<=n;i++){var t=i/n,u=1-t,
+  x=u*u*a[0]+2*u*t*c[0]+t*t*b[0],y=u*u*a[1]+2*u*t*c[1]+t*t*b[1],dx=2*u*(c[0]-a[0])+2*t*(b[0]-c[0]),dy=2*u*(c[1]-a[1])+2*t*(b[1]-c[1]),
+  l=Math.hypot(dx,dy)||1,w=wd/2*Math.pow(Math.sin(Math.PI*Math.pow(t,0.8)),1.6),nx=-dy/l,ny=dx/l,
+  jl=w*(i%2?0.55+0.6*rnd():1+0.35*rnd()),jr=w*(i%2?1+0.35*rnd():0.55+0.6*rnd());   /* zig-zag edges, out of step on the two sides */
+  L.push((x+nx*jl).toFixed(1)+' '+(y+ny*jl).toFixed(1));Rr.unshift((x-nx*jr).toFixed(1)+' '+(y-ny*jr).toFixed(1));}
+ return 'M'+L.join('L')+'L'+Rr.join('L')+'Z';}
 function catScratch(){if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;var o=$('.fit-claw');if(o)o.remove();
  var d=document.createElement('div');d.className='fit-claw';d.setAttribute('aria-hidden','true');
- var W=window.innerWidth,H=window.innerHeight,X=function(v){return Math.round(v*W/100);},Y=function(v){return Math.round(v*H/100);};   /* drawn in screen pixels */
- d.innerHTML='<svg viewBox="0 0 '+W+' '+H+'">'+[0,1,2].map(function(n){var x=n*13;
-  var p='M'+X(58+x)+' '+Y(10+n*4)+' Q'+X(47+x)+' '+Y(52)+' '+X(28+x)+' '+Y(90-n*3);
-  return '<g class="c'+(n+1)+'"><path class="gash" pathLength="1" d="'+p+'"/><path class="lip" pathLength="1" d="'+p+'" transform="translate(-3 0)"/></g>';}).join('')+'</svg>';
+ var W=window.innerWidth,H=window.innerHeight,X=function(v){return Math.round(v*W/100);},Y=function(v){return Math.round(v*H/100);},   /* drawn in screen pixels */
+  wd=W<700?11:15;
+ d.innerHTML='<svg viewBox="0 0 '+W+' '+H+'">'+[0,1,2].map(function(n){var x=n*13,
+   a=[X(60+x),Y(6+n*4)],c=[X(46+x),Y(50)],b=[X(26+x),Y(94-n*3)],ww=wd*(n===1?1.12:0.9),id='fcm'+n;
+  return '<g class="m'+(n+1)+'"><mask id="'+id+'" maskUnits="userSpaceOnUse" x="0" y="0" width="'+W+'" height="'+H+'"><path class="rev" pathLength="1" stroke-width="'+(ww*2+6)+'" d="M'+a+' Q'+c+' '+b+'"/></mask>'+
+   '<g mask="url(#'+id+')"><path class="out" d="'+clawTear(a,c,b,ww,7+n*131)+'"/></g></g>';}).join('')+'</svg>';
  document.body.appendChild(d);setTimeout(function(){d.remove();},1300);}
 /* the chosen coat does not fit (AI guess from the photo, or the typed back length): ask once before generating */
 function misfit(){var c=coatKey&&cfg.coats[coatKey];if(!c||!c.cut)return null;
