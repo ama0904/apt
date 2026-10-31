@@ -1,20 +1,20 @@
 {
  "dogs": [
   {
-   "key": "shihtzu",
-   "breed": {"zh": "西施犬", "name": "Shih Tzu"},
-   "label": "西施犬",
-   "image": "assets/fitstudio/dog_shihtzu.jpg",
+   "key": "poodle",
+   "breed": {"zh": "貴賓狗", "name": "Poodle"},
+   "label": "貴賓狗",
+   "image": "assets/fitstudio/dog_poodle.jpg",
    "visible": true,
    "i18n": {
     "en": {
-     "label": "Shih Tzu"
+     "label": "Poodle"
     },
     "ja": {
-     "label": "シーズー"
+     "label": "プードル"
     },
     "de": {
-     "label": "Shih Tzu"
+     "label": "Pudel"
     }
    }
   },
