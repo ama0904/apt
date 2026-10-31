@@ -387,9 +387,17 @@ CSS = r"""
 .fit-claw{position:fixed;inset:0;z-index:9999;pointer-events:none;animation:fitClawOut .3s ease-in .8s forwards}
 .fit-claw svg{width:100%;height:100%;display:block}
 /* each mark is a torn, needle-ended shape revealed by a fast stroke in its mask */
-.fit-claw .rev{fill:none;stroke:#fff;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:fitClaw .15s cubic-bezier(.2,.9,.3,1) forwards}
-.fit-claw .out{fill:#111}
-.fit-claw .m2 .rev{animation-delay:.05s}.fit-claw .m3 .rev{animation-delay:.1s}
+.fit-claw .rev,.fit-sz-claw .rev{fill:none;stroke:#fff;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:fitClaw .15s cubic-bezier(.2,.9,.3,1) forwards}
+.fit-claw .out,.fit-sz-claw .out{fill:#111}
+.fit-claw .m2 .rev,.fit-sz-claw .m2 .rev{animation-delay:.05s}.fit-claw .m3 .rev,.fit-sz-claw .m3 .rev{animation-delay:.1s}
+/* 小狗 / 大狗 get clawed too: small marks, a shake, then they are swatted off and roll away sideways, and 貓咪 pops in
+   (owner: 方塊要滾走或者被打掉) */
+.fit-sz-claw{position:absolute;inset:0;pointer-events:none;overflow:visible}.fit-sz-claw svg{width:100%;height:100%;display:block;overflow:visible}
+.fit-sz.torn{position:relative;z-index:2;animation:fitTornShake .3s ease-in-out .3s,fitTornKnock .62s cubic-bezier(.5,0,.9,.6) .72s forwards}
+@keyframes fitTornShake{20%{transform:translateX(-5px) rotate(-2deg)}40%{transform:translateX(5px) rotate(2deg)}60%{transform:translateX(-3px) rotate(-1deg)}80%{transform:translateX(2px)}}
+@keyframes fitTornKnock{25%{transform:translate(calc(var(--dir,1)*18px),-22px) rotate(calc(var(--dir,1)*35deg))}
+ 100%{transform:translate(calc(var(--dir,1)*110vw),70px) rotate(calc(var(--dir,1)*620deg))}}
+.fit-sizes .fit-cat.pop{animation:fitCatPop .42s cubic-bezier(.3,1.6,.5,1)}@keyframes fitCatPop{from{transform:scale(.8);opacity:0}}
 @keyframes fitClaw{to{stroke-dashoffset:0}}@keyframes fitClawOut{to{opacity:0}}
 .fit-sizes{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin-top:16px}.fit-sizes .lbl{grid-column:1/-1;font-size:14px;font-weight:700;color:var(--ink2);margin-bottom:-2px}
 .fit-sz{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:56px;padding:9px 14px;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
@@ -554,7 +562,7 @@ function applySel(){if(isCat)selSize='small';var k=selType&&selSize?coatOf(selTy
  warnOk=false;
  document.querySelectorAll('.fit-type').forEach(function(b){b.classList.toggle('cur',b.dataset.type===selType);
   var k2=coatOf(b.dataset.type,selSize||'big')||coatOf(b.dataset.type,'small'),im=b.querySelector('img');if(!b.dataset.fixed&&k2&&im&&im.getAttribute('src')!==cfg.coats[k2].img)im.src=cfg.coats[k2].img;});
- document.querySelectorAll('.fit-sz').forEach(function(b){b.classList.toggle('cur',b===catBtn||b.dataset.size===selSize);
+ document.querySelectorAll('.fit-sz').forEach(function(b){b.classList.toggle('cur',b===catBtn||(!isCat&&b.dataset.size===selSize));
   var k2=coatOf(selType||'rain',b.dataset.size),o=k2&&cfg.coats[k2],i=b.querySelector('i');if(i)i.textContent=o&&o.range?o.range:'';});
  renderSel();update();sizeOut();guessOut();}
 function selectCoat(k){var o=cfg.coats[k];if(!o)return;selType=o.type;selSize=o.size;sizeByUser=true;applySel();}
@@ -578,10 +586,27 @@ var guess=null,guessTop=null,demoBreed=null,guessFor=null,guessDemo=false,guessC
 var szBox=$('.fit-sizes'),catBtn=null;
 if(szBox){catBtn=document.createElement('button');catBtn.type='button';catBtn.className='fit-sz fit-cat cur';catBtn.dataset.size='small';
  catBtn.innerHTML='<b></b><i></i>';catBtn.querySelector('b').textContent=t('sz.cat');szBox.appendChild(catBtn);}
-function catMode(on){isCat=!!on;if(szBox)szBox.classList.toggle('cat',isCat);if(isCat){selSize='small';sizeByUser=false;}}
+var catTm=null;
+function catMode(on){isCat=!!on;clearTimeout(catTm);
+ if(szBox){szBox.querySelectorAll('.fit-sz-claw').forEach(function(x){x.remove();});szBox.querySelectorAll('.torn').forEach(function(b){b.classList.remove('torn');});
+  if(catBtn)catBtn.classList.remove('pop');
+  /* with motion, 貓咪 replaces 小狗 / 大狗 only after they have been clawed away (catTear) */
+  szBox.classList.toggle('cat',isCat&&catStill());}
+ if(isCat){selSize='small';sizeByUser=false;}}
+function catStill(){return !!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);}
 /* phones: bring 尺寸 / 貓咪 into view first, then scratch (owner: 手機要往下拉才看得到) */
 function catShow(){var r=szBox&&szBox.getBoundingClientRect();
  if(window.innerWidth<981&&r&&(r.top<70||r.bottom>window.innerHeight-10)){showBox(szBox);setTimeout(catScratch,550);}else catScratch();}
+/* small claw marks across each size button, then they shake and drop, and the 貓咪 option pops in */
+function catTear(){if(!szBox||!isCat)return;
+ szBox.querySelectorAll('.fit-sz:not(.fit-cat)').forEach(function(b,k){var w=b.offsetWidth,h=b.offsetHeight,o=document.createElement('span');
+  o.className='fit-sz-claw';o.setAttribute('aria-hidden','true');
+  o.innerHTML=clawSvg(w,h,[0,1,2].map(function(n){var x=w*(0.5+n*0.14);return [[x+h*0.35,-h*0.12],[x-h*0.05,h*0.5],[x-h*0.55,h*1.12]];}),w<200?5:6,'fsz'+k+'_');
+  b.appendChild(o);b.style.setProperty('--dir',k%2?'1':'-1');   /* 小狗 rolls off left, 大狗 right */b.classList.add('torn');});
+ catTm=setTimeout(function(){if(!isCat)return;szBox.classList.add('cat');if(catBtn){catBtn.classList.remove('pop');void catBtn.offsetWidth;catBtn.classList.add('pop');}},1250);}
+function clawSvg(W,H,marks,wd,idp){return '<svg viewBox="0 0 '+W+' '+H+'">'+marks.map(function(m,n){var a=m[0],c=m[1],b=m[2],ww=wd*(n===1?1.12:0.9),id=idp+n;
+  return '<g class="m'+(n+1)+'"><mask id="'+id+'" maskUnits="userSpaceOnUse" x="'+(-W)+'" y="'+(-H)+'" width="'+(3*W)+'" height="'+(3*H)+'"><path class="rev" pathLength="1" stroke-width="'+(ww*2+6)+'" d="M'+a+' Q'+c+' '+b+'"/></mask>'+
+   '<g mask="url(#'+id+')"><path class="out" d="'+clawTear(a,c,b,ww,7+n*131)+'"/></g></g>';}).join('')+'</svg>';}
 /* a black tear along a quadratic curve: needle points at both ends, widest a little above the middle, rough jagged edges
    (owner's reference picture) */
 function clawTear(a,c,b,wd,seed){var L=[],Rr=[],n=70,r=seed||1,rnd=function(){r=(r*16807)%2147483647;return r/2147483647;};
@@ -591,14 +616,11 @@ function clawTear(a,c,b,wd,seed){var L=[],Rr=[],n=70,r=seed||1,rnd=function(){r=
   jl=w*(i%2?0.55+0.6*rnd():1+0.35*rnd()),jr=w*(i%2?1+0.35*rnd():0.55+0.6*rnd());   /* zig-zag edges, out of step on the two sides */
   L.push((x+nx*jl).toFixed(1)+' '+(y+ny*jl).toFixed(1));Rr.unshift((x-nx*jr).toFixed(1)+' '+(y-ny*jr).toFixed(1));}
  return 'M'+L.join('L')+'L'+Rr.join('L')+'Z';}
-function catScratch(){if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;var o=$('.fit-claw');if(o)o.remove();
+function catScratch(){if(catStill()||!isCat)return;var o=$('.fit-claw');if(o)o.remove();setTimeout(catTear,220);
  var d=document.createElement('div');d.className='fit-claw';d.setAttribute('aria-hidden','true');
  var W=window.innerWidth,H=window.innerHeight,X=function(v){return Math.round(v*W/100);},Y=function(v){return Math.round(v*H/100);},   /* drawn in screen pixels */
   wd=W<700?11:15;
- d.innerHTML='<svg viewBox="0 0 '+W+' '+H+'">'+[0,1,2].map(function(n){var x=n*13,
-   a=[X(60+x),Y(6+n*4)],c=[X(46+x),Y(50)],b=[X(26+x),Y(94-n*3)],ww=wd*(n===1?1.12:0.9),id='fcm'+n;
-  return '<g class="m'+(n+1)+'"><mask id="'+id+'" maskUnits="userSpaceOnUse" x="0" y="0" width="'+W+'" height="'+H+'"><path class="rev" pathLength="1" stroke-width="'+(ww*2+6)+'" d="M'+a+' Q'+c+' '+b+'"/></mask>'+
-   '<g mask="url(#'+id+')"><path class="out" d="'+clawTear(a,c,b,ww,7+n*131)+'"/></g></g>';}).join('')+'</svg>';
+ d.innerHTML=clawSvg(W,H,[0,1,2].map(function(n){var x=n*13;return [[X(60+x),Y(6+n*4)],[X(46+x),Y(50)],[X(26+x),Y(94-n*3)]];}),wd,'fcm');
  document.body.appendChild(d);setTimeout(function(){d.remove();},1300);}
 /* the chosen coat does not fit (AI guess from the photo, or the typed back length): ask once before generating */
 function misfit(){var c=coatKey&&cfg.coats[coatKey];if(!c||!c.cut)return null;
