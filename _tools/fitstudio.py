@@ -579,6 +579,9 @@ var szBox=$('.fit-sizes'),catBtn=null;
 if(szBox){catBtn=document.createElement('button');catBtn.type='button';catBtn.className='fit-sz fit-cat cur';catBtn.dataset.size='small';
  catBtn.innerHTML='<b></b><i></i>';catBtn.querySelector('b').textContent=t('sz.cat');szBox.appendChild(catBtn);}
 function catMode(on){isCat=!!on;if(szBox)szBox.classList.toggle('cat',isCat);if(isCat){selSize='small';sizeByUser=false;}}
+/* phones: bring 尺寸 / 貓咪 into view first, then scratch (owner: 手機要往下拉才看得到) */
+function catShow(){var r=szBox&&szBox.getBoundingClientRect();
+ if(window.innerWidth<981&&r&&(r.top<70||r.bottom>window.innerHeight-10)){showBox(szBox);setTimeout(catScratch,550);}else catScratch();}
 function catScratch(){if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;var o=$('.fit-claw');if(o)o.remove();
  var d=document.createElement('div');d.className='fit-claw';d.setAttribute('aria-hidden','true');
  var W=window.innerWidth,H=window.innerHeight,X=function(v){return Math.round(v*W/100);},Y=function(v){return Math.round(v*H/100);};   /* drawn in screen pixels */
@@ -623,7 +626,7 @@ function guessSize(src,demo){guess=null;guessTop=null;guessFor=src;guessDemo=!!d
   .then(function(r){if(guessFor!==src)return;
    if(catDebug)r={cat:true,catP:.93,top:[{name:'British Shorthair',zh:'英國短毛貓',p:.9}],P:[.85,.12,.03],guess:'S',breedSure:true};
    guessTop=catDebug?r.top.slice():guessDemo&&demoBreed?[demoBreed]:r.P&&r.top&&r.top.length?r.top.slice(0,3).map(function(x){return {zh:x.zh||'',name:x.name||'',p:x.p};}):null;guess=r.guess==='S'||r.guess==='L'?r.guess:sizeLean(r.P);
-   if(r.cat===true&&(!guessDemo||catDebug)){catMode(true);guess='S';guessMark('cat');aiShow('done',r,Date.now()-t0);applySel();catScratch();return;}
+   if(r.cat===true&&(!guessDemo||catDebug)){catMode(true);guess='S';guessMark('cat');aiShow('done',r,Date.now()-t0);applySel();catShow();return;}
    guessMark(guess||(r.P?'none':'nodog'));aiShow('done',r,Date.now()-t0);guessOut();})
   .catch(function(e){if(guessFor!==src||(e&&e.name==='AbortError'))return;guessMark('error');aiShow('error');});}
 var guessBox=$('.fit-guess');
