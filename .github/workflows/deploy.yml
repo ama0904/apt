@@ -43,6 +43,8 @@ jobs:
           cp _tools/admin.html www.apetto.com.tw/admin.html
           touch www.apetto.com.tw/.nojekyll
           rm -rf www.apetto.com.tw/_raw_html
+          rm -rf www.apetto.com.tw/_templates www.apetto.com.tw/_mirror_log.txt www.apetto.com.tw/_mirror_manifest.json
+          rm -f www.apetto.com.tw/_data/*.json
 
       - uses: actions/configure-pages@v5
         with:
