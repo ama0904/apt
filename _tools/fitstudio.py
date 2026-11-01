@@ -775,7 +775,9 @@ function rcPick(i){var c=cfg.coats[coatKey],info=rcBox.querySelector('p');rcSel=
    in snow it gets snowed on and shakes the snow off; a tornado chases it from the left and leaves it frizzy until it changes;
    on a sunny round the dressed dog stops under the sun on the way out, sunglasses drop onto its face, it grins and sparkles,
    then runs off wearing them; on a night round a small meteor streaks down past it, then the coat's reflective strip lights up
-   and it grins (owner's requests; d.cool, d.glow and the night/meteor weather are optional) */
+   and it grins; in sakura / autumn a whole tree stands on the ground dropping petals / leaves, the dog runs under it, comes out
+   covered and shakes them off, and the falling stops once the dressed dog has run past (owner's requests; d.cool, d.glow,
+   d.petaly / d.leafy and the night / meteor / sakura / autumn weather are optional) */
 var pxCache={},pxBag=[],pxLast=null;
 /* weather order: a shuffled bag of all kinds, reshuffled when empty, never the same kind twice in a row (owner: 不要重複出現天氣) */
 function pxNext(kinds){if(!kinds.length)return null;pxBag=pxBag.filter(function(k){return kinds.indexOf(k)>=0;});
@@ -790,21 +792,26 @@ function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.rem
  (pxCache[q]||(pxCache[q]=fetch(cfg.api+'/api/pixeldog?'+q,{headers:auth(),cache:'no-cache'})   /* always revalidate: an old day-cached copy lacked the weather and the new booth */.then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
    .then(function(d){if(!d||!d.image||!d.w||!d.frames)throw new Error('bad');
      var dogS=function(u,f,fps){return u?{w:d.w,h:d.h,frames:f||d.frames,fps:fps||d.fps,image:u}:null;},wx=d.weather||{},sn=d.snowy||{},sh=d.shake||{},
-      keys=['sun','rain','storm','snow','tornado','night','meteor'];   /* the server also sends a rainbow; owner took it out */
+      pe=d.petaly||{},le=d.leafy||{},keys=['sun','rain','storm','snow','tornado','night','meteor','sakura','autumn'];   /* the server also sends a rainbow; owner took it out */
      return Promise.all([pxStrip(dogS(d.image)),pxStrip(dogS(d.plain||d.image)),pxStrip(d.room),pxStrip(dogS(sh.image,sh.frames,sh.fps)),
        pxStrip(dogS(sn.run)),pxStrip(dogS(sn.shake&&(sn.shake.image||sn.shake),sn.shake&&sn.shake.frames||sh.frames||6,sn.shake&&sn.shake.fps||sh.fps||14)),pxStrip(dogS(d.frizzy)),
        pxStrip(d.cool&&dogS(d.cool.image,d.cool.frames,d.cool.fps)),pxStrip(d.cool&&dogS(d.cool.run)),
        pxStrip(d.cool&&d.cool.glasses&&{w:d.cool.glasses.w,h:d.cool.glasses.h,frames:1,image:d.cool.glasses.image}),
-       pxStrip(d.glow&&dogS(d.glow.image,d.glow.frames,d.glow.fps)),pxStrip(d.glow&&dogS(d.glow.run))]
+       pxStrip(d.glow&&dogS(d.glow.image,d.glow.frames,d.glow.fps)),pxStrip(d.glow&&dogS(d.glow.run)),
+       pxStrip(wx.sakura&&wx.sakura.fall),pxStrip(wx.autumn&&wx.autumn.fall),
+       pxStrip(dogS(pe.run)),pxStrip(dogS(pe.shake,sh.frames||6,sh.fps||14)),pxStrip(dogS(le.run)),pxStrip(dogS(le.shake,sh.frames||6,sh.fps||14))]
        .concat(keys.map(function(k){return pxStrip(wx[k]);})))
-      .then(function(a){if(!a[0])throw new Error('bad');var w={};keys.forEach(function(k,n){if(a[12+n])w[k]=a[12+n];});
+      .then(function(a){if(!a[0])throw new Error('bad');var w={};keys.forEach(function(k,n){if(a[18+n])w[k]=a[18+n];});
        var met=w.meteor;delete w.meteor;if(!(a[10]&&met&&w.night))delete w.night;   /* night needs the glow dog and the meteor */
+       /* sakura / autumn need the tree and the covered dog (running + shaking) */
+       var tree={sakura:a[14]&&a[15]?{fall:a[12],run:a[14],shake:a[15]}:null,autumn:a[16]&&a[17]?{fall:a[13],run:a[16],shake:a[17]}:null};
+       ['sakura','autumn'].forEach(function(k){if(!tree[k])delete w[k];else if(!w[k])tree[k]=null;});
        return {d:d,dressed:a[0],plain:a[1]||a[0],room:a[2],shake:a[3],snowRun:a[4],snowShake:a[5],frizzy:a[6],
         cool:a[7]&&a[9]&&d.cool.at?{img:a[7],run:a[8]||a[0],glasses:a[9],at:d.cool.at}:null,
-        glow:w.night?{img:a[10],run:a[11]||a[0],meteor:met}:null,wx:w};});})
+        glow:w.night?{img:a[10],run:a[11]||a[0],meteor:met}:null,tree:tree,wx:w};});})
    .catch(function(){delete pxCache[q];return null;})))
   .then(function(x){if(!x||running!==run)return;var box=$('.fit-stage .box'),Z=box&&box.clientWidth<420?2:3,cv=el.firstChild,g=cv.getContext('2d'),d=x.d,rm=x.room&&x.room.s,
-    kinds=Object.keys(x.wx),wxH=kinds.reduce(function(m,k){return k==='tornado'?m:Math.max(m,x.wx[k].s.h);},0),
+    kinds=Object.keys(x.wx),wxH=kinds.reduce(function(m,k){return k==='tornado'||x.wx[k].s.ground?m:Math.max(m,x.wx[k].s.h);},0),   /* trees stand on the ground */
     W=Math.max(120,Math.floor((box?box.clientWidth:360)/Z)),H=Math.max(d.h+(wxH?wxH-6:0),rm?rm.h:0)+2,ms=1000/(d.fps||10);
    cv.width=W;cv.height=H;cv.style.width=W*Z+'px';cv.style.height=H*Z+'px';g.imageSmoothingEnabled=false;el.classList.add('on');
    var rx=rm?W-rm.w:W,door=rm?rx+Math.round((rm.w-d.w)/2):W,dy=H-1-d.h,still=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -814,7 +821,12 @@ function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.rem
    function at(o,t){return still?0:Math.floor(t/(1000/(o.s.fps||10)));}
    function roomAt(f){if(rm)strip(x.room,f,rx,H-1-rm.h,false);}
    function wxCx(o){return Math.min(Math.max(rx/2,o.s.w/2),W-o.s.w/2);}
-   function wxAt(k,t){var o=k&&k!=='tornado'&&x.wx[k];if(!o)return;var cx=wxCx(o);strip(o,at(o,t),cx-o.s.w/2,Math.max(0,dy-o.s.h+6),false);}
+   function wxAt(k,t){var o=k&&k!=='tornado'&&x.wx[k];if(!o)return;var cx=wxCx(o),ox=cx-o.s.w/2,oy=o.s.ground?H-1-o.s.h:Math.max(0,dy-o.s.h+6);
+    strip(o,at(o,t),ox,oy,false);
+    var tr=x.tree&&x.tree[k],fl=tr&&tr.fall;if(!fl||still||!L)return;
+    /* petals / leaves keep falling until the dressed dog's middle passes the tree's left edge, then fade out over 500 ms */
+    var passAt=RUN+L.stop+1800+300+(door+d.w/2-ox)/((door+d.w)/RUN),fa=t<passAt?1:1-(t-passAt)/500;
+    if(fa<=0)return;g.save();g.globalAlpha=fa;strip(fl,at(fl,t),ox,oy,false);g.restore();}
    var RUN=2600,SHAKE=1400,L=null,
     /* sunny stop: [cool frame, ms] - turn, face us (glasses fall), shades on, grin, sparkle twice, grin */
     COOL_STEPS=[[0,160],[1,160],[2,950],[3,260],[4,380],[5,110],[6,420],[7,110],[5,110],[6,380],[4,450]],
@@ -824,7 +836,7 @@ function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.rem
     GLOW=GLOW_STEPS.reduce(function(a,b){return a+b[1];},0),M_START=150,M_FLY=750,M_FADE=150;
    function stepAt(steps,tc){for(var i=0;i<steps.length;i++){if(tc<steps[i][1])return steps[i][0];tc-=steps[i][1];}return steps[steps.length-1][0];}
    function round(now){var k=pxNext(kinds),
-     stop=(k==='rain'||k==='storm')&&x.shake||k==='snow'&&x.snowShake?SHAKE:0,
+     stop=(k==='rain'||k==='storm')&&x.shake||k==='snow'&&x.snowShake||x.tree&&x.tree[k]?SHAKE:0,
      mode=k==='sun'&&x.cool&&x.wx.sun?'cool':k==='night'&&x.glow?'glow':'',stay=mode==='cool'?COOL:mode==='glow'?GLOW:0;
     L={t0:now,k:k,stop:stop,mode:mode,cool:stay,len:RUN+stop+1800+300+RUN+stay+400};}
    (function frame(now){if(running!==run||stage.dataset.state!=='busy')return;g.clearRect(0,0,W,H);
@@ -837,10 +849,11 @@ function pxDog(run){var el=$('.fit-stage .pxdog');if(!el)return;el.classList.rem
      xs=Math.min(door-16,ce+ww/2+2),ts=L.stop?(xs+d.w)/v:RUN;
     /* tornado round: a funnel chases the dog from the left at twice its speed, on the ground, and blows past */
     var to=k==='tornado'&&x.wx.tornado,tor=!!to,tx=tor?-to.s.w+2*v*(t-0.15*RUN):0;
-    if(t<R){roomAt(0);var px=t<ts?-d.w+v*t:t<ts+L.stop?xs:-d.w+v*(t-L.stop),snowy=k==='snow'&&x.snowRun&&px>=ce-ww/2-d.w/2&&t<ts+L.stop;
-     if(L.stop&&t>=ts&&t<ts+L.stop){var o=k==='snow'?x.snowShake:x.shake;dogAt(o,xs,at(o,t-ts),false);}
+    var tr=x.tree&&x.tree[k],cov=k==='snow'?x.snowRun:tr?tr.run:null;   /* snow / petals / leaves cover the dog under the cloud or tree */
+    if(t<R){roomAt(0);var px=t<ts?-d.w+v*t:t<ts+L.stop?xs:-d.w+v*(t-L.stop),snowy=cov&&px>=ce-ww/2-d.w/2&&t<ts+L.stop;
+     if(L.stop&&t>=ts&&t<ts+L.stop){var o=k==='snow'?x.snowShake:tr?tr.shake:x.shake;dogAt(o,xs,at(o,t-ts),false);}
      else{if(tor&&x.frizzy&&!L.frizz&&tx+to.s.w/2>=px+d.w/2)L.frizz=true;   /* tornado caught up: frizzy until the booth */
-      dogAt(snowy?x.snowRun:L.frizz?x.frizzy:x.plain,px,f,false);}}
+      dogAt(snowy?cov:L.frizz?x.frizzy:x.plain,px,f,false);}}
     else if(t<R+1800)roomAt(1+Math.floor((t-R)/220)%2);
     else if(t<R+2100){roomAt(0);dogAt(x.dressed,door,0,true);}
     else if(t<R+2100+RUN+L.cool){roomAt(0);var t2=t-R-2100,outX=function(u){return door-(door+d.w)*u;};
